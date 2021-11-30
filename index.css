@@ -1,0 +1,36 @@
+:root {
+    --bgc: #eee;
+    --fgc: #333;
+    --d: 10px;
+}
+
+body { 
+    max-width: 1200px; 
+    padding: var(--d); 
+    margin: var(--d); 
+    background-color: var(--bgc);
+    color: var(--fgc);
+    font-family: monospace;
+    font-size: 14px;
+    border: thin solid #000;
+}
+
+pre,
+img { 
+    max-width: 960px; 
+    display: block;
+    margin: auto;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    background-color: var(--fgc);
+    color:var(--bgc);
+    padding: calc(2*var(--d)) var(--d);
+    margin: calc(-1 * var(--d));
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 16px;
+    text-shadow: 2px 2px 1px black;
+    margin-bottom: unset;
+}
+
