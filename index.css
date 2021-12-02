@@ -4,6 +4,10 @@
     --d: 10px;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 body {
     max-width: 1000px;
     padding: var(--d);
@@ -26,11 +30,23 @@ a {
     display: block;
 }
 
+figure, img {
+    max-width: 960px;
+    margin: auto;
+}
+
+figcaption {
+    width: 50%;
+    margin: -4px auto 20px;
+    background-color: teal;
+    color: white;
+    text-align: center;
+}
+
 img {
     max-width: 960px;
     display: block;
-    margin: auto;
-    border: thin solid #333;
+    margin: 5px auto;
 }
 
 pre {
@@ -55,8 +71,27 @@ h1, h2, h3, h4, h5, h6 {
     text-shadow: 2px 2px 1px black;
 }
 
-h2 {padding-left: calc(4 * var(--d)); font-size: 18px}
-h3 {padding-left: calc(8 * var(--d)); font-size: 16px}
-h4 {padding-left: calc(12 * var(--d)); font-size: 14px}
-h5 {padding-left: calc(16 * var(--d)); font-size: 12px}
-h6 {padding-left: calc(20 * var(--d)); font-size: 10px}
+h2 {
+    padding-left: calc(4 * var(--d));
+    font-size: 18px
+}
+
+h3 {
+    padding-left: calc(8 * var(--d));
+    font-size: 16px
+}
+
+h4 {
+    padding-left: calc(12 * var(--d));
+    font-size: 14px
+}
+
+h5 {
+    padding-left: calc(16 * var(--d));
+    font-size: 12px
+}
+
+h6 {
+    padding-left: calc(20 * var(--d));
+    font-size: 10px
+}
