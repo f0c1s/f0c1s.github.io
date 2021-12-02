@@ -1,0 +1,141 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../index.css"/>
+<link rel="stylesheet" href="../highlight/styles/monokai.min.css"/>
+<script src="../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<body class="aoc 2021 aoc2021">
+<h1>/f0c1s/blog/aoc2021/day-2</h1>
+<p>
+    This page contains solutions for Advent Of Code 2021 Day #2.
+    The languages I have used to solve this are JS, and Python.
+</p>
+<h2>JavaScript</h2>
+
+<h3>Part 1</h3>
+<pre class="code js">
+    <code class="language-javascript">
+#!/usr/bin/env node
+
+/* Advent Of Code problem #2a */
+
+const {readFileSync} = require('fs');
+
+const input = readFileSync(0).toString();
+
+const commands = input.split('\n')
+    .filter(i => i.length > 0)
+    .map(i => i.split(' '))
+    .map(i => ({c: i[0], v: parseInt(i[1])}));
+
+const forwards = commands.filter(i => i.c === 'forward');
+const upsndowns = commands.filter(i => i.c !== 'forward');
+
+const ups = upsndowns.filter(i => i.c === 'up');
+const downs = upsndowns.filter(i => i.c === 'down');
+
+const f = forwards.reduce((a, c) => a + c.v, 0);
+const u = ups.reduce((a, c) => a + c.v, 0);
+const d = downs.reduce((a, c) => a + c.v, 0);
+
+console.log(f * Math.abs(d - u));
+    </code>
+</pre>
+
+<h3>Part 2</h3>
+<pre class="code js">
+    <code class="language-javascript">
+#!/usr/bin/env node
+
+/* Advent Of Code problem #2b */
+const {readFileSync} = require('fs');
+const input = readFileSync(0).toString();
+const commands = input.split('\n')
+    .filter(i => i.length > 0)
+    .map(i => i.split(' '))
+    .map(i => ({c: i[0], v: parseInt(i[1])}));
+
+let aim = 0, depth = 0, forward = 0;
+
+for (let i = 0; i < commands.length; i++) {
+    const cmd = commands[i];
+    switch (cmd.c) {
+        case 'forward' :
+            forward += cmd.v;
+            depth += aim * cmd.v;
+            break;
+        case 'down':
+            aim += cmd.v;
+            break;
+        case 'up':
+            aim -= cmd.v;
+            break;
+    }
+}
+
+console.log(forward * depth);
+    </code>
+</pre>
+
+<h2>Python</h2>
+<h3>Part 1</h3>
+<pre class="code py">
+    <code class="language-python">
+#!/usr/bin/env python3
+
+import sys
+
+lines = [line for line in sys.stdin]
+data = list(map(lambda x: x.split(' '), lines))
+# print(data)
+depth = 0
+forward = 0
+
+for _, v in enumerate(data):
+    act, val = v
+    val = int(val)
+    #print(act, val)
+    if act == 'forward':
+        forward += val
+    elif act == 'up':
+        depth -= val
+    elif act == 'down':
+        depth += val
+
+print(forward * depth)
+
+    </code>
+
+</pre>
+
+<h3>Part 2</h3>
+<pre class="code py">
+    <code class="language-python">
+#!/usr/bin/env python3
+
+import sys
+
+lines = [line for line in sys.stdin]
+data = list(map(lambda x: x.split(' '), lines))
+# print(data)
+aim = 0
+forward = 0
+depth = 0
+
+for _, v in enumerate(data):
+    act, val = v
+    val = int(val)
+    #print(act, val)
+    if act == 'forward':
+        forward += val
+        depth += (aim * val)
+    elif act == 'up':
+        aim -= val
+    elif act == 'down':
+        aim += val
+
+print(forward * depth)
+
+    </code>
+</pre>
+</body>

@@ -1,13 +1,13 @@
 :root {
     --bgc: #eee;
-    --fgc: #333;
+    --fgc: #111;
     --d: 10px;
 }
 
-body { 
-    max-width: 1200px; 
-    padding: var(--d); 
-    margin: var(--d); 
+body {
+    max-width: 1000px;
+    padding: var(--d);
+    margin: var(--d);
     background-color: var(--bgc);
     color: var(--fgc);
     font-family: monospace;
@@ -15,22 +15,48 @@ body {
     border: thin solid #000;
 }
 
-pre,
-img { 
-    max-width: 960px; 
+p {
+    padding: 10px 0;
+    margin: 10px 0;
+}
+
+a {
+    padding: 5px;
+    margin: 5px;
+    display: block;
+}
+
+img {
+    max-width: 960px;
     display: block;
     margin: auto;
+    border: thin solid #333;
+}
+
+pre {
+    margin: 10px;
+    padding: 10px;
+}
+
+pre code {
+    max-width: 960px;
+    display: block;
+    padding: 15px;
 }
 
 h1, h2, h3, h4, h5, h6 {
     background-color: var(--fgc);
-    color:var(--bgc);
-    padding: calc(2*var(--d)) var(--d);
-    margin: calc(-1 * var(--d));
+    color: var(--bgc);
+    padding: calc(2 * var(--d)) var(--d);
+    margin: 10px calc(-1 * var(--d));
     text-transform: uppercase;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 20px;
     text-shadow: 2px 2px 1px black;
-    margin-bottom: unset;
 }
 
+h2 {padding-left: calc(4 * var(--d)); font-size: 18px}
+h3 {padding-left: calc(8 * var(--d)); font-size: 16px}
+h4 {padding-left: calc(12 * var(--d)); font-size: 14px}
+h5 {padding-left: calc(16 * var(--d)); font-size: 12px}
+h6 {padding-left: calc(20 * var(--d)); font-size: 10px}
