@@ -10,6 +10,7 @@
 
 body {
     max-width: 1000px;
+    width: 1000px;
     padding: var(--d);
     margin: var(--d);
     background-color: var(--bgc);
