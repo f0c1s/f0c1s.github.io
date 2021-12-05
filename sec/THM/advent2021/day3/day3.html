@@ -1,0 +1,111 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../../../index.css"/>
+<link rel="stylesheet" href="../../../../highlight/styles/monokai.min.css"/>
+<script src="../../../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<h1>/f0c1s/blog/sec/THM/advent2021/day3</h1>
+
+<p>
+    <a href="../../index.html">/blog</a>
+    <a href="../../../../sec/index.html">Security</a>
+    <a href="../../../../sec/THM/index.html">TryHackMe writeups</a>
+    <a href="../../../../sec/THM/advent2021/index.html">advent 2021</a>
+    <a href="../../../../sec/THM/advent2021/day3/day3.html">+ day 3</a>
+</p>
+
+
+<h1 id="thm-advent2021-day3">THM Advent2021 Day3</h1>
+<pre class="shell"><code>hostname -I: 192.168.42.8 192.168.56.40 10.11.54.100
+Sunday 05 December 2021 02:45:00 PM IST 2021.12.05 14:45:00
+f0c1s@kali:~/thm/rooms/advent2021 $
+_n $RHOST
+firing nmap 10.10.84.6 | tee nmap.default.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-05 14:45 IST
+Nmap scan report for 10.10.84.6
+Host is up (0.25s latency).
+Not shown: 998 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 6.97 seconds
+
+
+
+hostname -I: 192.168.42.8 192.168.56.40 10.11.54.100
+Sunday 05 December 2021 02:45:12 PM IST 2021.12.05 14:45:12
+f0c1s@kali:~/thm/rooms/advent2021 $
+_ntd $RHOST
+firing nmap 10.10.84.6 -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-05 14:45 IST
+Warning: 10.10.84.6 giving up on port because retransmission cap hit (6).
+Nmap scan report for 10.10.84.6
+Host is up (0.25s latency).
+Not shown: 64936 closed tcp ports (conn-refused), 597 filtered tcp ports (no-response)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   3072 ab:8f:0b:38:c9:73:9a:03:09:8d:57:17:99:68:85:db (RSA)
+|   256 75:fa:0a:04:85:2c:71:a7:6b:81:41:47:a3:77:9b:4b (ECDSA)
+|_  256 b4:60:d0:14:3f:81:d9:b7:6e:db:57:3a:c3:17:13:be (ED25519)
+80/tcp open  http    Apache httpd 2.4.41 ((Ubuntu))
+|_http-title: Day3
+|_http-server-header: Apache/2.4.41 (Ubuntu)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 45.51 seconds</code></pre>
+<figure>
+    <img src="1-nmap.png" alt="" /><figcaption>1-nmap</figcaption>
+</figure>
+<figure>
+    <img src="2-dirb.png" alt="" /><figcaption>2-dirb</figcaption>
+</figure>
+<figure>
+    <img src="3-feroxbuster.png" alt="" /><figcaption>3-feroxbuster</figcaption>
+</figure>
+<blockquote>
+    <p>http://10.10.84.6/admin/</p>
+</blockquote>
+<figure>
+    <img src="4-no-network-activity-on-login.png" alt="" /><figcaption>4-no-network-activity-on-login</figcaption>
+</figure>
+<p>There is no network activity, this means, that check is made against the stored values in client side browser.</p>
+<blockquote>
+    <p>view-source:http://10.10.84.6/admin/login-page.js</p>
+</blockquote>
+<figure>
+    <img src="5-poorly-hidden-information.png" alt="" /><figcaption>5-poorly-hidden-information</figcaption>
+</figure>
+<div class="sourceCode" id="cb2"><pre class="sourceCode javascript"><code class="sourceCode javascript language-javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">const</span> loginForm <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">getElementById</span>(<span class="st">&quot;login-form&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="kw">const</span> loginButton <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">getElementById</span>(<span class="st">&quot;login-form-submit&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="kw">const</span> loginErrorMsg <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">getElementById</span>(<span class="st">&quot;login-error-msg&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>loginButton<span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&quot;click&quot;</span><span class="op">,</span> (e) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>    e<span class="op">.</span><span class="fu">preventDefault</span>()<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>    <span class="kw">const</span> username <span class="op">=</span> loginForm<span class="op">.</span><span class="at">username</span><span class="op">.</span><span class="at">value</span><span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>    <span class="kw">const</span> password <span class="op">=</span> loginForm<span class="op">.</span><span class="at">password</span><span class="op">.</span><span class="at">value</span><span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>    <span class="cf">if</span> (username <span class="op">===</span> <span class="st">&quot;administrator&quot;</span> <span class="op">&amp;&amp;</span> password <span class="op">===</span> <span class="st">&quot;administrator&quot;</span>) {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>        <span class="fu">alert</span>(<span class="st">&quot;You have successfully logged in.&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a>        <span class="bu">window</span><span class="op">.</span><span class="fu">open</span>(<span class="st">&#39;dc7161be3dbf2250c8954e5.html&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a>    } <span class="cf">else</span> {</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a>        loginErrorMsg<span class="op">.</span><span class="at">style</span><span class="op">.</span><span class="at">opacity</span> <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a>    }</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true"></a>})</span></code></pre></div>
+<blockquote>
+    <p>Credentials: administrator:administrator</p>
+</blockquote>
+<figure>
+    <img src="6-login-as-administrator.png" alt="" /><figcaption>i6-login-as-administrator</figcaption>
+</figure>
+<blockquote>
+    <p>http://10.10.84.6/admin/dc7161be3dbf2250c8954e5.html</p>
+</blockquote>
+<figure>
+    <img src="7-secret-page.png" alt="" /><figcaption>7-secret-page</figcaption>
+</figure>
+<figure>
+    <img src="8-done.png" alt="" /><figcaption>8-done</figcaption>
+</figure>
