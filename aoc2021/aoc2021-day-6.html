@@ -1,0 +1,84 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../index.css"/>
+<link rel="stylesheet" href="../highlight/styles/monokai.min.css"/>
+<script src="../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<body class="aoc 2021 aoc2021">
+<h1>/f0c1s/blog/aoc2021/day-6</h1>
+<p>
+  <a href="../index.html">/blog</a>
+  <a href="../aoc2021/index.html">aoc2021</a>
+  <a href="../aoc2021/aoc2021-day-6.html">+ day 6</a>
+</p>
+<p>
+  This page contains solutions for Advent Of Code 2021 Day #6.
+</p>
+<h2>JavaScript</h2>
+
+<h3>Part 1</h3>
+<pre class="code js">
+    <code class="language-javascript">
+#!/usr/bin/env node
+
+const input = '2,1,1,4,4,1,3,4,2,4,2,1,1,4,3,5,1,1,5,1,1,5,4,5,4,1,5,1,3,1,4,2,3,2,1,2,5,5,2,3,1,2,3,3,1,4,3,1,1,1,1,5,2,1,1,1,5,3,3,2,1,4,1,1,1,3,1,1,5,5,1,4,4,4,4,5,1,5,1,1,5,5,2,2,5,4,1,5,4,1,4,1,1,1,1,5,3,2,4,1,1,1,4,4,1,2,1,1,5,2,1,1,1,4,4,4,4,3,3,1,1,5,1,5,2,1,4,1,2,4,4,4,4,2,2,2,4,4,4,2,1,5,5,2,1,1,1,4,4,1,4,2,3,3,3,3,3,5,4,1,5,1,4,5,5,1,1,1,4,1,2,4,4,1,2,3,3,3,3,5,1,4,2,5,5,2,1,1,1,1,3,3,1,1,2,3,2,5,4,2,1,1,2,2,2,1,3,1,5,4,1,1,5,3,3,2,2,3,1,1,1,1,2,4,2,2,5,1,2,4,2,1,1,3,2,5,5,3,1,3,3,1,4,1,1,5,5,1,5,4,1,1,1,1,2,3,3,1,2,3,1,5,1,3,1,1,3,1,1,1,1,1,1,5,1,1,5,5,2,1,1,5,2,4,5,5,1,1,5,1,5,5,1,1,3,3,1,1,3,1'
+    .split(',')
+    .map(i => parseInt(i));
+
+
+function liveADay(school) {
+    const countZeroes = school.filter(i => i === 0).length;
+    return school
+        .map(i => i < 1 ? 6 : i - 1)
+        .concat(Array(countZeroes).fill(0).map(_ => 8));
+}
+
+function after80Days(school) {
+    for (let i = 0; i < 80; i++) {
+        school = liveADay(school);
+        // console.log(`Lived through ${i}. School: ${school.length}`);
+    }
+    return school.length;
+}
+    </code>
+</pre>
+
+<h3>Part 2</h3>
+<pre class="code js">
+    <code class="language-javascript">
+#!/usr/bin/env node
+
+const input = '2,1,1,4,4,1,3,4,2,4,2,1,1,4,3,5,1,1,5,1,1,5,4,5,4,1,5,1,3,1,4,2,3,2,1,2,5,5,2,3,1,2,3,3,1,4,3,1,1,1,1,5,2,1,1,1,5,3,3,2,1,4,1,1,1,3,1,1,5,5,1,4,4,4,4,5,1,5,1,1,5,5,2,2,5,4,1,5,4,1,4,1,1,1,1,5,3,2,4,1,1,1,4,4,1,2,1,1,5,2,1,1,1,4,4,4,4,3,3,1,1,5,1,5,2,1,4,1,2,4,4,4,4,2,2,2,4,4,4,2,1,5,5,2,1,1,1,4,4,1,4,2,3,3,3,3,3,5,4,1,5,1,4,5,5,1,1,1,4,1,2,4,4,1,2,3,3,3,3,5,1,4,2,5,5,2,1,1,1,1,3,3,1,1,2,3,2,5,4,2,1,1,2,2,2,1,3,1,5,4,1,1,5,3,3,2,2,3,1,1,1,1,2,4,2,2,5,1,2,4,2,1,1,3,2,5,5,3,1,3,3,1,4,1,1,5,5,1,5,4,1,1,1,1,2,3,3,1,2,3,1,5,1,3,1,1,3,1,1,1,1,1,1,5,1,1,5,5,2,1,1,5,2,4,5,5,1,1,5,1,5,5,1,1,3,3,1,1,3,1'
+    .split(',')
+    .map(i => parseInt(i));
+
+
+function liveADay(school) {
+    const births = school.pop();
+    school.unshift(births);
+    school[2] += births;
+    return school;
+}
+
+function after256Days(school) {
+    let newSchool = [
+        school.filter(i => i === 8).length || 0,
+        school.filter(i => i === 7).length || 0,
+        school.filter(i => i === 6).length || 0,
+        school.filter(i => i === 5).length || 0,
+        school.filter(i => i === 4).length || 0,
+        school.filter(i => i === 3).length || 0,
+        school.filter(i => i === 2).length || 0,
+        school.filter(i => i === 1).length || 0,
+        school.filter(i => i === 0).length || 0,
+    ];
+    // console.log(newSchool);
+    for (let i = 0; i < 256; i++) {
+        newSchool = liveADay(newSchool);
+        // console.log(`Lived through ${i}. School: ${newSchool}, strength: ${newSchool.reduce((a, c) => a + c, 0)}`);
+    }
+    return newSchool.reduce((a, c) => a + c, 0);
+}
+    </code>
+</pre>
+</body>
