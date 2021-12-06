@@ -18,7 +18,9 @@ body {
     font-family: monospace;
     font-size: 14px;
     border: thin solid #000;
+    word-wrap: break-word;
 }
+
 
 p {
     padding: 10px 0;

