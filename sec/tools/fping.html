@@ -1,0 +1,63 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../index.css"/>
+<link rel="stylesheet" href="../../highlight/styles/monokai.min.css"/>
+<script src="../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<h1>/f0c1s/blog/sec/tools/fping</h1>
+
+<p>
+    <a href="../index.html">/blog</a>
+    <a href="../../sec/index.html">Security</a>
+    <a href="../../sec/tools/index.html">tools</a>
+    <a href="../../sec/tools/fping.html">+ fping</a>
+</p>
+
+<h2>man fping</h2>
+
+<pre><code>fping - send ICMP ECHO_REQUEST packets to network hosts
+
+fping is a program like ping which uses the Internet Control Message Protocol (ICMP) echo request to
+determine if a target host is responding.  fping differs from ping in that you can specify any number of
+targets on the command line, or specify a file containing the lists of targets to ping.  Instead of
+sending to one target until it times out or replies, fping will send out a ping packet and move on to the
+next target in a round-robin fashion.  In the default mode, if a target replies, it is noted and removed
+from the list of targets to check; if a target does not respond within a certain time limit and/or retry
+limit it is designated as unreachable. fping also supports sending a specified number of pings to a
+target, or looping indefinitely (as in ping ). Unlike ping, fping is meant to be used in scripts, so its
+output is designed to be easy to parse.  Current statistics can be obtained without termination of
+process with signal SIGQUIT (^\ from the keyboard on most systems).</code></pre>
+<h2 id="sample-usage">Sample usage</h2>
+<pre class="shell"><code>fping -aAqg 192.168.56.1/24 | tee fping.txt
+192.168.56.1
+192.168.56.2
+192.168.56.70
+192.168.56.71</code></pre>
+<figure>
+    <img src="fping.png" alt=""/>
+    <figcaption>fping: sample usage</figcaption>
+</figure>
+<h2 id="options">Options</h2>
+<pre class="shell"><code>
+-a, --alive
+    Show systems that are alive.
+
+-A, --addr
+    Display targets by address rather than DNS name. Combined with -d, the output will be both the ip
+    and (if available) the hostname.
+
+-q, --quiet
+    Quiet. Don&#39;t show per-probe results, but only the final summary. Also don&#39;t show ICMP error
+    messages.
+
+-g, --generate addr/mask
+    Generate a target list from a supplied IP netmask, or a starting and ending IP.  Specify the netmask
+    or start/end in the targets portion of the command line. If a network with netmask is given, the
+    network and broadcast addresses will be excluded. ex. To ping the network 192.168.1.0/24, the
+    specified command line could look like either:
+
+     $ fping -g 192.168.1.0/24
+
+    or
+
+     $ fping -g 192.168.1.1 192.168.1.254</code></pre>
