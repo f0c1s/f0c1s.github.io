@@ -98,3 +98,29 @@ h6 {
     padding-left: calc(20 * var(--d));
     font-size: 10px
 }
+
+table {
+    max-width: 960px;
+}
+
+table thead,
+table tbody {
+    margin: 4px;
+    padding: 4px;
+}
+
+table tr {
+    margin: 4px;
+    padding: 4px;
+    border: thin solid grey;
+}
+
+table.col2 tr {
+    display: grid;
+    grid-template-columns: minmax(100px, 1fr) 3fr;
+}
+
+table tr th,
+table tr td {
+    padding: 4px 1rem;
+}
