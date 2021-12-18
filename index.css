@@ -33,9 +33,13 @@ a {
     display: block;
 }
 
+figure {
+    padding: 1rem 0;
+}
+
 figure, img {
     max-width: 960px;
-    margin: auto;
+    margin: 2rem auto;
 }
 
 figcaption {
