@@ -1,0 +1,23 @@
+root@breakout:~# netstat -antuple
+netstat -antuple
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       User       Inode      PID/Program name
+tcp        0      0 0.0.0.0:139             0.0.0.0:*               LISTEN      0          12082      535/smbd
+tcp        0      0 0.0.0.0:10000           0.0.0.0:*               LISTEN      0          11639      474/perl
+tcp        0      0 0.0.0.0:445             0.0.0.0:*               LISTEN      0          12081      535/smbd
+tcp        0      0 0.0.0.0:20000           0.0.0.0:*               LISTEN      0          11633      472/perl
+tcp        0      0 192.168.56.74:20000     192.168.56.70:43948     ESTABLISHED 0          580911     215196/index.cgi
+tcp       25      0 192.168.56.74:20000     192.168.56.70:43944     CLOSE_WAIT  0          580424     215152/index.cgi
+tcp        0      2 192.168.56.74:55928     192.168.56.70:443       ESTABLISHED 1000       580961     215204/bash
+tcp6       0      0 :::139                  :::*                    LISTEN      0          12080      535/smbd
+tcp6       0      0 :::80                   :::*                    LISTEN      0          11557      415/apache2
+tcp6       0      0 :::445                  :::*                    LISTEN      0          12079      535/smbd
+udp        0      0 0.0.0.0:20000           0.0.0.0:*                           0          11634      472/perl
+udp        0      0 0.0.0.0:10000           0.0.0.0:*                           0          11640      474/perl
+udp        0      0 0.0.0.0:68              0.0.0.0:*                           0          11439      321/dhclient
+udp        0      0 192.168.56.255:137      0.0.0.0:*                           0          11996      389/nmbd
+udp        0      0 192.168.56.74:137       0.0.0.0:*                           0          11995      389/nmbd
+udp        0      0 0.0.0.0:137             0.0.0.0:*                           0          11595      389/nmbd
+udp        0      0 192.168.56.255:138      0.0.0.0:*                           0          11998      389/nmbd
+udp        0      0 192.168.56.74:138       0.0.0.0:*                           0          11997      389/nmbd
+udp        0      0 0.0.0.0:138             0.0.0.0:*                           0          11596      389/nmbd
