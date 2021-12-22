@@ -59,6 +59,7 @@ img {
 pre {
     margin: 10px;
     padding: 10px;
+    white-space: break-spaces;
 }
 
 pre code {
