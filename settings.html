@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings on blog.f0c1s.com</title>
+    <link rel="stylesheet" href="index.css"/>
+    <script src="setup.js" async></script>
+</head>
+<body onload="setup(); localSetup();">
+<h1>/f0c1s/blog/settings</h1>
+<p>
+    <a href="./index.html">blog</a>
+</p>
+<fieldset>
+    <legend>Color mode</legend>
+    <label for="color_mode_light">light
+        <input type="radio" id="color_mode_light" name="color_mode" value="light"
+               onchange="onColorModeSelect(this)"/>
+    </label>
+    <label for="color_mode_dark">dark
+        <input type="radio" id="color_mode_dark" name="color_mode" value="dark" onchange="onColorModeSelect(this)"/>
+    </label>
+</fieldset>
+<script>
+    function onColorModeSelect(e) {
+        localStorage.setItem('color-mode', e.value);
+        document.querySelector('body').className = e.value;
+    }
+
+    function localSetup() {
+        const storedColorMode = localStorage.getItem('color-mode');
+        const colorModeRadios = Array.from(document.querySelectorAll('input[type="radio"][name="color_mode"]'));
+        colorModeRadios.filter(radio => radio.id.includes(storedColorMode)).forEach(radio => radio.checked = "checked");
+    }
+</script>
+</body>
+</html>

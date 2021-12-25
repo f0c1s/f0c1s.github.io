@@ -9,18 +9,22 @@
 }
 
 body {
+    background-color: var(--bgc);
+    color: var(--fgc);
     max-width: 1000px;
     width: 1000px;
     padding: var(--d);
     margin: var(--d);
-    background-color: var(--bgc);
-    color: var(--fgc);
     font-family: monospace;
     font-size: 14px;
     border: thin solid #000;
     word-wrap: break-word;
 }
 
+body.dark {
+    background-color: var(--fgc);
+    color: var(--bgc);
+}
 
 p {
     padding: 10px 0;
@@ -33,7 +37,19 @@ a {
     display: block;
 }
 
-figure {
+body.dark a {
+    color: red;
+}
+
+body.dark a:visited {
+    color: maroon;
+}
+
+body.dark a:active {
+    color: magenta;
+}
+
+body.dark figure {
     padding: 1rem 0;
 }
 
@@ -76,6 +92,15 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: bold;
     font-size: 20px;
     text-shadow: 2px 2px 1px black;
+}
+
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark h5,
+body.dark h6 {
+    border-bottom: seagreen solid 2px;
 }
 
 h2 {
