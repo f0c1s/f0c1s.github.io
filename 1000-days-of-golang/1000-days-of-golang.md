@@ -11,7 +11,8 @@
 <p>
     <a href="../index.html">blog</a>
     <a href="../1000-days-of-golang/1000-days-of-golang.html">+ 1000-days-of-golang</a>
-    <a href="../1000-days-of-golang/day-1-2021.12.25/day-1.2021.12.25.html">day 1</a>
+    <a href="../1000-days-of-golang/day-1-2021.12.25/day-1.2021.12.25.html">day 1 - 2021.12.25</a>
+    <a href="../1000-days-of-golang/day-2-2021.12.26/day-2.2021.12.26.html">day 2 - 2021.12.26</a>
 </p>
 
 <p>
