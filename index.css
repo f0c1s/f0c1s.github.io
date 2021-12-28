@@ -1,7 +1,13 @@
 :root {
     --bgc: #eee;
     --fgc: #111;
+    --black: black;
+    --white: white;
     --d: 10px;
+    --pink-bg: rgba(255, 192, 192, 0.4);
+    --pink-h: pink;
+    --teal-bg: rgba(0, 80, 80, 0.1);
+    --teal-h: teal;
 }
 
 * {
@@ -26,6 +32,16 @@ body.dark {
     color: var(--bgc);
 }
 
+body.pink {
+    background-color: var(--pink-bg);
+    color: var(--black);
+}
+
+body.teal {
+    background-color: var(--teal-bg);
+    color: var(--black);
+}
+
 p {
     padding: 10px 0;
     margin: 10px 0;
@@ -42,7 +58,7 @@ body.dark a {
 }
 
 body.dark a:visited {
-    color: maroon;
+    color: #ff7373;
 }
 
 body.dark a:active {
@@ -51,6 +67,18 @@ body.dark a:active {
 
 body.dark figure {
     padding: 1rem 0;
+}
+
+body.teal a {
+    color: var(--teal-h);
+}
+
+body.teal a:visited {
+    color: var(--teal-h);
+}
+
+body.teal a:active {
+    color: var(--teal-h);
 }
 
 figure, img {
@@ -103,6 +131,30 @@ body.dark h6 {
     border-bottom: seagreen solid 2px;
 }
 
+body.pink h1,
+body.pink h2,
+body.pink h3,
+body.pink h4,
+body.pink h5,
+body.pink h6 {
+    border-bottom: hotpink solid 3px;
+    background-color: var(--pink-h);
+    color: var(--black);
+    text-shadow: 1px 1px 1px hotpink;
+}
+
+body.teal h1,
+body.teal h2,
+body.teal h3,
+body.teal h4,
+body.teal h5,
+body.teal h6 {
+    border-bottom: navy solid 3px;
+    background-color: var(--teal-h);
+    color: var(--white);
+    text-shadow: 1px 1px 1px navy;
+}
+
 h2 {
     padding-left: calc(4 * var(--d));
     font-size: 18px
@@ -152,4 +204,12 @@ table.col2 tr {
 table tr th,
 table tr td {
     padding: 4px 1rem;
+}
+
+fieldset label {
+    margin: 1rem;
+    padding: 1rem;
+    display: inline-block;
+    border: thin solid grey;
+    cursor: pointer;
 }

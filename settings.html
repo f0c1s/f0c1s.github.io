@@ -20,11 +20,18 @@
     <label for="color_mode_dark">dark
         <input type="radio" id="color_mode_dark" name="color_mode" value="dark" onchange="onColorModeSelect(this)"/>
     </label>
+    <label for="color_mode_pink">pink
+        <input type="radio" id="color_mode_pink" name="color_mode" value="pink" onchange="onColorModeSelect(this)"/>
+    </label>
+    <label for="color_mode_teal">teal
+        <input type="radio" id="color_mode_teal" name="color_mode" value="teal" onchange="onColorModeSelect(this)"/>
+    </label>
 </fieldset>
 <script>
     function onColorModeSelect(e) {
         localStorage.setItem('color-mode', e.value);
         document.querySelector('body').className = e.value;
+        document.location = document.location
     }
 
     function localSetup() {
