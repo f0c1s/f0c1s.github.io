@@ -1,7 +1,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>/f0c1s/blog/sec/vulnhub/derpNstink-1</title>
+        <title>/f0c1s/blog/sec/vulnhub/hackNos-os-hax</title>
         <link rel="stylesheet" href="../../../index.css"/>
         <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
         <script src="../../../highlight/highlight.min.js"></script>
