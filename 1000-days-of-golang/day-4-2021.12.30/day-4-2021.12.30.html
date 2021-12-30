@@ -187,6 +187,385 @@ $ ./server
 <span id="cb9-20"><a href="#cb9-20" aria-hidden="true"></a>    }</span>
 <span id="cb9-21"><a href="#cb9-21" aria-hidden="true"></a>    <span class="kw">return</span> srv.Serve(ln)</span>
 <span id="cb9-22"><a href="#cb9-22" aria-hidden="true"></a>}</span></code></pre></div>
+<p><a href="https://go.dev/src/net/http/server.go#L2962">http/server.go *Server Serve</a></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="co">// Serve accepts incoming connections on the Listener l, creating a</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="co">// new service goroutine for each. The service goroutines read requests and</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="co">// then call srv.Handler to reply to them.</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a><span class="co">//</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="co">// HTTP/2 support is only enabled if the Listener returns *tls.Conn</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a><span class="co">// connections and they were configured with &quot;h2&quot; in the TLS</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="co">// Config.NextProtos.</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="co">//</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a><span class="co">// Serve always returns a non-nil error and closes l.</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a><span class="co">// After Shutdown or Close, the returned error is ErrServerClosed.</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a><span class="kw">func</span> (srv *Server) Serve(l net.Listener) <span class="dt">error</span> {</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a>    <span class="kw">if</span> fn := testHookServerServe; fn != <span class="ot">nil</span> {</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true"></a>        fn(srv, l) <span class="co">// call hook with unwrapped listener</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true"></a>    }</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true"></a></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true"></a>    origListener := l</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true"></a>    l = &amp;onceCloseListener{Listener: l}</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true"></a>    <span class="kw">defer</span> l.Close()</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true"></a></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true"></a>    <span class="kw">if</span> err := srv.setupHTTP2_Serve(); err != <span class="ot">nil</span> {</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true"></a>        <span class="kw">return</span> err</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true"></a>    }</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true"></a></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true"></a>    <span class="kw">if</span> !srv.trackListener(&amp;l, <span class="ot">true</span>) {</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true"></a>        <span class="kw">return</span> ErrServerClosed</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true"></a>    }</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true"></a>    <span class="kw">defer</span> srv.trackListener(&amp;l, <span class="ot">false</span>)</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true"></a>    baseCtx := context.Background()</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true"></a>    <span class="kw">if</span> srv.BaseContext != <span class="ot">nil</span> {</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true"></a>        baseCtx = srv.BaseContext(origListener)</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true"></a>        <span class="kw">if</span> baseCtx == <span class="ot">nil</span> {</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true"></a>            <span class="bu">panic</span>(<span class="st">&quot;BaseContext returned a nil context&quot;</span>)</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true"></a>        }</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true"></a>    }</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true"></a></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true"></a>    <span class="kw">var</span> tempDelay time.Duration <span class="co">// how long to sleep on accept failure</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true"></a></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true"></a>    ctx := context.WithValue(baseCtx, ServerContextKey, srv)</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true"></a>    <span class="kw">for</span> {</span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true"></a>        rw, err := l.Accept()</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true"></a>        <span class="kw">if</span> err != <span class="ot">nil</span> {</span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true"></a>            <span class="kw">select</span> {</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true"></a>            <span class="kw">case</span> &lt;-srv.getDoneChan():</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true"></a>                <span class="kw">return</span> ErrServerClosed</span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true"></a>            <span class="kw">default</span>:</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true"></a>            }</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true"></a>            <span class="kw">if</span> ne, ok := err.(net.Error); ok &amp;&amp; ne.Temporary() {</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true"></a>                <span class="kw">if</span> tempDelay == <span class="dv">0</span> {</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true"></a>                    tempDelay = <span class="dv">5</span> * time.Millisecond</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true"></a>                } <span class="kw">else</span> {</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true"></a>                    tempDelay *= <span class="dv">2</span></span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true"></a>                }</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true"></a>                <span class="kw">if</span> max := <span class="dv">1</span> * time.Second; tempDelay &gt; max {</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true"></a>                    tempDelay = max</span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true"></a>                }</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true"></a>                srv.logf(<span class="st">&quot;http: Accept error: %v; retrying in %v&quot;</span>, err, tempDelay)</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true"></a>                time.Sleep(tempDelay)</span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true"></a>                <span class="kw">continue</span></span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true"></a>            }</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true"></a>            <span class="kw">return</span> err</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true"></a>        }</span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true"></a>        connCtx := ctx</span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true"></a>        <span class="kw">if</span> cc := srv.ConnContext; cc != <span class="ot">nil</span> {</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true"></a>            connCtx = cc(connCtx, rw)</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true"></a>            <span class="kw">if</span> connCtx == <span class="ot">nil</span> {</span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true"></a>                <span class="bu">panic</span>(<span class="st">&quot;ConnContext returned nil&quot;</span>)</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true"></a>            }</span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true"></a>        }</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true"></a>        tempDelay = <span class="dv">0</span></span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true"></a>        c := srv.newConn(rw)</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true"></a>        c.setState(c.rwc, StateNew, runHooks) <span class="co">// before Serve can return</span></span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true"></a>        <span class="kw">go</span> c.serve(connCtx)</span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true"></a>    }</span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true"></a>}</span></code></pre></div>
+<p><a href="https://go.dev/src/net/http/server.go#L1794">http/server.go *conn serve</a></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="co">// Serve a new connection.</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="kw">func</span> (c *conn) serve(ctx context.Context) {</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>    c.remoteAddr = c.rwc.RemoteAddr().String()</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a>    ctx = context.WithValue(ctx, LocalAddrContextKey, c.rwc.LocalAddr())</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a>    <span class="kw">defer</span> <span class="kw">func</span>() {</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a>        <span class="kw">if</span> err := <span class="bu">recover</span>(); err != <span class="ot">nil</span> &amp;&amp; err != ErrAbortHandler {</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a>            <span class="kw">const</span> size = <span class="dv">64</span> &lt;&lt; <span class="dv">10</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a>            buf := <span class="bu">make</span>([]<span class="dt">byte</span>, size)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a>            buf = buf[:runtime.Stack(buf, <span class="ot">false</span>)]</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a>            c.server.logf(<span class="st">&quot;http: panic serving %v: %v</span><span class="ch">\n</span><span class="st">%s&quot;</span>, c.remoteAddr, err, buf)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a>        }</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a>        <span class="kw">if</span> !c.hijacked() {</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a>            c.<span class="bu">close</span>()</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true"></a>            c.setState(c.rwc, StateClosed, runHooks)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true"></a>        }</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true"></a>    }()</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true"></a></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true"></a>    <span class="kw">if</span> tlsConn, ok := c.rwc.(*tls.Conn); ok {</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true"></a>        <span class="kw">if</span> d := c.server.ReadTimeout; d &gt; <span class="dv">0</span> {</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true"></a>            c.rwc.SetReadDeadline(time.Now().Add(d))</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true"></a>        }</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true"></a>        <span class="kw">if</span> d := c.server.WriteTimeout; d &gt; <span class="dv">0</span> {</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true"></a>            c.rwc.SetWriteDeadline(time.Now().Add(d))</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true"></a>        }</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true"></a>        <span class="kw">if</span> err := tlsConn.HandshakeContext(ctx); err != <span class="ot">nil</span> {</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true"></a>            <span class="co">// If the handshake failed due to the client not speaking</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true"></a>            <span class="co">// TLS, assume they&#39;re speaking plaintext HTTP and write a</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true"></a>            <span class="co">// 400 response on the TLS conn&#39;s underlying net.Conn.</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true"></a>            <span class="kw">if</span> re, ok := err.(tls.RecordHeaderError); ok &amp;&amp; re.Conn != <span class="ot">nil</span> &amp;&amp; tlsRecordHeaderLooksLikeHTTP(re.RecordHeader) {</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true"></a>                io.WriteString(re.Conn, <span class="st">&quot;HTTP/1.0 400 Bad Request</span><span class="ch">\r\n\r\n</span><span class="st">Client sent an HTTP request to an HTTPS server.</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true"></a>                re.Conn.Close()</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true"></a>                <span class="kw">return</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true"></a>            }</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true"></a>            c.server.logf(<span class="st">&quot;http: TLS handshake error from %s: %v&quot;</span>, c.rwc.RemoteAddr(), err)</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true"></a>            <span class="kw">return</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true"></a>        }</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true"></a>        c.tlsState = <span class="bu">new</span>(tls.ConnectionState)</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true"></a>        *c.tlsState = tlsConn.ConnectionState()</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true"></a>        <span class="kw">if</span> proto := c.tlsState.NegotiatedProtocol; validNextProto(proto) {</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true"></a>            <span class="kw">if</span> fn := c.server.TLSNextProto[proto]; fn != <span class="ot">nil</span> {</span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true"></a>                h := initALPNRequest{ctx, tlsConn, serverHandler{c.server}}</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true"></a>                <span class="co">// Mark freshly created HTTP/2 as active and prevent any server state hooks</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true"></a>                <span class="co">// from being run on these connections. This prevents closeIdleConns from</span></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true"></a>                <span class="co">// closing such connections. See issue https://golang.org/issue/39776.</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true"></a>                c.setState(c.rwc, StateActive, skipHooks)</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true"></a>                fn(c.server, tlsConn, h)</span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true"></a>            }</span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true"></a>            <span class="kw">return</span></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true"></a>        }</span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true"></a>    }</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true"></a></span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true"></a>    <span class="co">// HTTP/1.x from here on.</span></span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true"></a></span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true"></a>    ctx, cancelCtx := context.WithCancel(ctx)</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true"></a>    c.cancelCtx = cancelCtx</span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true"></a>    <span class="kw">defer</span> cancelCtx()</span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true"></a></span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true"></a>    c.r = &amp;connReader{conn: c}</span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true"></a>    c.bufr = newBufioReader(c.r)</span>
+<span id="cb11-60"><a href="#cb11-60" aria-hidden="true"></a>    c.bufw = newBufioWriterSize(checkConnErrorWriter{c}, <span class="dv">4</span>&lt;&lt;<span class="dv">10</span>)</span>
+<span id="cb11-61"><a href="#cb11-61" aria-hidden="true"></a></span>
+<span id="cb11-62"><a href="#cb11-62" aria-hidden="true"></a>    <span class="kw">for</span> {</span>
+<span id="cb11-63"><a href="#cb11-63" aria-hidden="true"></a>        w, err := c.readRequest(ctx)</span>
+<span id="cb11-64"><a href="#cb11-64" aria-hidden="true"></a>        <span class="kw">if</span> c.r.remain != c.server.initialReadLimitSize() {</span>
+<span id="cb11-65"><a href="#cb11-65" aria-hidden="true"></a>            <span class="co">// If we read any bytes off the wire, we&#39;re active.</span></span>
+<span id="cb11-66"><a href="#cb11-66" aria-hidden="true"></a>            c.setState(c.rwc, StateActive, runHooks)</span>
+<span id="cb11-67"><a href="#cb11-67" aria-hidden="true"></a>        }</span>
+<span id="cb11-68"><a href="#cb11-68" aria-hidden="true"></a>        <span class="kw">if</span> err != <span class="ot">nil</span> {</span>
+<span id="cb11-69"><a href="#cb11-69" aria-hidden="true"></a>            <span class="kw">const</span> errorHeaders = <span class="st">&quot;</span><span class="ch">\r\n</span><span class="st">Content-Type: text/plain; charset=utf-8</span><span class="ch">\r\n</span><span class="st">Connection: close</span><span class="ch">\r\n\r\n</span><span class="st">&quot;</span></span>
+<span id="cb11-70"><a href="#cb11-70" aria-hidden="true"></a></span>
+<span id="cb11-71"><a href="#cb11-71" aria-hidden="true"></a>            <span class="kw">switch</span> {</span>
+<span id="cb11-72"><a href="#cb11-72" aria-hidden="true"></a>            <span class="kw">case</span> err == errTooLarge:</span>
+<span id="cb11-73"><a href="#cb11-73" aria-hidden="true"></a>                <span class="co">// Their HTTP client may or may not be</span></span>
+<span id="cb11-74"><a href="#cb11-74" aria-hidden="true"></a>                <span class="co">// able to read this if we&#39;re</span></span>
+<span id="cb11-75"><a href="#cb11-75" aria-hidden="true"></a>                <span class="co">// responding to them and hanging up</span></span>
+<span id="cb11-76"><a href="#cb11-76" aria-hidden="true"></a>                <span class="co">// while they&#39;re still writing their</span></span>
+<span id="cb11-77"><a href="#cb11-77" aria-hidden="true"></a>                <span class="co">// request. Undefined behavior.</span></span>
+<span id="cb11-78"><a href="#cb11-78" aria-hidden="true"></a>                <span class="kw">const</span> publicErr = <span class="st">&quot;431 Request Header Fields Too Large&quot;</span></span>
+<span id="cb11-79"><a href="#cb11-79" aria-hidden="true"></a>                fmt.Fprintf(c.rwc, <span class="st">&quot;HTTP/1.1 &quot;</span>+publicErr+errorHeaders+publicErr)</span>
+<span id="cb11-80"><a href="#cb11-80" aria-hidden="true"></a>                c.closeWriteAndWait()</span>
+<span id="cb11-81"><a href="#cb11-81" aria-hidden="true"></a>                <span class="kw">return</span></span>
+<span id="cb11-82"><a href="#cb11-82" aria-hidden="true"></a></span>
+<span id="cb11-83"><a href="#cb11-83" aria-hidden="true"></a>            <span class="kw">case</span> isUnsupportedTEError(err):</span>
+<span id="cb11-84"><a href="#cb11-84" aria-hidden="true"></a>                <span class="co">// Respond as per RFC 7230 Section 3.3.1 which says,</span></span>
+<span id="cb11-85"><a href="#cb11-85" aria-hidden="true"></a>                <span class="co">//      A server that receives a request message with a</span></span>
+<span id="cb11-86"><a href="#cb11-86" aria-hidden="true"></a>                <span class="co">//      transfer coding it does not understand SHOULD</span></span>
+<span id="cb11-87"><a href="#cb11-87" aria-hidden="true"></a>                <span class="co">//      respond with 501 (Unimplemented).</span></span>
+<span id="cb11-88"><a href="#cb11-88" aria-hidden="true"></a>                code := StatusNotImplemented</span>
+<span id="cb11-89"><a href="#cb11-89" aria-hidden="true"></a></span>
+<span id="cb11-90"><a href="#cb11-90" aria-hidden="true"></a>                <span class="co">// We purposefully aren&#39;t echoing back the transfer-encoding&#39;s value,</span></span>
+<span id="cb11-91"><a href="#cb11-91" aria-hidden="true"></a>                <span class="co">// so as to mitigate the risk of cross side scripting by an attacker.</span></span>
+<span id="cb11-92"><a href="#cb11-92" aria-hidden="true"></a>                fmt.Fprintf(c.rwc, <span class="st">&quot;HTTP/1.1 %d %s%sUnsupported transfer encoding&quot;</span>, code, StatusText(code), errorHeaders)</span>
+<span id="cb11-93"><a href="#cb11-93" aria-hidden="true"></a>                <span class="kw">return</span></span>
+<span id="cb11-94"><a href="#cb11-94" aria-hidden="true"></a></span>
+<span id="cb11-95"><a href="#cb11-95" aria-hidden="true"></a>            <span class="kw">case</span> isCommonNetReadError(err):</span>
+<span id="cb11-96"><a href="#cb11-96" aria-hidden="true"></a>                <span class="kw">return</span> <span class="co">// don&#39;t reply</span></span>
+<span id="cb11-97"><a href="#cb11-97" aria-hidden="true"></a></span>
+<span id="cb11-98"><a href="#cb11-98" aria-hidden="true"></a>            <span class="kw">default</span>:</span>
+<span id="cb11-99"><a href="#cb11-99" aria-hidden="true"></a>                <span class="kw">if</span> v, ok := err.(statusError); ok {</span>
+<span id="cb11-100"><a href="#cb11-100" aria-hidden="true"></a>                    fmt.Fprintf(c.rwc, <span class="st">&quot;HTTP/1.1 %d %s: %s%s%d %s: %s&quot;</span>, v.code, StatusText(v.code), v.text, errorHeaders, v.code, StatusText(v.code), v.text)</span>
+<span id="cb11-101"><a href="#cb11-101" aria-hidden="true"></a>                    <span class="kw">return</span></span>
+<span id="cb11-102"><a href="#cb11-102" aria-hidden="true"></a>                }</span>
+<span id="cb11-103"><a href="#cb11-103" aria-hidden="true"></a>                publicErr := <span class="st">&quot;400 Bad Request&quot;</span></span>
+<span id="cb11-104"><a href="#cb11-104" aria-hidden="true"></a>                fmt.Fprintf(c.rwc, <span class="st">&quot;HTTP/1.1 &quot;</span>+publicErr+errorHeaders+publicErr)</span>
+<span id="cb11-105"><a href="#cb11-105" aria-hidden="true"></a>                <span class="kw">return</span></span>
+<span id="cb11-106"><a href="#cb11-106" aria-hidden="true"></a>            }</span>
+<span id="cb11-107"><a href="#cb11-107" aria-hidden="true"></a>        }</span>
+<span id="cb11-108"><a href="#cb11-108" aria-hidden="true"></a></span>
+<span id="cb11-109"><a href="#cb11-109" aria-hidden="true"></a>        <span class="co">// Expect 100 Continue support</span></span>
+<span id="cb11-110"><a href="#cb11-110" aria-hidden="true"></a>        req := w.req</span>
+<span id="cb11-111"><a href="#cb11-111" aria-hidden="true"></a>        <span class="kw">if</span> req.expectsContinue() {</span>
+<span id="cb11-112"><a href="#cb11-112" aria-hidden="true"></a>            <span class="kw">if</span> req.ProtoAtLeast(<span class="dv">1</span>, <span class="dv">1</span>) &amp;&amp; req.ContentLength != <span class="dv">0</span> {</span>
+<span id="cb11-113"><a href="#cb11-113" aria-hidden="true"></a>                <span class="co">// Wrap the Body reader with one that replies on the connection</span></span>
+<span id="cb11-114"><a href="#cb11-114" aria-hidden="true"></a>                req.Body = &amp;expectContinueReader{readCloser: req.Body, resp: w}</span>
+<span id="cb11-115"><a href="#cb11-115" aria-hidden="true"></a>                w.canWriteContinue.setTrue()</span>
+<span id="cb11-116"><a href="#cb11-116" aria-hidden="true"></a>            }</span>
+<span id="cb11-117"><a href="#cb11-117" aria-hidden="true"></a>        } <span class="kw">else</span> <span class="kw">if</span> req.Header.get(<span class="st">&quot;Expect&quot;</span>) != <span class="st">&quot;&quot;</span> {</span>
+<span id="cb11-118"><a href="#cb11-118" aria-hidden="true"></a>            w.sendExpectationFailed()</span>
+<span id="cb11-119"><a href="#cb11-119" aria-hidden="true"></a>            <span class="kw">return</span></span>
+<span id="cb11-120"><a href="#cb11-120" aria-hidden="true"></a>        }</span>
+<span id="cb11-121"><a href="#cb11-121" aria-hidden="true"></a></span>
+<span id="cb11-122"><a href="#cb11-122" aria-hidden="true"></a>        c.curReq.Store(w)</span>
+<span id="cb11-123"><a href="#cb11-123" aria-hidden="true"></a></span>
+<span id="cb11-124"><a href="#cb11-124" aria-hidden="true"></a>        <span class="kw">if</span> requestBodyRemains(req.Body) {</span>
+<span id="cb11-125"><a href="#cb11-125" aria-hidden="true"></a>            registerOnHitEOF(req.Body, w.conn.r.startBackgroundRead)</span>
+<span id="cb11-126"><a href="#cb11-126" aria-hidden="true"></a>        } <span class="kw">else</span> {</span>
+<span id="cb11-127"><a href="#cb11-127" aria-hidden="true"></a>            w.conn.r.startBackgroundRead()</span>
+<span id="cb11-128"><a href="#cb11-128" aria-hidden="true"></a>        }</span>
+<span id="cb11-129"><a href="#cb11-129" aria-hidden="true"></a></span>
+<span id="cb11-130"><a href="#cb11-130" aria-hidden="true"></a>        <span class="co">// HTTP cannot have multiple simultaneous active requests.[*]</span></span>
+<span id="cb11-131"><a href="#cb11-131" aria-hidden="true"></a>        <span class="co">// Until the server replies to this request, it can&#39;t read another,</span></span>
+<span id="cb11-132"><a href="#cb11-132" aria-hidden="true"></a>        <span class="co">// so we might as well run the handler in this goroutine.</span></span>
+<span id="cb11-133"><a href="#cb11-133" aria-hidden="true"></a>        <span class="co">// [*] Not strictly true: HTTP pipelining. We could let them all process</span></span>
+<span id="cb11-134"><a href="#cb11-134" aria-hidden="true"></a>        <span class="co">// in parallel even if their responses need to be serialized.</span></span>
+<span id="cb11-135"><a href="#cb11-135" aria-hidden="true"></a>        <span class="co">// But we&#39;re not going to implement HTTP pipelining because it</span></span>
+<span id="cb11-136"><a href="#cb11-136" aria-hidden="true"></a>        <span class="co">// was never deployed in the wild and the answer is HTTP/2.</span></span>
+<span id="cb11-137"><a href="#cb11-137" aria-hidden="true"></a>        serverHandler{c.server}.ServeHTTP(w, w.req)</span>
+<span id="cb11-138"><a href="#cb11-138" aria-hidden="true"></a>        w.cancelCtx()</span>
+<span id="cb11-139"><a href="#cb11-139" aria-hidden="true"></a>        <span class="kw">if</span> c.hijacked() {</span>
+<span id="cb11-140"><a href="#cb11-140" aria-hidden="true"></a>            <span class="kw">return</span></span>
+<span id="cb11-141"><a href="#cb11-141" aria-hidden="true"></a>        }</span>
+<span id="cb11-142"><a href="#cb11-142" aria-hidden="true"></a>        w.finishRequest()</span>
+<span id="cb11-143"><a href="#cb11-143" aria-hidden="true"></a>        <span class="kw">if</span> !w.shouldReuseConnection() {</span>
+<span id="cb11-144"><a href="#cb11-144" aria-hidden="true"></a>            <span class="kw">if</span> w.requestBodyLimitHit || w.closedRequestBodyEarly() {</span>
+<span id="cb11-145"><a href="#cb11-145" aria-hidden="true"></a>                c.closeWriteAndWait()</span>
+<span id="cb11-146"><a href="#cb11-146" aria-hidden="true"></a>            }</span>
+<span id="cb11-147"><a href="#cb11-147" aria-hidden="true"></a>            <span class="kw">return</span></span>
+<span id="cb11-148"><a href="#cb11-148" aria-hidden="true"></a>        }</span>
+<span id="cb11-149"><a href="#cb11-149" aria-hidden="true"></a>        c.setState(c.rwc, StateIdle, runHooks)</span>
+<span id="cb11-150"><a href="#cb11-150" aria-hidden="true"></a>        c.curReq.Store((*response)(<span class="ot">nil</span>))</span>
+<span id="cb11-151"><a href="#cb11-151" aria-hidden="true"></a></span>
+<span id="cb11-152"><a href="#cb11-152" aria-hidden="true"></a>        <span class="kw">if</span> !w.conn.server.doKeepAlives() {</span>
+<span id="cb11-153"><a href="#cb11-153" aria-hidden="true"></a>            <span class="co">// We&#39;re in shutdown mode. We might&#39;ve replied</span></span>
+<span id="cb11-154"><a href="#cb11-154" aria-hidden="true"></a>            <span class="co">// to the user without &quot;Connection: close&quot; and</span></span>
+<span id="cb11-155"><a href="#cb11-155" aria-hidden="true"></a>            <span class="co">// they might think they can send another</span></span>
+<span id="cb11-156"><a href="#cb11-156" aria-hidden="true"></a>            <span class="co">// request, but such is life with HTTP/1.1.</span></span>
+<span id="cb11-157"><a href="#cb11-157" aria-hidden="true"></a>            <span class="kw">return</span></span>
+<span id="cb11-158"><a href="#cb11-158" aria-hidden="true"></a>        }</span>
+<span id="cb11-159"><a href="#cb11-159" aria-hidden="true"></a></span>
+<span id="cb11-160"><a href="#cb11-160" aria-hidden="true"></a>        <span class="kw">if</span> d := c.server.idleTimeout(); d != <span class="dv">0</span> {</span>
+<span id="cb11-161"><a href="#cb11-161" aria-hidden="true"></a>            c.rwc.SetReadDeadline(time.Now().Add(d))</span>
+<span id="cb11-162"><a href="#cb11-162" aria-hidden="true"></a>            <span class="kw">if</span> _, err := c.bufr.Peek(<span class="dv">4</span>); err != <span class="ot">nil</span> {</span>
+<span id="cb11-163"><a href="#cb11-163" aria-hidden="true"></a>                <span class="kw">return</span></span>
+<span id="cb11-164"><a href="#cb11-164" aria-hidden="true"></a>            }</span>
+<span id="cb11-165"><a href="#cb11-165" aria-hidden="true"></a>        }</span>
+<span id="cb11-166"><a href="#cb11-166" aria-hidden="true"></a>        c.rwc.SetReadDeadline(time.Time{})</span>
+<span id="cb11-167"><a href="#cb11-167" aria-hidden="true"></a>    }</span>
+<span id="cb11-168"><a href="#cb11-168" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This is too much for me at this point, so I will come back to it in future. Just one more thing to share…</p>
+<p><a href="https://go.dev/src/net/http/server.go#L2526">http/server type Server struct</a></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="co">// A Server defines parameters for running an HTTP server.</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="co">// The zero value for Server is a valid configuration.</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="kw">type</span> Server <span class="kw">struct</span> {</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>    <span class="co">// Addr optionally specifies the TCP address for the server to listen on,</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a>    <span class="co">// in the form &quot;host:port&quot;. If empty, &quot;:http&quot; (port 80) is used.</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>    <span class="co">// The service names are defined in RFC 6335 and assigned by IANA.</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>    <span class="co">// See net.Dial for details of the address format.</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>    Addr <span class="dt">string</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>    Handler Handler <span class="co">// handler to invoke, http.DefaultServeMux if nil</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a>    <span class="co">// TLSConfig optionally provides a TLS configuration for use</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a>    <span class="co">// by ServeTLS and ListenAndServeTLS. Note that this value is</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a>    <span class="co">// cloned by ServeTLS and ListenAndServeTLS, so it&#39;s not</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true"></a>    <span class="co">// possible to modify the configuration with methods like</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true"></a>    <span class="co">// tls.Config.SetSessionTicketKeys. To use</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true"></a>    <span class="co">// SetSessionTicketKeys, use Server.Serve with a TLS Listener</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true"></a>    <span class="co">// instead.</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true"></a>    TLSConfig *tls.Config</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true"></a></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true"></a>    <span class="co">// ReadTimeout is the maximum duration for reading the entire</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true"></a>    <span class="co">// request, including the body. A zero or negative value means</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true"></a>    <span class="co">// there will be no timeout.</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true"></a>    <span class="co">//</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true"></a>    <span class="co">// Because ReadTimeout does not let Handlers make per-request</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true"></a>    <span class="co">// decisions on each request body&#39;s acceptable deadline or</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true"></a>    <span class="co">// upload rate, most users will prefer to use</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true"></a>    <span class="co">// ReadHeaderTimeout. It is valid to use them both.</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true"></a>    ReadTimeout time.Duration</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true"></a></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true"></a>    <span class="co">// ReadHeaderTimeout is the amount of time allowed to read</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true"></a>    <span class="co">// request headers. The connection&#39;s read deadline is reset</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true"></a>    <span class="co">// after reading the headers and the Handler can decide what</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true"></a>    <span class="co">// is considered too slow for the body. If ReadHeaderTimeout</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true"></a>    <span class="co">// is zero, the value of ReadTimeout is used. If both are</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true"></a>    <span class="co">// zero, there is no timeout.</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true"></a>    ReadHeaderTimeout time.Duration</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true"></a></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true"></a>    <span class="co">// WriteTimeout is the maximum duration before timing out</span></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true"></a>    <span class="co">// writes of the response. It is reset whenever a new</span></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true"></a>    <span class="co">// request&#39;s header is read. Like ReadTimeout, it does not</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true"></a>    <span class="co">// let Handlers make decisions on a per-request basis.</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true"></a>    <span class="co">// A zero or negative value means there will be no timeout.</span></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true"></a>    WriteTimeout time.Duration</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true"></a></span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true"></a>    <span class="co">// IdleTimeout is the maximum amount of time to wait for the</span></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true"></a>    <span class="co">// next request when keep-alives are enabled. If IdleTimeout</span></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true"></a>    <span class="co">// is zero, the value of ReadTimeout is used. If both are</span></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true"></a>    <span class="co">// zero, there is no timeout.</span></span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true"></a>    IdleTimeout time.Duration</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true"></a></span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true"></a>    <span class="co">// MaxHeaderBytes controls the maximum number of bytes the</span></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true"></a>    <span class="co">// server will read parsing the request header&#39;s keys and</span></span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true"></a>    <span class="co">// values, including the request line. It does not limit the</span></span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true"></a>    <span class="co">// size of the request body.</span></span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true"></a>    <span class="co">// If zero, DefaultMaxHeaderBytes is used.</span></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true"></a>    MaxHeaderBytes <span class="dt">int</span></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true"></a></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true"></a>    <span class="co">// TLSNextProto optionally specifies a function to take over</span></span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true"></a>    <span class="co">// ownership of the provided TLS connection when an ALPN</span></span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true"></a>    <span class="co">// protocol upgrade has occurred. The map key is the protocol</span></span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true"></a>    <span class="co">// name negotiated. The Handler argument should be used to</span></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true"></a>    <span class="co">// handle HTTP requests and will initialize the Request&#39;s TLS</span></span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true"></a>    <span class="co">// and RemoteAddr if not already set. The connection is</span></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true"></a>    <span class="co">// automatically closed when the function returns.</span></span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true"></a>    <span class="co">// If TLSNextProto is not nil, HTTP/2 support is not enabled</span></span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true"></a>    <span class="co">// automatically.</span></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true"></a>    TLSNextProto <span class="kw">map</span>[<span class="dt">string</span>]<span class="kw">func</span>(*Server, *tls.Conn, Handler)</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true"></a></span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true"></a>    <span class="co">// ConnState specifies an optional callback function that is</span></span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true"></a>    <span class="co">// called when a client connection changes state. See the</span></span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true"></a>    <span class="co">// ConnState type and associated constants for details.</span></span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true"></a>    ConnState <span class="kw">func</span>(net.Conn, ConnState)</span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true"></a></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true"></a>    <span class="co">// ErrorLog specifies an optional logger for errors accepting</span></span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true"></a>    <span class="co">// connections, unexpected behavior from handlers, and</span></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true"></a>    <span class="co">// underlying FileSystem errors.</span></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true"></a>    <span class="co">// If nil, logging is done via the log package&#39;s standard logger.</span></span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true"></a>    ErrorLog *log.Logger</span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true"></a></span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true"></a>    <span class="co">// BaseContext optionally specifies a function that returns</span></span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true"></a>    <span class="co">// the base context for incoming requests on this server.</span></span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true"></a>    <span class="co">// The provided Listener is the specific Listener that&#39;s</span></span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true"></a>    <span class="co">// about to start accepting requests.</span></span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true"></a>    <span class="co">// If BaseContext is nil, the default is context.Background().</span></span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true"></a>    <span class="co">// If non-nil, it must return a non-nil context.</span></span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true"></a>    BaseContext <span class="kw">func</span>(net.Listener) context.Context</span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true"></a>    <span class="co">// ConnContext optionally specifies a function that modifies</span></span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true"></a>    <span class="co">// the context used for a new connection c. The provided ctx</span></span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true"></a>    <span class="co">// is derived from the base context and has a ServerContextKey</span></span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true"></a>    <span class="co">// value.</span></span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true"></a>    ConnContext <span class="kw">func</span>(ctx context.Context, c net.Conn) context.Context</span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true"></a></span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true"></a>    inShutdown atomicBool <span class="co">// true when server is in shutdown</span></span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true"></a></span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true"></a>    disableKeepAlives <span class="dt">int32</span>     <span class="co">// accessed atomically.</span></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true"></a>    nextProtoOnce     sync.Once <span class="co">// guards setupHTTP2_* init</span></span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true"></a>    nextProtoErr      <span class="dt">error</span>     <span class="co">// result of http2.ConfigureServer if used</span></span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true"></a></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true"></a>    mu         sync.Mutex</span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true"></a>    listeners  <span class="kw">map</span>[*net.Listener]<span class="kw">struct</span>{}</span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true"></a>    activeConn <span class="kw">map</span>[*conn]<span class="kw">struct</span>{}</span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true"></a>    doneChan   <span class="kw">chan</span> <span class="kw">struct</span>{}</span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true"></a>    onShutdown []<span class="kw">func</span>()</span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true"></a>}</span></code></pre></div>
+<p>If I shorten it by removing comments and blank lines, it looks like:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="kw">type</span> Server <span class="kw">struct</span> {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a>    Addr <span class="dt">string</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>    Handler Handler</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>    TLSConfig *tls.Config</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a>    ReadTimeout time.Duration</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a>    ReadHeaderTimeout time.Duration</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a>    WriteTimeout time.Duration</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true"></a>    IdleTimeout time.Duration</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true"></a>    MaxHeaderBytes <span class="dt">int</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true"></a>    TLSNextProto <span class="kw">map</span>[<span class="dt">string</span>]<span class="kw">func</span>(*Server, *tls.Conn, Handler)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true"></a>    ConnState <span class="kw">func</span>(net.Conn, ConnState)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true"></a>    ErrorLog *log.Logger</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true"></a>    BaseContext <span class="kw">func</span>(net.Listener) context.Context</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true"></a>    ConnContext <span class="kw">func</span>(ctx context.Context, c net.Conn) context.Context</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true"></a>    inShutdown atomicBool</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true"></a>    disableKeepAlives <span class="dt">int32</span>    </span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true"></a>    nextProtoOnce     sync.Once</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true"></a>    nextProtoErr      <span class="dt">error</span>    </span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true"></a>    mu         sync.Mutex</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true"></a>    listeners  <span class="kw">map</span>[*net.Listener]<span class="kw">struct</span>{}</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true"></a>    activeConn <span class="kw">map</span>[*conn]<span class="kw">struct</span>{}</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true"></a>    doneChan   <span class="kw">chan</span> <span class="kw">struct</span>{}</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true"></a>    onShutdown []<span class="kw">func</span>()</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Still working on it…</p>
 <h3 id="handling-intr-ctrlc">Handling INTR (ctrl+c)</h3>
 <script>hljs.highlightAll();</script>
 </body>
