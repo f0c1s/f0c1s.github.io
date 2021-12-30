@@ -1,6 +1,6 @@
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
         <title>/f0c1s/blog/sec/vulnhub/derpNstink-1</title>
         <link rel="stylesheet" href="../../../index.css"/>
         <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
