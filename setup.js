@@ -18,12 +18,14 @@ function progressBar() {
     const bar = document.createElement("div");
     bar.id = "progress-bar";
     const h = document.body.getClientRects()[0].height - window.innerHeight;
-    bar.style.maxWidth = '1000px';
+    const docWidth = window.innerWidth;
+    bar.style.maxWidth = docWidth;
+    console.log(docWidth);
 
     window.addEventListener("scroll", () => {
         const top = document.body.scrollTop;
         const percent = Math.floor((top * 100) / h);
-        bar.style.width = 10 * percent + 'px';
+        bar.style.width = (docWidth / 100) * percent + 'px';
     });
 
     document.body.appendChild(bar);

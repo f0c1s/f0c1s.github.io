@@ -19,9 +19,9 @@ blog.f0c1s.com/1000-days-of-golang/day 4
 <h2 id="lets-go">lets go</h2>
 <h3 id="recap.">recap.</h3>
 <ul>
-<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#mapping-over-an-array-of-numbers">mapping over array of numbers</a></li>
-<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#passing-a-mapping-function">passing a mapping function</a></li>
-<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#binary-search">binary search</a>
+<li><a href="../../1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#mapping-over-an-array-of-numbers">mapping over array of numbers</a></li>
+<li><a href="../../1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#passing-a-mapping-function">passing a mapping function</a></li>
+<li><a href="../../1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#binary-search">binary search</a>
 <ul>
 <li>math/rand.Perm generates permutaion of numbers; an array of random numbers uptil n</li>
 <li>division / operator returns type of first operand</li>
@@ -29,13 +29,13 @@ blog.f0c1s.com/1000-days-of-golang/day 4
 <li>sort.Ints(array) will sort the array</li>
 <li>rand.Intn(limit) will return a random integer smaller than limit</li>
 </ul></li>
-<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#how-to-generate-an-array-of-random-numbers">how to generate an array of random numbers</a></li>
-<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#list-all-files-in-a-directory">list all files in a directory</a></li>
-<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#http-server-in-go">HTTP server in go</a></li>
+<li><a href="../../1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#how-to-generate-an-array-of-random-numbers">how to generate an array of random numbers</a></li>
+<li><a href="../../1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#list-all-files-in-a-directory">list all files in a directory</a></li>
+<li><a href="../../1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#http-server-in-go">HTTP server in go</a></li>
 </ul>
 <h2 id="a-little-bit-more-complex-web-server">A little bit more complex Web Server</h2>
 <p>This web server builds upon the last day’s web server.</p>
-<p><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#http-server-in-go">HTTP server in go</a></p>
+<p><a href="../../1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#http-server-in-go">HTTP server in go</a></p>
 <figure>
 <img src="1.a-bit-more-complex-web-server.png" alt="" /><figcaption>1.a-bit-more-complex-web-server</figcaption>
 </figure>
@@ -139,6 +139,8 @@ h1 {
 <span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a>    SetupRoutes()</span>
 <span id="cb5-19"><a href="#cb5-19" aria-hidden="true"></a>    ListenAndServe()</span>
 <span id="cb5-20"><a href="#cb5-20" aria-hidden="true"></a>}</span></code></pre></div>
+<p>I am not using <code>http.ListenAndServe</code> in this example. I wrote my own and I am using http.Server.ListenAndServe().</p>
+<p>We will see this function a little later.</p>
 <p>When one instance of server is running, we are going to meet this error:</p>
 <pre class="shell"><code>$ go build -o server *.go
                                                                                                                                                                                                         
@@ -149,8 +151,8 @@ $ ./server
 <p>When no other instance is running on port 8000, and the program can bind to it, then no error:</p>
 <pre class="shell"><code>$ ./server
 ^C</code></pre>
-<p>I also moved files/* to web-server/files/*</p>
-<p>Notice that when I send INTR (ctrl+c), it just quits. Go programs can handle it.</p>
+<p>Also, I moved files/* to web-server/files/*</p>
+<p>Notice that when I send INTR (ctrl+c), it just quits. Go programs can handle it, next I want to handle it.</p>
 <h3 id="lets-understand-listenandserve">Lets understand ListenAndServe</h3>
 <p><a href="https://go.dev/src/net/http/server.go#L3176">http/server.go ListenAndServe</a></p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="co">// ListenAndServe listens on the TCP network address addr and then calls</span></span>
@@ -164,6 +166,8 @@ $ ./server
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a>    server := &amp;Server{Addr: addr, Handler: handler}</span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a>    <span class="kw">return</span> server.ListenAndServe()</span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This is a public function that I was using earlier, but in the last example, I am doing exactly what this function is doing.</p>
+<p><code>http.ListenAndSever</code> basically calls <code>http.server.ListenAndServe</code>.</p>
 <p><a href="https://go.dev/src/net/http/server.go#L2911">http/server.go *Server ListenAndServe</a></p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co">// ListenAndServe listens on the TCP network address srv.Addr and then</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="co">// calls Serve to handle requests on incoming connections.</span></span>
@@ -187,6 +191,10 @@ $ ./server
 <span id="cb9-20"><a href="#cb9-20" aria-hidden="true"></a>    }</span>
 <span id="cb9-21"><a href="#cb9-21" aria-hidden="true"></a>    <span class="kw">return</span> srv.Serve(ln)</span>
 <span id="cb9-22"><a href="#cb9-22" aria-hidden="true"></a>}</span></code></pre></div>
+<p>We see here that if <code>Addr</code> is empty string, the assigned address is <code>:http</code> which is basically <code>:80</code>.</p>
+<p>The <code>net.Listen</code> is <code>func Listen(network, address string) (Listener, error)</code> and thus “tcp” is <code>network</code> and “:http” is <code>address</code>.</p>
+<p><code>net.Listen</code> calls <code>func (lc *ListenConfig) Listen(ctx context.Context, network, address string) (Listener, error) {</code></p>
+<p>Where a <code>sysListener</code> is initialized. It gets a bit complicated from here. Later… In future.</p>
 <p><a href="https://go.dev/src/net/http/server.go#L2962">http/server.go *Server Serve</a></p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="co">// Serve accepts incoming connections on the Listener l, creating a</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="co">// new service goroutine for each. The service goroutines read requests and</span></span>
@@ -565,7 +573,29 @@ $ ./server
 <span id="cb13-22"><a href="#cb13-22" aria-hidden="true"></a>    doneChan   <span class="kw">chan</span> <span class="kw">struct</span>{}</span>
 <span id="cb13-23"><a href="#cb13-23" aria-hidden="true"></a>    onShutdown []<span class="kw">func</span>()</span>
 <span id="cb13-24"><a href="#cb13-24" aria-hidden="true"></a>}</span></code></pre></div>
-<p>Still working on it…</p>
+<p><code>Addr</code> is string that can have “host:port” or “:port” or "“. Missing values for host and port are filled as”http" and “80” respectively.</p>
+<p><code>Handler</code> is function that can handle incoming requests. <code>http.DefaultServeMux</code> is the default value, in most cases handler is <code>nil</code>.</p>
+<p><code>TLSConfig</code> is used for HTTPS servers. I guess.</p>
+<p><code>ReadTimeout</code> is max time a request can take reaching the server. A positive value can protect from <a href="https://en.wikipedia.org/wiki/Slowloris_(computer_security)">slow-loris</a>{: .in} attack.</p>
+<p><code>ReadHeaderTimeout</code> is max time all the request headers can take reaching the server. A positive value can protect from slow-loris.</p>
+<p>Of <code>ReadHeaderTimeout</code> is zero, <code>ReadTimeout</code> is read.</p>
+<p><code>WriteTimeout</code> is time out for writing a response. I do not understand what they mean by “It is reset whenever a new request’s header is read.”.</p>
+<p><code>IdleTimeout</code> is max time to wait for the next request when keep-alives are enabled. We will use it certainly for our server soon.</p>
+<p><code>MaxHeaderByts</code> is number of bytes of headers (not body) server will parse. If zero, <code>DefaultMaxHeaderBytes</code> is read.</p>
+<p><code>TLSNextProto</code> I don’t know.</p>
+<p><code>ConnState</code> IDK.</p>
+<p><code>ErrorLog</code> Some logger, but default is log package’s std logger. IDK.</p>
+<p><code>BaseContext</code> IDK.</p>
+<p><code>ConnContext</code> IDK.</p>
+<p><code>inShutdown</code> true when server is in shutdown.</p>
+<p><code>disableKeepAlives</code> IDK.</p>
+<p><code>nextProtoOnce</code> IDK.</p>
+<p><code>nextProtoErr</code> IDK.</p>
+<p><code>mu</code> mutex. Go has mutex! It is a system programming language, so duh…</p>
+<p><code>listeners</code> a map of listeners. IDK.</p>
+<p><code>activeConn</code> a map of connections.</p>
+<p><code>doneChan</code> Channel that is used to signal when server is being shutdown or received an interrupt???</p>
+<p><code>onShutdown</code> function that is called when server is asked to shutdown???</p>
 <h3 id="handling-intr-ctrlc">Handling INTR (ctrl+c)</h3>
 <script>hljs.highlightAll();</script>
 </body>

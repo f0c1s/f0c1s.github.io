@@ -8,8 +8,6 @@
     --pink-h: pink;
     --teal-bg: rgba(0, 80, 80, 0.1);
     --teal-h: teal;
-
-
     --red: red;
 }
 
@@ -20,10 +18,8 @@
 body {
     background-color: var(--bgc);
     color: var(--fgc);
-    max-width: 1000px;
-    width: 1000px;
     padding: var(--d);
-    margin: var(--d);
+    margin: var(--d) auto;
     font-family: monospace;
     font-size: 14px;
     border: thin solid #000;
@@ -85,7 +81,7 @@ body.teal a:active {
 }
 
 figure, img {
-    max-width: 960px;
+    max-width: inherit;
     margin: 2rem auto;
 }
 
@@ -98,7 +94,7 @@ figcaption {
 }
 
 img {
-    max-width: 960px;
+    max-width: inherit;
     display: block;
     margin: 5px auto;
 }
@@ -109,7 +105,6 @@ pre {
 }
 
 pre code {
-    max-width: 960px;
     display: block;
     padding: 15px;
 }
@@ -241,4 +236,60 @@ fieldset label {
     text-shadow: 2px 2px 2px red;
     background-color: #ff20ca;
     box-shadow: 3px 3px 2px red;
+}
+
+#go-1000-todo-container div {
+    width: 30%;
+    display: inline-block;
+}
+
+#go-1000-todo-container div a {
+    display: inline;
+}
+
+a.in {
+    display: inline;
+}
+
+
+@media screen and (min-width: 320px) {
+    body {
+        width: 320px;
+        max-width: 320px;
+    }
+}
+
+@media screen and (min-width: 480px) {
+    body {
+        width: 480px;
+        max-width: 480px;
+    }
+}
+
+@media screen and (min-width: 760px) {
+    body {
+        width: 760px;
+        max-width: 760px;
+    }
+}
+
+@media screen and (min-width: 960px) {
+    body {
+        width: 960px;
+        max-width: 960px;
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    body {
+        width: 1200px;
+        max-width: 1200px;
+    }
+}
+
+@media screen and (min-width: 1600px) {
+    body {
+        width: 1600px;
+        max-width: 1600px;
+    }
 }
