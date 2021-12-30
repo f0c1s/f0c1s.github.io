@@ -8,6 +8,9 @@
     --pink-h: pink;
     --teal-bg: rgba(0, 80, 80, 0.1);
     --teal-h: teal;
+
+
+    --red: red;
 }
 
 * {
@@ -212,4 +215,30 @@ fieldset label {
     display: inline-block;
     border: thin solid grey;
     cursor: pointer;
+}
+
+#progress-bar {
+    position: fixed;
+    height: calc(var(--d) / 2);
+    top: 0;
+    left: var(--d);
+    background-color: var(--red);
+    border-bottom: thin solid var(--black);
+}
+
+#take-to-top-btn {
+    position: fixed;
+    left: var(--d);
+    bottom: var(--d);
+    padding: var(--d);
+    background-color: magenta;
+    color: white;
+    cursor: pointer;
+    transform: skewY(-7deg);
+}
+
+#take-to-top-btn:hover {
+    text-shadow: 2px 2px 2px red;
+    background-color: #ff20ca;
+    box-shadow: 3px 3px 2px red;
 }
