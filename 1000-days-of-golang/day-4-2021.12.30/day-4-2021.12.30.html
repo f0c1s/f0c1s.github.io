@@ -1,6 +1,7 @@
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>
 blog.f0c1s.com/1000-days-of-golang/day 4
 </title>
@@ -597,6 +598,98 @@ $ ./server
 <p><code>doneChan</code> Channel that is used to signal when server is being shutdown or received an interrupt???</p>
 <p><code>onShutdown</code> function that is called when server is asked to shutdown???</p>
 <h3 id="handling-intr-ctrlc">Handling INTR (ctrl+c)</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="kw">package</span> main</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a><span class="kw">import</span> (</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>    <span class="st">&quot;fmt&quot;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a>    <span class="st">&quot;log&quot;</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a>    <span class="st">&quot;net/http&quot;</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a>    <span class="st">&quot;os&quot;</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a>    <span class="st">&quot;os/signal&quot;</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true"></a>    <span class="st">&quot;syscall&quot;</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true"></a>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true"></a><span class="kw">func</span> ListenAndServe() {</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true"></a>    sigs := <span class="bu">make</span>(<span class="kw">chan</span> os.Signal, <span class="dv">1</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true"></a>    signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true"></a>    done := <span class="bu">make</span>(<span class="kw">chan</span> <span class="dt">bool</span>, <span class="dv">1</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true"></a></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true"></a>    <span class="kw">go</span> <span class="kw">func</span>() {</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true"></a>        server := &amp;http.Server{Addr: <span class="st">&quot;:8000&quot;</span>}</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true"></a>        <span class="kw">if</span> err := server.ListenAndServe(); err != <span class="ot">nil</span> {</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true"></a>            log.Println(<span class="st">&quot;server cannot start&quot;</span>)</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true"></a>            log.Fatalf(<span class="st">&quot;server cannot start: %s&quot;</span>, err.Error())</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true"></a>        }</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true"></a>    }()</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true"></a>    fmt.Println(<span class="st">&quot;Server is running... Press ctrl+c to exit gracefully&quot;</span>)</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true"></a>    &lt;-done</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true"></a>    fmt.Println(<span class="st">&quot;Server is exiting!&quot;</span>)</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true"></a>}</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true"></a></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true"></a><span class="kw">func</span> main() {</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true"></a>    SetupRoutes()</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true"></a>    ListenAndServe()</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This actually hangs the web server on interrupt.</p>
+<pre class="shell"><code>./server
+Server is running... Press ctrl+c to exit gracefully
+^C^C^Czsh: killed     ./server
+</code></pre>
+<p>The mistake I later realized was blocking on done, when <code>sigs</code> was setup to hear the interrupt.</p>
+<h4 id="working-example">working example</h4>
+<div class="sourceCode" id="cb16"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="kw">package</span> main</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="kw">import</span> (</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a>    <span class="st">&quot;context&quot;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a>    <span class="st">&quot;log&quot;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a>    <span class="st">&quot;net/http&quot;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a>    <span class="st">&quot;os&quot;</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a>    <span class="st">&quot;os/signal&quot;</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true"></a>    <span class="st">&quot;syscall&quot;</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true"></a>    <span class="st">&quot;time&quot;</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true"></a>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true"></a><span class="kw">func</span> ListenAndServe() {</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true"></a>    done := <span class="bu">make</span>(<span class="kw">chan</span> os.Signal, <span class="dv">1</span>)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true"></a>    signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true"></a>    server := &amp;http.Server{Addr: <span class="st">&quot;:8000&quot;</span>}</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true"></a>    <span class="kw">go</span> <span class="kw">func</span>() {</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true"></a>        <span class="kw">if</span> err := server.ListenAndServe(); err != <span class="ot">nil</span> {</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true"></a>            log.Fatalf(<span class="st">&quot;server will not serve: %s&quot;</span>, err.Error())</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true"></a>        }</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true"></a>    }()</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true"></a></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true"></a>    log.Println(<span class="st">&quot;Server is running... Press ctrl+c to exit gracefully&quot;</span>)</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true"></a>    &lt;-done</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true"></a>    log.Println(<span class="st">&quot;Server is exiting!&quot;</span>)</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true"></a></span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true"></a>    ctx, cancel := context.WithTimeout(context.Background(), <span class="dv">5</span>*time.Second)</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true"></a>    <span class="kw">defer</span> <span class="kw">func</span>() {</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true"></a>        <span class="co">// db, file etc here...</span></span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true"></a>        cancel()</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true"></a>    }()</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true"></a></span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true"></a>    <span class="kw">if</span> err := server.Shutdown(ctx); err != <span class="ot">nil</span> {</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true"></a>        log.Fatalf(<span class="st">&quot;server shutdown failed: %+v&quot;</span>, err)</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true"></a>    }</span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true"></a>    log.Println(<span class="st">&quot;server exited successfully&quot;</span>)</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true"></a>}</span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true"></a></span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true"></a><span class="kw">func</span> main() {</span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true"></a>    SetupRoutes()</span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true"></a>    ListenAndServe()</span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true"></a>}</span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true"></a></span></code></pre></div>
+<pre class="shell"><code>./server               
+2021/12/30 22:50:10 Server is running... Press ctrl+c to exit gracefully
+^C2021/12/30 22:50:17 Server is exiting!
+2021/12/30 22:50:17 server will not serve: http: Server closed
+</code></pre>
+<p>I can get rid of the message “server will not serve: http: Server closed” by not caring if server was started or not, but meh.</p>
 <script>hljs.highlightAll();</script>
 </body>
 </html>

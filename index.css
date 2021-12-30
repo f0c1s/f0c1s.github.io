@@ -256,6 +256,8 @@ a.in {
     body {
         width: 320px;
         max-width: 320px;
+        padding: var(--d) 0;
+        margin: var(--d) 0;
     }
 }
 
@@ -263,6 +265,8 @@ a.in {
     body {
         width: 480px;
         max-width: 480px;
+        padding: var(--d) 0;
+        margin: var(--d) 0;
     }
 }
 
@@ -270,6 +274,8 @@ a.in {
     body {
         width: 760px;
         max-width: 760px;
+        padding: var(--d);
+        margin: var(--d);
     }
 }
 
@@ -277,6 +283,8 @@ a.in {
     body {
         width: 960px;
         max-width: 960px;
+        padding: var(--d);
+        margin: var(--d) auto;
     }
 }
 
@@ -284,6 +292,8 @@ a.in {
     body {
         width: 1200px;
         max-width: 1200px;
+        padding: var(--d);
+        margin: var(--d) auto;
     }
 }
 
@@ -291,5 +301,7 @@ a.in {
     body {
         width: 1600px;
         max-width: 1600px;
+        padding: var(--d);
+        margin: var(--d) auto;
     }
 }
