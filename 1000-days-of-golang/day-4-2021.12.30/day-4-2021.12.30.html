@@ -1,0 +1,193 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>
+blog.f0c1s.com/1000-days-of-golang/day 4
+</title>
+<script src="../../setup.js" async></script>
+<link rel="stylesheet" href="../../index.css" /> <link rel="stylesheet" href="../../highlight/styles/monokai.min.css"/>
+<script src="../../highlight/highlight.min.js"></script>
+</head>
+<body onload="setup()">
+<h1>
+/f0c1s/blog/1000-days-of-golang/Day 4
+</h1>
+<p>2021.12.30 Thursday</p>
+<p>
+<a href="../../index.html">blog</a> <a href="../../1000-days-of-golang/1000-days-of-golang.html">1000-days-of-golang</a> <a href="../../1000-days-of-golang/day-4-2021.12.30/day-4-2021.12.30.html">+ Day 4 of 1000 days of golang 2021.12.30 Thursday</a>
+</p>
+<h2 id="lets-go">lets go</h2>
+<h3 id="recap.">recap.</h3>
+<ul>
+<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#mapping-over-an-array-of-numbers">mapping over array of numbers</a></li>
+<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#passing-a-mapping-function">passing a mapping function</a></li>
+<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#binary-search">binary search</a>
+<ul>
+<li>math/rand.Perm generates permutaion of numbers; an array of random numbers uptil n</li>
+<li>division / operator returns type of first operand</li>
+<li>you can generate your errors with errors.New(message string)</li>
+<li>sort.Ints(array) will sort the array</li>
+<li>rand.Intn(limit) will return a random integer smaller than limit</li>
+</ul></li>
+<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#how-to-generate-an-array-of-random-numbers">how to generate an array of random numbers</a></li>
+<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#list-all-files-in-a-directory">list all files in a directory</a></li>
+<li><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#http-server-in-go">HTTP server in go</a></li>
+</ul>
+<h2 id="a-little-bit-more-complex-web-server">A little bit more complex Web Server</h2>
+<p>This web server builds upon the last day’s web server.</p>
+<p><a href="http://blog.f0c1s.com/1000-days-of-golang/day-3-2021.12.28/day-3-2021.12.28.html#http-server-in-go">HTTP server in go</a></p>
+<figure>
+<img src="1.a-bit-more-complex-web-server.png" alt="" /><figcaption>1.a-bit-more-complex-web-server</figcaption>
+</figure>
+<h3 id="files">files/</h3>
+<ul>
+<li>index.html</li>
+<li>index.css</li>
+</ul>
+<p>Basic html and css files, we are serving these as it is.</p>
+<h3 id="web-server">web-server/</h3>
+<h4 id="handlers.go">handlers.go</h4>
+<p>We are creating route handlers in this file.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">package</span> main</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="kw">import</span> (</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="st">&quot;fmt&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    <span class="st">&quot;io/ioutil&quot;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>    <span class="st">&quot;net/http&quot;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a><span class="kw">func</span> HelloHandler(w http.ResponseWriter, r *http.Request) {</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>    fmt.Fprintf(w, <span class="st">&quot;HelloHandler %s</span><span class="ch">\n</span><span class="st">&quot;</span>, r.URL.Query().Get(<span class="st">&quot;name&quot;</span>))</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>}</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a><span class="kw">func</span> HomepageHandler(w http.ResponseWriter, r *http.Request) {</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>    html, err := ioutil.ReadFile(<span class="st">&quot;files/index.html&quot;</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a>    <span class="kw">if</span> err != <span class="ot">nil</span> {</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>        fmt.Fprintf(w, <span class="st">&quot;cannot read index.html: &quot;</span>+err.Error())</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>        <span class="kw">return</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a>    }</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true"></a>    fmt.Fprintf(w, <span class="dt">string</span>(html))</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true"></a>}</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true"></a><span class="kw">func</span> IndexCssHandler(w http.ResponseWriter, r *http.Request) {</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true"></a>    html, err := ioutil.ReadFile(<span class="st">&quot;files/index.css&quot;</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true"></a>    <span class="kw">if</span> err != <span class="ot">nil</span> {</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a>        fmt.Fprintf(w, <span class="st">&quot;cannot read index.css&quot;</span>)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a>        <span class="kw">return</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true"></a>    }</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true"></a>    fmt.Fprintf(w, <span class="dt">string</span>(html))</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true"></a>}</span></code></pre></div>
+<h4 id="routes.go">routes.go</h4>
+<p>We are setting up all the routes here, and assigning route handlers via <code>http.HandleFunc</code>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">package</span> main</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="kw">import</span> <span class="st">&quot;net/http&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="kw">func</span> SetupRoutes() {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>    http.HandleFunc(<span class="st">&quot;/hello&quot;</span>, HelloHandler)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>    http.HandleFunc(<span class="st">&quot;/index.css&quot;</span>, IndexCssHandler)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>    http.HandleFunc(<span class="st">&quot;/&quot;</span>, HomepageHandler)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a>}</span></code></pre></div>
+<h4 id="server.go">server.go</h4>
+<p>Setup routes and listen for connections.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">package</span> main</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="kw">import</span> (</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    <span class="st">&quot;net/http&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="kw">func</span> main() {</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>    SetupRoutes()</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>    http.ListenAndServe(<span class="st">&quot;:8000&quot;</span>, <span class="ot">nil</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>}</span></code></pre></div>
+<pre class="shell"><code>$ curl -s http://localhost:8000/         
+&lt;h1&gt;index.html&lt;/h1&gt;                                                                                                                                                                                                        
+
+$ curl -s http://localhost:8000/hello    
+HelloHandler 
+                                                                                                                                                                                                        
+$ curl -s http://localhost:8000/index.css
+h1 {
+    color: red;
+}    </code></pre>
+<h2 id="gracefully-shutting-server-down">Gracefully shutting server down</h2>
+<ul>
+<li><a href="https://medium.com/honestbee-tw-engineer/gracefully-shutdown-in-go-http-server-5f5e6b83da5a">blog post</a></li>
+<li><a href="https://gobyexample.com/signals">go by example</a></li>
+<li><a href="https://www.gnu.org/software/libc/manual/html_node/Signal-Characters.html">Signal characters</a></li>
+<li><a href="https://stackoverflow.com/questions/39320025/how-to-stop-http-listenandserve">SO: how-to-stop-http-listenandserve</a></li>
+</ul>
+<h3 id="adding-server-start-failure-logic">Adding server start failure logic</h3>
+<h4 id="server.go-1">server.go</h4>
+<div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">package</span> main</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="kw">import</span> (</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>    <span class="st">&quot;log&quot;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>    <span class="st">&quot;net/http&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a><span class="kw">func</span> ListenAndServe() {</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>    server := &amp;http.Server{Addr: <span class="st">&quot;:8000&quot;</span>}</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a>    <span class="kw">if</span> err := server.ListenAndServe(); err != <span class="ot">nil</span> {</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a>        log.Println(<span class="st">&quot;server cannot start&quot;</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a>        log.Fatalf(<span class="st">&quot;server cannot start: %s&quot;</span>, err.Error())</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a>    }</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a>}</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a><span class="kw">func</span> main() {</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a>    SetupRoutes()</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true"></a>    ListenAndServe()</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true"></a>}</span></code></pre></div>
+<p>When one instance of server is running, we are going to meet this error:</p>
+<pre class="shell"><code>$ go build -o server *.go
+                                                                                                                                                                                                        
+$ ./server               
+2021/12/30 14:27:39 server cannot start
+2021/12/30 14:27:39 server cannot start: listen tcp :8000: bind: address already in use
+</code></pre>
+<p>When no other instance is running on port 8000, and the program can bind to it, then no error:</p>
+<pre class="shell"><code>$ ./server
+^C</code></pre>
+<p>I also moved files/* to web-server/files/*</p>
+<p>Notice that when I send INTR (ctrl+c), it just quits. Go programs can handle it.</p>
+<h3 id="lets-understand-listenandserve">Lets understand ListenAndServe</h3>
+<p><a href="https://go.dev/src/net/http/server.go#L3176">http/server.go ListenAndServe</a></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="co">// ListenAndServe listens on the TCP network address addr and then calls</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="co">// Serve with handler to handle requests on incoming connections.</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="co">// Accepted connections are configured to enable TCP keep-alives.</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="co">//</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a><span class="co">// The handler is typically nil, in which case the DefaultServeMux is used.</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a><span class="co">//</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a><span class="co">// ListenAndServe always returns a non-nil error.</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a><span class="kw">func</span> ListenAndServe(addr <span class="dt">string</span>, handler Handler) <span class="dt">error</span> {</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a>    server := &amp;Server{Addr: addr, Handler: handler}</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a>    <span class="kw">return</span> server.ListenAndServe()</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a>}</span></code></pre></div>
+<p><a href="https://go.dev/src/net/http/server.go#L2911">http/server.go *Server ListenAndServe</a></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co">// ListenAndServe listens on the TCP network address srv.Addr and then</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="co">// calls Serve to handle requests on incoming connections.</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="co">// Accepted connections are configured to enable TCP keep-alives.</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="co">//</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="co">// If srv.Addr is blank, &quot;:http&quot; is used.</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a><span class="co">//</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a><span class="co">// ListenAndServe always returns a non-nil error. After Shutdown or Close,</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a><span class="co">// the returned error is ErrServerClosed.</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a><span class="kw">func</span> (srv *Server) ListenAndServe() <span class="dt">error</span> {</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a>    <span class="kw">if</span> srv.shuttingDown() {</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a>        <span class="kw">return</span> ErrServerClosed</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a>    }</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a>    addr := srv.Addr</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a>    <span class="kw">if</span> addr == <span class="st">&quot;&quot;</span> {</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a>        addr = <span class="st">&quot;:http&quot;</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a>    }</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true"></a>    ln, err := net.Listen(<span class="st">&quot;tcp&quot;</span>, addr)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true"></a>    <span class="kw">if</span> err != <span class="ot">nil</span> {</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true"></a>        <span class="kw">return</span> err</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true"></a>    }</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true"></a>    <span class="kw">return</span> srv.Serve(ln)</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true"></a>}</span></code></pre></div>
+<h3 id="handling-intr-ctrlc">Handling INTR (ctrl+c)</h3>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

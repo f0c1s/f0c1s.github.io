@@ -14,7 +14,7 @@
 <p>
     <a href="../../../index.html">/blog</a>
     <a href="../../index.html">Security</a>
-    <a href="../../index.html">VulnHub</a>
+    <a href="../index.html">VulnHub</a>
     <a href="../../../sec/vulnhub/hackNos-os-hax/hackNos-os-hax.html">+ os-hax - 2021.12.28 Tuesday</a>
 </p>
 

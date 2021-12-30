@@ -14,7 +14,7 @@
 <p>
     <a href="../../../index.html">/blog</a>
     <a href="../../index.html">Security</a>
-    <a href="../../index.html">VulnHub</a>
+    <a href="../index.html">VulnHub</a>
     <a href="../../../sec/vulnhub/hackNos-player-1.1/hackNos-player-1.1.html">+ hackNos: player v1.1 - 2021.12.30 Thursday</a>
 </p>
 
