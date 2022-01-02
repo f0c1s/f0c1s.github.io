@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Settings on blog.f0c1s.com</title>
     <link rel="stylesheet" href="index.css"/>
     <script src="setup.js" async></script>
@@ -27,17 +28,54 @@
         <input type="radio" id="color_mode_teal" name="color_mode" value="teal" onchange="onColorModeSelect(this)"/>
     </label>
 </fieldset>
+
+<fieldset>
+    <legend>Fonts</legend>
+    <label for="font_text">text font family:
+        <select name="font_text" id="font_text" onchange="onTextFontFamilySelect(this)">
+            <option value="monospace">monospace</option>
+            <option value="sans-serif">sans serif</option>
+            <option value="serif">serif</option>
+        </select>
+    </label>
+    <label for="font_text_size">text font size:
+        <input type="range" min="8" max="32"
+               value="14"
+               id="font_text_size" name="font_text_size"
+               onchange="onTextFontSizeChange(this)"/>
+        px
+    </label>
+
+</fieldset>
+
 <script>
+
+    function onTextFontSizeChange(e) {
+        console.log(e, typeof e, e.value);
+        localStorage.setItem('text-font-size', e.value);
+        document.querySelector('body').style.fontSize = e.value + 'px';
+    }
+
+    function onTextFontFamilySelect(e) {
+        localStorage.setItem('text-font-family', e.value);
+        document.querySelector('body').style.fontFamily = e.value;
+        // document.location = document.location;
+    }
+
     function onColorModeSelect(e) {
         localStorage.setItem('color-mode', e.value);
         document.querySelector('body').className = e.value;
-        document.location = document.location
+        document.location = document.location;
     }
 
     function localSetup() {
         const storedColorMode = localStorage.getItem('color-mode');
         const colorModeRadios = Array.from(document.querySelectorAll('input[type="radio"][name="color_mode"]'));
         colorModeRadios.filter(radio => radio.id.includes(storedColorMode)).forEach(radio => radio.checked = "checked");
+
+        // font family
+        const fontFamily = localStorage.getItem("text-font-family");
+        Array.from(document.querySelectorAll("#font_text option")).forEach(x => x.selected = fontFamily === x.value);
     }
 </script>
 </body>

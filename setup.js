@@ -12,6 +12,20 @@ function setup() {
 
     progressBar();
     takeToTopButton();
+    setFontSize();
+    setFontFamily();
+}
+
+function setFontFamily() {
+    const fontFamily = (localStorage.getItem("text-font-family") || document.querySelector("body").style.fontFamily);
+    localStorage.setItem("text-font-family", fontFamily);
+    document.querySelector("body").style.fontFamily = fontFamily;
+}
+
+function setFontSize() {
+    const fontSize = (localStorage.getItem("text-font-size") || document.querySelector("body").style.fontSize || 13);
+    localStorage.setItem("text-font-size", fontSize);
+    document.querySelector("body").style.fontSize = fontSize + "px";
 }
 
 function progressBar() {
