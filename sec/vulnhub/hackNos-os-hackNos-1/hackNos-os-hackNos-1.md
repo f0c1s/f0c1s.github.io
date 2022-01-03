@@ -760,9 +760,6 @@ cat alexander.txt | base64 -d
 Credentials: `james:Hacker@451`
 
 
-
-Credentials: `james:Hacker@4514`
-
 ## SSH
 
 The credentials above didn't work.
@@ -770,6 +767,8 @@ The credentials above didn't work.
 I looked back and found that I had dropped `++.` from the source code.
 
 ![18.credentials](18.credentials.png)
+
+Credentials: `james:Hacker@4514`
 
 Anyway, cannot ssh.
 
