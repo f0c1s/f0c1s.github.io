@@ -64,23 +64,25 @@ find / -type f -perm -u=s -exec ls -la {} ';' 2>/dev/null
 # OR
 find / -type f -perm -u=s -exec ls -la "{}" \; 2>/dev/null
 # OR
-find / -type f -perm -4000 -exec ls -la "{}" \; 2>/dev/null
+find / -type f -perm -4000 -exec ls -lh "{}" \; 2>/dev/null
 
 ## SGID files
-find / -type f -perm -2000 -exec ls -la "{}" \; 2>/dev/null
+find / -type f -perm -2000 -exec ls -lh "{}" \; 2>/dev/null
 
 ## Databases
-find / -type d -name "*database*" 2>/dev/null
+find / -type d -name "*database*" -exec ls -lh "{}" \; 2>/dev/null
 
-find / -type d -name "database" 2>/dev/null
+find / -type d -name "database" -exec ls -lh "{}" \; 2>/dev/null
 
-find / -type f -name "database" 2>/dev/null
+find / -type f -name "database" -exec ls -lh "{}" \; 2>/dev/null
+find / -type f -name "db" -exec ls -lh "{}" \; 2>/dev/null
 
-find / -type f -name "*database*" 2>/dev/null
+find / -type f -name "*database*" -exec ls -lh "{}" \; 2>/dev/null
+find / -type f -name "*db*" -exec ls -lh "{}" \; 2>/dev/null
 
 # look for backups
-find / -type d -name "*backup*" 2>/dev/null
-find / -type f -name "*backup*" 2>/dev/null
+find / -type d -name "*backup*" -exec ls -lh "{}" \; 2>/dev/null
+find / -type f -name "*backup*" -exec ls -lh "{}" \; 2>/dev/null
 find / -type f -name "*bak" -exec ls -lh "{}" \; 2>/dev/null
 
 # find recent files
