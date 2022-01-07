@@ -1,54 +1,40 @@
 <html lang="en">
-    <head>
-        <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>/f0c1s/blog/sec/vulnhub/symfonos-4</title>
-        <link rel="stylesheet" href="../../../index.css"/>
-        <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
-        <script src="../../../highlight/highlight.min.js"></script>
-        <script src="../../../setup.js"></script>
-        <script>hljs.highlightAll();</script>
-    </head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+/f0c1s/blog/sec/vulnhub/symfonos-4
+</title>
+<link rel="stylesheet" href="../../../index.css"/> <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script src="../../../setup.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
 <body onload="setup()">
-<h1>/f0c1s/blog/sec/vulnhub/symfonos-4</h1>
-
+<h1>
+/f0c1s/blog/sec/vulnhub/symfonos-4
+</h1>
 <nav>
-    <a href="../../../index.html">/blog</a>
-    <a href="../../index.html">Security</a>
-    <a href="../index.html">VulnHub</a>
-    <a href="../../../sec/vulnhub/symfonos-4/symfonos-4.html">+ symfonos-4 - 2022.01.08 Saturday</a>
+<a href="../../../index.html">/blog</a> <a href="../../index.html">Security</a> <a href="../index.html">VulnHub</a> <a href="../../../sec/vulnhub/symfonos-4/symfonos-4.html">+ symfonos-4 - 2022.01.08 Saturday</a>
 </nav>
-
-## Description
-
-> Name: symfonos: 4
-> Difficulty: Intermediate
-> Tested: VirtualBox
-> DHCP Enabled
-> OSCP-like Intermediate real life based machine designed to teach people the importance of trying harder.
->
-> This works better with VirtualBox rather than VMware.
-
-
-[VulnHub: https://www.vulnhub.com/entry/symfonos-4,347/](https://www.vulnhub.com/entry/symfonos-4,347/)
-[Series: https://www.vulnhub.com/series/symfonos,217/](https://www.vulnhub.com/series/symfonos,217/)
-
-![0.running-box](0.running-box.png)
-
-## Scanning
-
-
-```shell
-fping -aAqg 192.168.56.1/24 | tee fping.txt
+<h2 id="description">Description</h2>
+<blockquote>
+<p>Name: symfonos: 4 Difficulty: Intermediate Tested: VirtualBox DHCP Enabled OSCP-like Intermediate real life based machine designed to teach people the importance of trying harder.</p>
+<p>This works better with VirtualBox rather than VMware.</p>
+</blockquote>
+<p><a href="https://www.vulnhub.com/entry/symfonos-4,347/">VulnHub: https://www.vulnhub.com/entry/symfonos-4,347/</a> <a href="https://www.vulnhub.com/series/symfonos,217/">Series: https://www.vulnhub.com/series/symfonos,217/</a></p>
+<figure>
+<img src="0.running-box.png" alt="" /><figcaption>0.running-box</figcaption>
+</figure>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>fping -aAqg 192.168.56.1/24 | tee fping.txt
 192.168.56.1
 192.168.56.2
 192.168.56.70
 192.168.56.92
 192.168.56.93
-
-```
-
-```shell
-sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
+</code></pre>
+<pre class="shell"><code>sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
 [sudo] password for f0c1s:
  192.168.56.1    0a:00:27:00:00:00      1      60  Unknown vendor
  192.168.56.2    08:00:27:79:1b:bb      1      60  PCS Systemtechnik GmbH
@@ -56,11 +42,8 @@ sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
  192.168.56.93   08:00:27:45:ca:64      1      60  PCS Systemtechnik GmbH
 
 -- Active scan completed, 4 Hosts found.
-
-```
-
-```shell
-sudo arp-scan -I eth1 -l
+</code></pre>
+<pre class="shell"><code>sudo arp-scan -I eth1 -l
 Interface: eth1, type: EN10MB, MAC: 08:00:27:13:e5:7a, IPv4: 192.168.56.70
 Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
 192.168.56.1    0a:00:27:00:00:00       (Unknown: locally administered)
@@ -70,11 +53,8 @@ Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
 
 64 packets received by filter, 0 packets dropped by kernel
 Ending arp-scan 1.9.7: 256 hosts scanned in 2.193 seconds (116.74 hosts/sec). 4 responded
-
-```
-
-```shell
-nmap 192.168.56.1/24 -sn -n
+</code></pre>
+<pre class="shell"><code>nmap 192.168.56.1/24 -sn -n
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-07 10:01 IST
 Nmap scan report for 192.168.56.70
 Host is up (0.00034s latency).
@@ -83,18 +63,12 @@ Host is up (0.0014s latency).
 Nmap scan report for 192.168.56.93
 Host is up (0.0048s latency).
 Nmap done: 256 IP addresses (3 hosts up) scanned in 2.51 seconds
-
-```
-
-```shell
-export RHOST="192.168.56.93"
-export LHOST="192.168.56.70"
-export LPORT="443"
-
-```
-
-```shell
-_n $RHOST
+</code></pre>
+<pre class="shell"><code>export RHOST=&quot;192.168.56.93&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;
+</code></pre>
+<pre class="shell"><code>_n $RHOST
 firing nmap 192.168.56.93 -n | tee nmap.default.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-07 10:01 IST
 Nmap scan report for 192.168.56.93
@@ -105,11 +79,8 @@ PORT   STATE SERVICE
 80/tcp open  http
 
 Nmap done: 1 IP address (1 host up) scanned in 0.10 seconds
-
-```
-
-```shell
-_ntd $RHOST
+</code></pre>
+<pre class="shell"><code>_ntd $RHOST
 firing nmap 192.168.56.93 -p- -Pn -A -T4 --min-rate=5000 -sVC -n | tee nmap.tcp-ports.deep.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-07 10:01 IST
 Nmap scan report for 192.168.56.93
@@ -122,17 +93,14 @@ PORT   STATE SERVICE VERSION
 |   256 be:c1:fd:f1:33:64:39:9a:68:35:64:f9:bd:27:ec:01 (ECDSA)
 |_  256 66:f7:6a:e8:ed:d5:1d:2d:36:32:64:39:38:4f:9c:8a (ED25519)
 80/tcp open  http    Apache httpd 2.4.38 ((Debian))
-|_http-title: Site doesn't have a title (text/html).
+|_http-title: Site doesn&#39;t have a title (text/html).
 |_http-server-header: Apache/2.4.38 (Debian)
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 7.97 seconds
-
-```
-
-```shell
-_nu $RHOST
+</code></pre>
+<pre class="shell"><code>_nu $RHOST
 firing sudo nmap 192.168.56.93 -sU -p- -Pn --min-rate=5000 --open --top-ports=500 -n | tee nmap.udp-all-ports.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-07 10:01 IST
 Nmap scan report for 192.168.56.93
@@ -142,11 +110,8 @@ Not shown: 494 open|filtered udp ports (no-response), 6 closed udp ports (port-u
 MAC Address: 08:00:27:45:CA:64 (Oracle VirtualBox virtual NIC)
 
 Nmap done: 1 IP address (1 host up) scanned in 0.85 seconds
-
-```
-
-```shell
-sudo nmap $RHOST -p- -Pn -A -T4 --min-rate=5000 -sVC --script=*enum* -n | tee nmap.enum.txt
+</code></pre>
+<pre class="shell"><code>sudo nmap $RHOST -p- -Pn -A -T4 --min-rate=5000 -sVC --script=*enum* -n | tee nmap.enum.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-07 10:02 IST
 Nmap scan report for 192.168.56.93
 Host is up (0.00054s latency).
@@ -194,8 +159,8 @@ PORT   STATE SERVICE VERSION
 |_      zlib@openssh.com
 80/tcp open  http    Apache httpd 2.4.38 ((Debian))
 | http-enum:
-|   /css/: Potentially interesting directory w/ listing on 'apache/2.4.38 (debian)'
-|   /js/: Potentially interesting directory w/ listing on 'apache/2.4.38 (debian)'
+|   /css/: Potentially interesting directory w/ listing on &#39;apache/2.4.38 (debian)&#39;
+|   /js/: Potentially interesting directory w/ listing on &#39;apache/2.4.38 (debian)&#39;
 |_  /manual/: Potentially interesting folder
 |_http-server-header: Apache/2.4.38 (Debian)
 MAC Address: 08:00:27:45:CA:64 (Oracle VirtualBox virtual NIC)
@@ -212,14 +177,9 @@ HOP RTT     ADDRESS
 
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 9.28 seconds
-
-```
-
-## Attacking web
-
-
-```shell
-nikto -C all -host http://$RHOST | tee nikto.txt
+</code></pre>
+<h2 id="attacking-web">Attacking web</h2>
+<pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
 - Nikto v2.1.6
 ---------------------------------------------------------------------------
 + Target IP:          192.168.56.93
@@ -232,7 +192,7 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 + The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
 + The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
 + Cookie PHPSESSID created without the httponly flag
-+ Entry '/atlantis.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)
++ Entry &#39;/atlantis.php&#39; in robots.txt returned a non-forbidden or redirect HTTP code (200)
 + Server may leak inodes via ETags, header found with file /, inode: c9, size: 59058b74c9871, mtime: gzip
 + Allowed HTTP Methods: GET, POST, OPTIONS, HEAD
 + OSVDB-3268: /css/: Directory indexing found.
@@ -247,7 +207,7 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 
 
       *********************************************************************
-      Portions of the server's headers (Apache/2.4.38) are not in
+      Portions of the server&#39;s headers (Apache/2.4.38) are not in
       the Nikto 2.1.6 database or are newer than the known string. Would you like
       to submit this information (*no server specific data*) to CIRT.net
       for a Nikto update (or you may email to sullo@cirt.net) (y/n)? y
@@ -257,11 +217,8 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 + The site uses SSL and the Strict-Transport-Security HTTP header is not defined.
 + The site uses SSL and Expect-CT header is not present.
 - Sent updated info to cirt.net -- Thank you!
-
-```
-
-```shell
-dirb http://$RHOST -S
+</code></pre>
+<pre class="shell"><code>dirb http://$RHOST -S
 
 -----------------
 DIRB v2.22
@@ -278,139 +235,139 @@ OPTION: Silent Mode
 GENERATED WORDS: 4612
 
 ---- Scanning URL: http://192.168.56.93/ ----
-==> DIRECTORY: http://192.168.56.93/css/
+==&gt; DIRECTORY: http://192.168.56.93/css/
 + http://192.168.56.93/index.html (CODE:200|SIZE:201)
-==> DIRECTORY: http://192.168.56.93/javascript/
-==> DIRECTORY: http://192.168.56.93/js/
-==> DIRECTORY: http://192.168.56.93/manual/
+==&gt; DIRECTORY: http://192.168.56.93/javascript/
+==&gt; DIRECTORY: http://192.168.56.93/js/
+==&gt; DIRECTORY: http://192.168.56.93/manual/
 + http://192.168.56.93/robots.txt (CODE:403|SIZE:298)
 + http://192.168.56.93/server-status (CODE:403|SIZE:301)
 
 ---- Entering directory: http://192.168.56.93/css/ ----
 (!) WARNING: Directory IS LISTABLE. No need to scan it.
-    (Use mode '-w' if you want to scan it anyway)
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
 
 ---- Entering directory: http://192.168.56.93/javascript/ ----
-==> DIRECTORY: http://192.168.56.93/javascript/jquery/
+==&gt; DIRECTORY: http://192.168.56.93/javascript/jquery/
 
 ---- Entering directory: http://192.168.56.93/js/ ----
 (!) WARNING: Directory IS LISTABLE. No need to scan it.
-    (Use mode '-w' if you want to scan it anyway)
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
 
 ---- Entering directory: http://192.168.56.93/manual/ ----
-==> DIRECTORY: http://192.168.56.93/manual/da/
-==> DIRECTORY: http://192.168.56.93/manual/de/
-==> DIRECTORY: http://192.168.56.93/manual/en/
-==> DIRECTORY: http://192.168.56.93/manual/es/
-==> DIRECTORY: http://192.168.56.93/manual/fr/
-==> DIRECTORY: http://192.168.56.93/manual/images/
+==&gt; DIRECTORY: http://192.168.56.93/manual/da/
+==&gt; DIRECTORY: http://192.168.56.93/manual/de/
+==&gt; DIRECTORY: http://192.168.56.93/manual/en/
+==&gt; DIRECTORY: http://192.168.56.93/manual/es/
+==&gt; DIRECTORY: http://192.168.56.93/manual/fr/
+==&gt; DIRECTORY: http://192.168.56.93/manual/images/
 + http://192.168.56.93/manual/index.html (CODE:200|SIZE:626)
-==> DIRECTORY: http://192.168.56.93/manual/ja/
-==> DIRECTORY: http://192.168.56.93/manual/ko/
-==> DIRECTORY: http://192.168.56.93/manual/style/
-==> DIRECTORY: http://192.168.56.93/manual/tr/
-==> DIRECTORY: http://192.168.56.93/manual/zh-cn/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ja/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ko/
+==&gt; DIRECTORY: http://192.168.56.93/manual/style/
+==&gt; DIRECTORY: http://192.168.56.93/manual/tr/
+==&gt; DIRECTORY: http://192.168.56.93/manual/zh-cn/
 
 ---- Entering directory: http://192.168.56.93/javascript/jquery/ ----
 + http://192.168.56.93/javascript/jquery/jquery (CODE:200|SIZE:271809)
 
 ---- Entering directory: http://192.168.56.93/manual/da/ ----
-==> DIRECTORY: http://192.168.56.93/manual/da/developer/
-==> DIRECTORY: http://192.168.56.93/manual/da/faq/
-==> DIRECTORY: http://192.168.56.93/manual/da/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/da/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/da/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/da/howto/
 + http://192.168.56.93/manual/da/index.html (CODE:200|SIZE:9117)
-==> DIRECTORY: http://192.168.56.93/manual/da/misc/
-==> DIRECTORY: http://192.168.56.93/manual/da/mod/
-==> DIRECTORY: http://192.168.56.93/manual/da/programs/
-==> DIRECTORY: http://192.168.56.93/manual/da/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/da/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/da/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/da/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/da/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/de/ ----
-==> DIRECTORY: http://192.168.56.93/manual/de/developer/
-==> DIRECTORY: http://192.168.56.93/manual/de/faq/
-==> DIRECTORY: http://192.168.56.93/manual/de/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/de/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/de/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/de/howto/
 + http://192.168.56.93/manual/de/index.html (CODE:200|SIZE:9544)
-==> DIRECTORY: http://192.168.56.93/manual/de/misc/
-==> DIRECTORY: http://192.168.56.93/manual/de/mod/
-==> DIRECTORY: http://192.168.56.93/manual/de/programs/
-==> DIRECTORY: http://192.168.56.93/manual/de/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/de/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/de/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/de/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/de/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/en/ ----
-==> DIRECTORY: http://192.168.56.93/manual/en/developer/
-==> DIRECTORY: http://192.168.56.93/manual/en/faq/
-==> DIRECTORY: http://192.168.56.93/manual/en/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/en/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/en/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/en/howto/
 + http://192.168.56.93/manual/en/index.html (CODE:200|SIZE:9482)
-==> DIRECTORY: http://192.168.56.93/manual/en/misc/
-==> DIRECTORY: http://192.168.56.93/manual/en/mod/
-==> DIRECTORY: http://192.168.56.93/manual/en/programs/
-==> DIRECTORY: http://192.168.56.93/manual/en/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/en/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/en/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/en/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/en/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/es/ ----
-==> DIRECTORY: http://192.168.56.93/manual/es/developer/
-==> DIRECTORY: http://192.168.56.93/manual/es/faq/
-==> DIRECTORY: http://192.168.56.93/manual/es/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/es/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/es/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/es/howto/
 + http://192.168.56.93/manual/es/index.html (CODE:200|SIZE:9891)
-==> DIRECTORY: http://192.168.56.93/manual/es/misc/
-==> DIRECTORY: http://192.168.56.93/manual/es/mod/
-==> DIRECTORY: http://192.168.56.93/manual/es/programs/
-==> DIRECTORY: http://192.168.56.93/manual/es/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/es/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/es/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/es/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/es/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/fr/ ----
-==> DIRECTORY: http://192.168.56.93/manual/fr/developer/
-==> DIRECTORY: http://192.168.56.93/manual/fr/faq/
-==> DIRECTORY: http://192.168.56.93/manual/fr/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/fr/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/fr/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/fr/howto/
 + http://192.168.56.93/manual/fr/index.html (CODE:200|SIZE:9844)
-==> DIRECTORY: http://192.168.56.93/manual/fr/misc/
-==> DIRECTORY: http://192.168.56.93/manual/fr/mod/
-==> DIRECTORY: http://192.168.56.93/manual/fr/programs/
-==> DIRECTORY: http://192.168.56.93/manual/fr/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/fr/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/fr/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/fr/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/fr/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/images/ ----
 (!) WARNING: Directory IS LISTABLE. No need to scan it.
-    (Use mode '-w' if you want to scan it anyway)
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
 
 ---- Entering directory: http://192.168.56.93/manual/ja/ ----
-==> DIRECTORY: http://192.168.56.93/manual/ja/developer/
-==> DIRECTORY: http://192.168.56.93/manual/ja/faq/
-==> DIRECTORY: http://192.168.56.93/manual/ja/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ja/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ja/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ja/howto/
 + http://192.168.56.93/manual/ja/index.html (CODE:200|SIZE:9935)
-==> DIRECTORY: http://192.168.56.93/manual/ja/misc/
-==> DIRECTORY: http://192.168.56.93/manual/ja/mod/
-==> DIRECTORY: http://192.168.56.93/manual/ja/programs/
-==> DIRECTORY: http://192.168.56.93/manual/ja/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ja/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ja/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ja/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ja/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/ko/ ----
-==> DIRECTORY: http://192.168.56.93/manual/ko/developer/
-==> DIRECTORY: http://192.168.56.93/manual/ko/faq/
-==> DIRECTORY: http://192.168.56.93/manual/ko/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ko/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ko/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ko/howto/
 + http://192.168.56.93/manual/ko/index.html (CODE:200|SIZE:8585)
-==> DIRECTORY: http://192.168.56.93/manual/ko/misc/
-==> DIRECTORY: http://192.168.56.93/manual/ko/mod/
-==> DIRECTORY: http://192.168.56.93/manual/ko/programs/
-==> DIRECTORY: http://192.168.56.93/manual/ko/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ko/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ko/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ko/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/ko/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/style/ ----
 (!) WARNING: Directory IS LISTABLE. No need to scan it.
-    (Use mode '-w' if you want to scan it anyway)
+    (Use mode &#39;-w&#39; if you want to scan it anyway)
 
 ---- Entering directory: http://192.168.56.93/manual/tr/ ----
-==> DIRECTORY: http://192.168.56.93/manual/tr/developer/
-==> DIRECTORY: http://192.168.56.93/manual/tr/faq/
-==> DIRECTORY: http://192.168.56.93/manual/tr/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/tr/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/tr/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/tr/howto/
 + http://192.168.56.93/manual/tr/index.html (CODE:200|SIZE:9714)
-==> DIRECTORY: http://192.168.56.93/manual/tr/misc/
-==> DIRECTORY: http://192.168.56.93/manual/tr/mod/
-==> DIRECTORY: http://192.168.56.93/manual/tr/programs/
-==> DIRECTORY: http://192.168.56.93/manual/tr/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/tr/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/tr/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/tr/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/tr/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/zh-cn/ ----
-==> DIRECTORY: http://192.168.56.93/manual/zh-cn/developer/
-==> DIRECTORY: http://192.168.56.93/manual/zh-cn/faq/
-==> DIRECTORY: http://192.168.56.93/manual/zh-cn/howto/
+==&gt; DIRECTORY: http://192.168.56.93/manual/zh-cn/developer/
+==&gt; DIRECTORY: http://192.168.56.93/manual/zh-cn/faq/
+==&gt; DIRECTORY: http://192.168.56.93/manual/zh-cn/howto/
 + http://192.168.56.93/manual/zh-cn/index.html (CODE:200|SIZE:9211)
-==> DIRECTORY: http://192.168.56.93/manual/zh-cn/misc/
-==> DIRECTORY: http://192.168.56.93/manual/zh-cn/mod/
-==> DIRECTORY: http://192.168.56.93/manual/zh-cn/programs/
-==> DIRECTORY: http://192.168.56.93/manual/zh-cn/ssl/
+==&gt; DIRECTORY: http://192.168.56.93/manual/zh-cn/misc/
+==&gt; DIRECTORY: http://192.168.56.93/manual/zh-cn/mod/
+==&gt; DIRECTORY: http://192.168.56.93/manual/zh-cn/programs/
+==&gt; DIRECTORY: http://192.168.56.93/manual/zh-cn/ssl/
 
 ---- Entering directory: http://192.168.56.93/manual/da/developer/ ----
 + http://192.168.56.93/manual/da/developer/index.html (CODE:200|SIZE:6182)
@@ -604,12 +561,8 @@ GENERATED WORDS: 4612
 -----------------
 END_TIME: Fri Jan  7 10:07:42 2022
 DOWNLOADED: 350512 - FOUND: 77
-
-```
-
-
-```shell
-feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
+</code></pre>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
 301        9l       28w      312c http://192.168.56.93/css
 301        9l       28w      315c http://192.168.56.93/manual
 301        9l       28w      322c http://192.168.56.93/manual/images
@@ -631,11 +584,8 @@ Scanning: http://192.168.56.93/css
 Scanning: http://192.168.56.93/manual
 Scanning: http://192.168.56.93/js
 Scanning: http://192.168.56.93/javascript
-
-```
-
-```shell
-feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
+</code></pre>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
 403       11l       32w      294c http://192.168.56.93/icons/
 200       16l       58w      948c http://192.168.56.93/css/
 403       11l       32w      300c http://192.168.56.93/icons/small/
@@ -665,9 +615,6 @@ Scanning: http://192.168.56.93/js/
 Scanning: http://192.168.56.93/javascript/
 Scanning: http://192.168.56.93/server-status/
 Scanning: http://192.168.56.93/gods/
-
-```
-
-
+</code></pre>
 </body>
 </html>

