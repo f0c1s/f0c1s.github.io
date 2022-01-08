@@ -1,54 +1,43 @@
 <html lang="en">
-    <head>
-        <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>/f0c1s/blog/sec/vulnhub/symfonos-5.2</title>
-        <link rel="stylesheet" href="../../../index.css"/>
-        <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
-        <script src="../../../highlight/highlight.min.js"></script>
-        <script src="../../../setup.js"></script>
-        <script>hljs.highlightAll();</script>
-    </head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+/f0c1s/blog/sec/vulnhub/symfonos-5.2
+</title>
+<link rel="stylesheet" href="../../../index.css"/> <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script src="../../../setup.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
 <body onload="setup()">
-<h1>/f0c1s/blog/sec/vulnhub/symfonos-5.2</h1>
-
+<h1>
+/f0c1s/blog/sec/vulnhub/symfonos-5.2
+</h1>
 <nav>
-    <a href="../../../index.html">/blog</a>
-    <a href="../../index.html">Security</a>
-    <a href="../index.html">VulnHub</a>
-    <a href="../../../sec/vulnhub/symfonos-5.2/symfonos-5.2.html">+ symfonos-5.2 - 2022.01.09 Sunday</a>
+<a href="../../../index.html">/blog</a> <a href="../../index.html">Security</a> <a href="../index.html">VulnHub</a> <a href="../../../sec/vulnhub/symfonos-5.2/symfonos-5.2.html">+ symfonos-5.2 - 2022.01.09 Sunday</a>
 </nav>
-
-## Description
-
-> Beginner real life based machine designed to teach people the importance of understanding from the interior.
->
-> Tested on VMware and Virtualbox
->
-> \## Changelog v1.2 - 2020-03-02 v1.0 - 2020-01-07
-
-
-[VulnHub: https://www.vulnhub.com/entry/symfonos-52,415/](https://www.vulnhub.com/entry/symfonos-52,415/)
-[Series: https://www.vulnhub.com/series/symfonos,217/](https://www.vulnhub.com/series/symfonos,217/)
-
-![0.running-boxes](0.running-boxes.png)
-
-I am running all others(3.1, 4) because I wasn't able to finish them earlier this week.
-
-## Scanning
-
-```shell
-fping -aAqg 192.168.56.1/24 | tee fping.txt
+<h2 id="description">Description</h2>
+<blockquote>
+<p>Beginner real life based machine designed to teach people the importance of understanding from the interior.</p>
+<p>Tested on VMware and Virtualbox</p>
+<p>## Changelog v1.2 - 2020-03-02 v1.0 - 2020-01-07</p>
+</blockquote>
+<p><a href="https://www.vulnhub.com/entry/symfonos-52,415/">VulnHub: https://www.vulnhub.com/entry/symfonos-52,415/</a> <a href="https://www.vulnhub.com/series/symfonos,217/">Series: https://www.vulnhub.com/series/symfonos,217/</a></p>
+<figure>
+<img src="0.running-boxes.png" alt="" /><figcaption>0.running-boxes</figcaption>
+</figure>
+<p>I am running all others(3.1, 4) because I wasn’t able to finish them earlier this week.</p>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>fping -aAqg 192.168.56.1/24 | tee fping.txt
 192.168.56.1
 192.168.56.2
 192.168.56.70
 192.168.56.92
 192.168.56.93
 192.168.56.94
-
-```
-
-```shell
-sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
+</code></pre>
+<pre class="shell"><code>sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
 [sudo] password for f0c1s:
  192.168.56.1    0a:00:27:00:00:00      1      60  Unknown vendor
  192.168.56.2    08:00:27:67:bf:c2      1      60  PCS Systemtechnik GmbH
@@ -57,11 +46,8 @@ sudo netdiscover -r 192.168.56.1/24 -i eth1 -PN
  192.168.56.94   08:00:27:40:fb:1a      1      60  PCS Systemtechnik GmbH
 
 -- Active scan completed, 5 Hosts found.
-
-```
-
-```shell
-sudo arp-scan -I eth1 -l
+</code></pre>
+<pre class="shell"><code>sudo arp-scan -I eth1 -l
 Interface: eth1, type: EN10MB, MAC: 08:00:27:13:e5:7a, IPv4: 192.168.56.70
 Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
 192.168.56.1    0a:00:27:00:00:00       (Unknown: locally administered)
@@ -72,11 +58,8 @@ Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
 
 5 packets received by filter, 0 packets dropped by kernel
 Ending arp-scan 1.9.7: 256 hosts scanned in 2.179 seconds (117.49 hosts/sec). 5 responded
-
-```
-
-```shell
-nmap 192.168.56.1/24 -sn -n
+</code></pre>
+<pre class="shell"><code>nmap 192.168.56.1/24 -sn -n
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-08 09:46 IST
 Nmap scan report for 192.168.56.70
 Host is up (0.0016s latency).
@@ -87,14 +70,9 @@ Host is up (0.0020s latency).
 Nmap scan report for 192.168.56.94
 Host is up (0.0017s latency).
 Nmap done: 256 IP addresses (4 hosts up) scanned in 2.40 seconds
-
-```
-
-Now there is no indication here about which IP belongs to symfonos 5.2
-
-
-```shell
-nmap 192.168.56.{92,93,94} -n -A
+</code></pre>
+<p>Now there is no indication here about which IP belongs to symfonos 5.2</p>
+<pre class="shell"><code>nmap 192.168.56.{92,93,94} -n -A
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-08 09:48 IST
 Nmap scan report for 192.168.56.92
 Host is up (0.00065s latency).
@@ -107,7 +85,7 @@ PORT   STATE SERVICE VERSION
 |   256 74:e5:9a:5a:4c:16:90:ca:d8:f7:c7:78:e7:5a:86:81 (ECDSA)
 |_  256 3c:e4:0b:b9:db:bf:01:8a:b7:9c:42:bc:cb:1e:41:6b (ED25519)
 80/tcp open  http    Apache httpd 2.4.25 ((Debian))
-|_http-title: Site doesn't have a title (text/html).
+|_http-title: Site doesn&#39;t have a title (text/html).
 |_http-server-header: Apache/2.4.25 (Debian)
 Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
 
@@ -121,7 +99,7 @@ PORT   STATE SERVICE VERSION
 |   256 be:c1:fd:f1:33:64:39:9a:68:35:64:f9:bd:27:ec:01 (ECDSA)
 |_  256 66:f7:6a:e8:ed:d5:1d:2d:36:32:64:39:38:4f:9c:8a (ED25519)
 80/tcp open  http    Apache httpd 2.4.38 ((Debian))
-|_http-title: Site doesn't have a title (text/html).
+|_http-title: Site doesn&#39;t have a title (text/html).
 |_http-server-header: Apache/2.4.38 (Debian)
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
@@ -135,7 +113,7 @@ PORT    STATE SERVICE  VERSION
 |   256 a8:06:23:d0:93:18:7d:7a:6b:05:77:8d:8b:c9:ec:02 (ECDSA)
 |_  256 52:c0:83:18:f4:c7:38:65:5a:ce:97:66:f3:75:68:4c (ED25519)
 80/tcp  open  http     Apache httpd 2.4.29 ((Ubuntu))
-|_http-title: Site doesn't have a title (text/html).
+|_http-title: Site doesn&#39;t have a title (text/html).
 |_http-server-header: Apache/2.4.29 (Ubuntu)
 389/tcp open  ldap     OpenLDAP 2.2.X - 2.3.X
 636/tcp open  ldapssl?
@@ -143,23 +121,15 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 3 IP addresses (3 hosts up) scanned in 12.42 seconds
-
-```
-
-Going by earlier scans, I can tell that 94 is symfonos 5.2, but that's not conclusive.
-
-![1.web-homepages](1.web-homepages.png)
-
-Because I worked on [symfonos 3](../symfonos-3.1/symfonos-3.1.html){.in}
-and [symfonos 4](../symfonos-4/symfonos-4.html){.in},
-I know that 94 is symfonos 5.2, but still no indication from the box itself.
-
-This is an interesting problem, I guess I gotta hack them all.
-
-## Attacking web
-
-```shell
-nikto -C all -host http://$RHOST | tee nikto.txt
+</code></pre>
+<p>Going by earlier scans, I can tell that 94 is symfonos 5.2, but that’s not conclusive.</p>
+<figure>
+<img src="1.web-homepages.png" alt="" /><figcaption>1.web-homepages</figcaption>
+</figure>
+<p>Because I worked on <a href="../symfonos-3.1/symfonos-3.1.html" class="in">symfonos 3</a> and <a href="../symfonos-4/symfonos-4.html" class="in">symfonos 4</a>, I know that 94 is symfonos 5.2, but still no indication from the box itself.</p>
+<p>This is an interesting problem, I guess I gotta hack them all.</p>
+<h2 id="attacking-web">Attacking web</h2>
+<pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
 - Nikto v2.1.6
 ---------------------------------------------------------------------------
 + Target IP:          192.168.56.94
@@ -175,8 +145,8 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 + Server may leak inodes via ETags, header found with file /, inode: cf, size: 59b7f675f3d40, mtime: gzip
 + Allowed HTTP Methods: HEAD, GET, POST, OPTIONS
 + Cookie PHPSESSID created without the httponly flag
-+ OSVDB-29786: /admin.php?en_log_id=0&action=config: EasyNews from http://www.webrc.ca version 4.3 allows remote admin access. This PHP file should be protected.
-+ OSVDB-29786: /admin.php?en_log_id=0&action=users: EasyNews from http://www.webrc.ca version 4.3 allows remote admin access. This PHP file should be protected.
++ OSVDB-29786: /admin.php?en_log_id=0&amp;action=config: EasyNews from http://www.webrc.ca version 4.3 allows remote admin access. This PHP file should be protected.
++ OSVDB-29786: /admin.php?en_log_id=0&amp;action=users: EasyNews from http://www.webrc.ca version 4.3 allows remote admin access. This PHP file should be protected.
 + OSVDB-3092: /admin.php: This might be interesting...
 + OSVDB-3268: /static/: Directory indexing found.
 + OSVDB-3233: /icons/README: Apache default file found.
@@ -184,34 +154,25 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 + End Time:           2022-01-08 09:59:23 (GMT5.5) (83 seconds)
 ---------------------------------------------------------------------------
 + 1 host(s) tested
-
-```
-
-
-```shell
-gobuster dir --url http://$RHOST --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b 404,403,400 -q -f --wildcard -x php,cgi,bak
-/home.php             (Status: 302) [Size: 0] [--> admin.php]
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b 404,403,400 -q -f --wildcard -x php,cgi,bak
+/home.php             (Status: 302) [Size: 0] [--&gt; admin.php]
 /static/              (Status: 200) [Size: 1744]
 /admin.php            (Status: 200) [Size: 1650]
-/logout.php           (Status: 302) [Size: 0] [--> admin.php]
+/logout.php           (Status: 302) [Size: 0] [--&gt; admin.php]
 /portraits.php        (Status: 200) [Size: 165]
-
-```
-
-![2.home-takes-to-admin](2.home-takes-to-admin.png)
-
-![3.portraits-of-le-gods](3.portraits-of-le-gods.png)
-
-```shell
-gobuster dir --url http://$RHOST/static -x jpg,png,cgi,py,txt,php,log,bak,zip --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -q -f
+</code></pre>
+<figure>
+<img src="2.home-takes-to-admin.png" alt="" /><figcaption>2.home-takes-to-admin</figcaption>
+</figure>
+<figure>
+<img src="3.portraits-of-le-gods.png" alt="" /><figcaption>3.portraits-of-le-gods</figcaption>
+</figure>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/static -x jpg,png,cgi,py,txt,php,log,bak,zip --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -q -f
 /zeus.jpg             (Status: 200) [Size: 500476]
-
-```
-
-This shows zeus.jpg, which is not on portraits, but it might be on the home page.
-
-```shell
-feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
+</code></pre>
+<p>This shows zeus.jpg, which is not on portraits, but it might be on the home page.</p>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
 403        9l       28w      278c http://192.168.56.94/icons/
 200       20l       96w     1744c http://192.168.56.94/static/
 403        9l       28w      278c http://192.168.56.94/icons/small/
@@ -224,18 +185,13 @@ Scanning: http://192.168.56.94/
 Scanning: http://192.168.56.94/icons/
 Scanning: http://192.168.56.94/static/
 Scanning: http://192.168.56.94/server-status/
-
-```
-
-![4.static](4.static.png)
-
-```shell
-wget -q $RHOST/static/zeus{,1,2,3}.jpg
-
-```
-
-```shell
-ls -la
+</code></pre>
+<figure>
+<img src="4.static.png" alt="" /><figcaption>4.static</figcaption>
+</figure>
+<pre class="shell"><code>wget -q $RHOST/static/zeus{,1,2,3}.jpg
+</code></pre>
+<pre class="shell"><code>ls -la
 total 792
 drwxr-xr-x 2 f0c1s f0c1s   4096 Jan  8 10:29 .
 drwxr-xr-x 7 f0c1s f0c1s   4096 Jan  8 09:46 ..
@@ -245,11 +201,8 @@ drwxr-xr-x 7 f0c1s f0c1s   4096 Jan  8 09:46 ..
 -rw-r--r-- 1 f0c1s f0c1s  48830 Jan  7  2020 zeus2.jpg
 -rw-r--r-- 1 f0c1s f0c1s  64346 Jan  7  2020 zeus3.jpg
 -rw-r--r-- 1 f0c1s f0c1s 500476 Oct  5  2017 zeus.jpg
-
-```
-
-```shell
-exiftool zeus*
+</code></pre>
+<pre class="shell"><code>exiftool zeus*
 ======== zeus1.jpg
 ExifTool Version Number         : 12.36
 File Name                       : zeus1.jpg
@@ -352,10 +305,6 @@ Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
 Image Size                      : 1920x1080
 Megapixels                      : 2.1
     4 image files read
-
-```
-
-
-
+</code></pre>
 </body>
 </html>

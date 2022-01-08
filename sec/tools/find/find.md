@@ -49,7 +49,7 @@ find - search for files in a directory hierarchy
 ## find writables in fs root, but not in /proc, /dev and /sys.
 find / -writable -not -path "/proc/*" -not -path "/dev/*" -not -path "/sys/*" 2>/dev/null
 
-find / -writable -not -path "/proc/*" -not -path "/run/*" -not -path "/snap/*" -not -path "/dev/*" -not -path "/usr/lib/systemd/*" -not -path "/var/www/html/*" -not -path "/sys/*" 2>/dev/null
+find / -writable -not -path "/proc/*" -not -path "/run/*" -not -path "/snap/*" -not -path "/dev/*" -not -path "/usr/lib/*" -not -path "/var/www/html/*" -not -path "/sys/*"  -not -path "/lib/*" 2>/dev/null
 
 ## SUID files
 find / -type f -perm -4000 2>/dev/null

