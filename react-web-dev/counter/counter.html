@@ -617,6 +617,13 @@ yarn add -D @types/redux @types/react-redux</code></pre>
 <figure>
 <img src="19.counter-2.png" alt="" /><figcaption>19.counter-2</figcaption>
 </figure>
+<h3 id="running-app">running app</h3>
+<figure>
+<img src="20.running-app.png" alt="" /><figcaption>20.running-app</figcaption>
+</figure>
+<p>Though it has added features, unfortunately it also is designed for single instance. Singletons be damned.</p>
+<p>I should realise that redux is for maintaining a global store. A global store, by design, is singleton.</p>
+<p>And thanks to non-preemptive single threadedness of JS, this doesn’t become a nightmare everyday.</p>
 <h3 id="featurescountercounter.module.css">/features/counter/Counter.module.css</h3>
 <div class="sourceCode" id="cb27"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="fu">.row</span> {</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a>  <span class="kw">display</span>: flex<span class="op">;</span></span>
@@ -1190,12 +1197,24 @@ yarn add -D @types/redux @types/react-redux</code></pre>
 <figure>
 <img src="24.incrementAsync.png" alt="" /><figcaption>24.incrementAsync</figcaption>
 </figure>
-<h3 id="running-app">running app</h3>
+<p>Let me reason about the code.</p>
+<p><code>incrementAsync</code> is of the type <code>AsyncThunk&lt;number, number, {}&gt;</code> which means as per <code>AsyncThunk&lt;Returned, ThunkArg, ThunkApiConfig&gt;</code>, <code>Returned</code> and <code>ThunkArg</code> are <code>number</code>.</p>
 <figure>
-<img src="20.running-app.png" alt="" /><figcaption>20.running-app</figcaption>
+<img src="25.mapping-abstract-types-to-concrete-ones.png" alt="" /><figcaption>25.mapping-abstract-types-to-concrete-ones</figcaption>
 </figure>
-<p>Though it has added features, unfortunately it also is designed for single instance. Singletons be damned.</p>
-<p>I should realise that redux is for maintaining a global store. A global store, by design, is singleton.</p>
+<p>The <code>Returned</code> type being <code>number</code> should be due to <code>fetchCount</code> returning a number value.</p>
+<figure>
+<img src="26.fetCount-returns-promise-of-a-number.png" alt="" /><figcaption>26.fetCount-returns-promise-of-a-number</figcaption>
+</figure>
+<p>When I change the return type of fetchCount, the type <code>Returned</code> in <code>incrementAsync</code> changes to `string.</p>
+<figure>
+<img src="27.type-of-Returned-changed-to-string.png" alt="" /><figcaption>27.type-of-Returned-changed-to-string</figcaption>
+</figure>
+<p>And when I change the input type to string, <code>ThunkArg</code> changes to <code>string</code>.</p>
+<figure>
+<img src="28.ThunkArg-changed-to-string.png" alt="" /><figcaption>28.ThunkArg-changed-to-string</figcaption>
+</figure>
+<p>to be continued…</p>
 <h2 id="references">References</h2>
 <ul>
 <li><a href="https://egghead.io/lessons/react-create-a-reducer-with-redux-toolkit-and-dispatch-its-action-with-the-useappdispatch-hook">https://egghead.io/lessons/react-create-a-reducer-with-redux-toolkit-and-dispatch-its-action-with-the-useappdispatch-hook</a></li>

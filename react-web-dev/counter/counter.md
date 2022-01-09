@@ -758,6 +758,16 @@ Interestingly a better implementation is found in template project that you can 
 
 ![19.counter-2](19.counter-2.png)
 
+### running app
+
+![20.running-app](20.running-app.png)
+
+Though it has added features, unfortunately it also is designed for single instance. Singletons be damned.
+
+I should realise that redux is for maintaining a global store. A global store, by design, is singleton.
+
+And thanks to non-preemptive single threadedness of JS, this doesn't become a nightmare everyday.
+
 ### /features/counter/Counter.module.css
 
 ```css
@@ -1375,15 +1385,25 @@ export const incrementAsync = createAsyncThunk(
 
 ![24.incrementAsync](24.incrementAsync.png)
 
-### running app
+Let me reason about the code.
 
-![20.running-app](20.running-app.png)
+`incrementAsync` is of the type `AsyncThunk<number, number, {}>` which means as per `AsyncThunk<Returned, ThunkArg, ThunkApiConfig>`, `Returned` and `ThunkArg` are `number`.
 
-Though it has added features, unfortunately it also is designed for single instance. Singletons be damned.
+![25.mapping-abstract-types-to-concrete-ones](25.mapping-abstract-types-to-concrete-ones.png)
 
-I should realise that redux is for maintaining a global store. A global store, by design, is singleton.
+The `Returned` type being `number` should be due to `fetchCount` returning a number value.
 
+![26.fetCount-returns-promise-of-a-number](26.fetCount-returns-promise-of-a-number.png)
 
+When I change the return type of fetchCount, the type `Returned` in `incrementAsync` changes to `string.
+
+![27.type-of-Returned-changed-to-string](27.type-of-Returned-changed-to-string.png)
+
+And when I change the input type to string, `ThunkArg` changes to `string`.
+
+![28.ThunkArg-changed-to-string](28.ThunkArg-changed-to-string.png)
+
+ to be continued...
 
 ## References
 
