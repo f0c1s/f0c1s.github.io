@@ -1,61 +1,45 @@
 <html lang="en">
-    <head>
-        <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>/f0c1s/blog/sec/vulnhub/symfonos-6.1</title>
-        <link rel="stylesheet" href="../../../index.css"/>
-        <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
-        <script src="../../../highlight/highlight.min.js"></script>
-        <script src="../../../setup.js"></script>
-        <script>hljs.highlightAll();</script>
-    </head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+/f0c1s/blog/sec/vulnhub/symfonos-6.1
+</title>
+<link rel="stylesheet" href="../../../index.css"/> <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+<script src="../../../setup.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
 <body onload="setup()">
-<h1>/f0c1s/blog/sec/vulnhub/symfonos-6.1</h1>
-
+<h1>
+/f0c1s/blog/sec/vulnhub/symfonos-6.1
+</h1>
 <nav>
-    <a href="../../../index.html">/blog</a>
-    <a href="../../index.html">Security</a>
-    <a href="../index.html">VulnHub</a>
-    <a href="../../../sec/vulnhub/symfonos-6.1/symfonos-6.1.html">+ symfonos-6.1 - 2022.01.09 Sunday</a>
+<a href="../../../index.html">/blog</a> <a href="../../index.html">Security</a> <a href="../index.html">VulnHub</a> <a href="../../../sec/vulnhub/symfonos-6.1/symfonos-6.1.html">+ symfonos-6.1 - 2022.01.09 Sunday</a>
 </nav>
-
-## Description
-
-
-> Difficulty: intermediate-hard
->
-> This VM was designed to search for the attackers "Achilles' heel". Please only assign one network adapter to avoid issues.
->
-> VMware works fine. Virtualbox has issues.
->
-> \## Changelog v6.1 - 2020-04-07 v6.0 - 2020-04-05
-
-
-[VulnHub: https://www.vulnhub.com/entry/symfonos-61,458/](https://www.vulnhub.com/entry/symfonos-61,458/)
-[Series: https://www.vulnhub.com/series/symfonos,217/](https://www.vulnhub.com/series/symfonos,217/)
-
-![0.running-box](0.running-box.png)
-
-## Scanning
-
-```shell
-fping -aAqg 192.168.56.1/24
+<h2 id="description">Description</h2>
+<blockquote>
+<p>Difficulty: intermediate-hard</p>
+<p>This VM was designed to search for the attackers “Achilles’ heel”. Please only assign one network adapter to avoid issues.</p>
+<p>VMware works fine. Virtualbox has issues.</p>
+<p>## Changelog v6.1 - 2020-04-07 v6.0 - 2020-04-05</p>
+</blockquote>
+<p><a href="https://www.vulnhub.com/entry/symfonos-61,458/">VulnHub: https://www.vulnhub.com/entry/symfonos-61,458/</a> <a href="https://www.vulnhub.com/series/symfonos,217/">Series: https://www.vulnhub.com/series/symfonos,217/</a></p>
+<figure>
+<img src="0.running-box.png" alt="" /><figcaption>0.running-box</figcaption>
+</figure>
+<h2 id="scanning">Scanning</h2>
+<pre class="shell"><code>fping -aAqg 192.168.56.1/24
 192.168.56.1
 192.168.56.2
 192.168.56.70
 192.168.56.95
-
-```
-
-```shell
-export RHOST="192.168.56.95"
-export LHOST="192.168.56.70"
-export LPORT="443"
-
-```
-
-
-```shell
-_n $RHOST
+</code></pre>
+<pre class="shell"><code>export RHOST=&quot;192.168.56.95&quot;
+export LHOST=&quot;192.168.56.70&quot;
+export LPORT=&quot;443&quot;
+</code></pre>
+<pre class="shell"><code>_n $RHOST
 firing nmap 192.168.56.95 -n | tee nmap.default.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-09 06:39 IST
 Nmap scan report for 192.168.56.95
@@ -69,11 +53,8 @@ PORT     STATE SERVICE
 5000/tcp open  upnp
 
 Nmap done: 1 IP address (1 host up) scanned in 0.10 seconds
-
-```
-
-```shell
-_ntd $RHOST
+</code></pre>
+<pre class="shell"><code>_ntd $RHOST
 firing nmap 192.168.56.95 -p- -Pn -A -T4 --min-rate=5000 -sVC -n | tee nmap.tcp-ports.deep.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-09 06:39 IST
 Nmap scan report for 192.168.56.95
@@ -88,7 +69,7 @@ PORT     STATE SERVICE VERSION
 80/tcp   open  http    Apache httpd 2.4.6 ((CentOS) PHP/5.6.40)
 | http-methods:
 |_  Potentially risky methods: TRACE
-|_http-title: Site doesn't have a title (text/html; charset=UTF-8).
+|_http-title: Site doesn&#39;t have a title (text/html; charset=UTF-8).
 |_http-server-header: Apache/2.4.6 (CentOS) PHP/5.6.40
 3000/tcp open  ppp?
 | fingerprint-strings:
@@ -105,18 +86,18 @@ PORT     STATE SERVICE VERSION
 |     Set-Cookie: _csrf=a4ddOs0clCC5sPskWxvJotrhFzg6MTY0MTcxMDM5NzYyMDc4NzMzMA; Path=/; Expires=Mon, 10 Jan 2022 06:39:57 GMT; HttpOnly
 |     X-Frame-Options: SAMEORIGIN
 |     Date: Sun, 09 Jan 2022 06:39:57 GMT
-|     <!DOCTYPE html>
-|     <html lang="en-US">
-|     <head data-suburl="">
-|     <meta charset="utf-8">
-|     <meta name="viewport" content="width=device-width, initial-scale=1">
-|     <meta http-equiv="x-ua-compatible" content="ie=edge">
-|     <title> Symfonos6</title>
-|     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
-|     <script>
-|     ('serviceWorker' in navigator) {
-|     navigator.serviceWorker.register('/serviceworker.js').then(function(registration) {
-|     console.info('ServiceWorker registration successful with scope: ', registrat
+|     &lt;!DOCTYPE html&gt;
+|     &lt;html lang=&quot;en-US&quot;&gt;
+|     &lt;head data-suburl=&quot;&quot;&gt;
+|     &lt;meta charset=&quot;utf-8&quot;&gt;
+|     &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+|     &lt;meta http-equiv=&quot;x-ua-compatible&quot; content=&quot;ie=edge&quot;&gt;
+|     &lt;title&gt; Symfonos6&lt;/title&gt;
+|     &lt;link rel=&quot;manifest&quot; href=&quot;/manifest.json&quot; crossorigin=&quot;use-credentials&quot;&gt;
+|     &lt;script&gt;
+|     (&#39;serviceWorker&#39; in navigator) {
+|     navigator.serviceWorker.register(&#39;/serviceworker.js&#39;).then(function(registration) {
+|     console.info(&#39;ServiceWorker registration successful with scope: &#39;, registrat
 |   HTTPOptions:
 |     HTTP/1.0 404 Not Found
 |     Content-Type: text/html; charset=UTF-8
@@ -125,18 +106,18 @@ PORT     STATE SERVICE VERSION
 |     Set-Cookie: _csrf=AaXuOzxcsLW6D7TDZF5nGHpFfuI6MTY0MTcxMDQwMjY0MDg4MTMxNg; Path=/; Expires=Mon, 10 Jan 2022 06:40:02 GMT; HttpOnly
 |     X-Frame-Options: SAMEORIGIN
 |     Date: Sun, 09 Jan 2022 06:40:02 GMT
-|     <!DOCTYPE html>
-|     <html lang="en-US">
-|     <head data-suburl="">
-|     <meta charset="utf-8">
-|     <meta name="viewport" content="width=device-width, initial-scale=1">
-|     <meta http-equiv="x-ua-compatible" content="ie=edge">
-|     <title>Page Not Found - Symfonos6</title>
-|     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
-|     <script>
-|     ('serviceWorker' in navigator) {
-|     navigator.serviceWorker.register('/serviceworker.js').then(function(registration) {
-|_    console.info('ServiceWorker registration successful
+|     &lt;!DOCTYPE html&gt;
+|     &lt;html lang=&quot;en-US&quot;&gt;
+|     &lt;head data-suburl=&quot;&quot;&gt;
+|     &lt;meta charset=&quot;utf-8&quot;&gt;
+|     &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+|     &lt;meta http-equiv=&quot;x-ua-compatible&quot; content=&quot;ie=edge&quot;&gt;
+|     &lt;title&gt;Page Not Found - Symfonos6&lt;/title&gt;
+|     &lt;link rel=&quot;manifest&quot; href=&quot;/manifest.json&quot; crossorigin=&quot;use-credentials&quot;&gt;
+|     &lt;script&gt;
+|     (&#39;serviceWorker&#39; in navigator) {
+|     navigator.serviceWorker.register(&#39;/serviceworker.js&#39;).then(function(registration) {
+|_    console.info(&#39;ServiceWorker registration successful
 3306/tcp open  mysql   MariaDB (unauthorized)
 5000/tcp open  upnp?
 | fingerprint-strings:
@@ -165,11 +146,8 @@ PORT     STATE SERVICE VERSION
 |_    page not found
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 94.98 seconds
-```
-
-```shell
-_nu $RHOST
+Nmap done: 1 IP address (1 host up) scanned in 94.98 seconds</code></pre>
+<pre class="shell"><code>_nu $RHOST
 firing sudo nmap 192.168.56.95 -sU -p- -Pn --min-rate=5000 --open --top-ports=500 -n | tee nmap.udp-all-ports.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-01-09 06:43 IST
 Nmap scan report for 192.168.56.95
@@ -180,19 +158,16 @@ PORT     STATE SERVICE
 MAC Address: 08:00:27:4A:8B:5B (Oracle VirtualBox virtual NIC)
 
 Nmap done: 1 IP address (1 host up) scanned in 0.84 seconds
-
-```
-
-## Attacking web
-
-![1.homepage-port-80](1.homepage-port-80.png)
-
-![2.homepage-port-3000](2.homepage-port-3000.png)
-
-### nikto port 80
-
-```shell
-nikto -C all -host http://$RHOST | tee nikto.txt
+</code></pre>
+<h2 id="attacking-web">Attacking web</h2>
+<figure>
+<img src="1.homepage-port-80.png" alt="" /><figcaption>1.homepage-port-80</figcaption>
+</figure>
+<figure>
+<img src="2.homepage-port-3000.png" alt="" /><figcaption>2.homepage-port-3000</figcaption>
+</figure>
+<h3 id="nikto-port-80">nikto port 80</h3>
+<pre class="shell"><code>nikto -C all -host http://$RHOST | tee nikto.txt
 - Nikto v2.1.6
 ---------------------------------------------------------------------------
 + Target IP:          192.168.56.95
@@ -214,13 +189,9 @@ nikto -C all -host http://$RHOST | tee nikto.txt
 + End Time:           2022-01-09 06:46:07 (GMT5.5) (80 seconds)
 ---------------------------------------------------------------------------
 + 1 host(s) tested
-
-```
-
-### nikto port 3000
-
-```shell
-nikto -C all -host http://$RHOST:3000 | tee nikto.p3000.txt
+</code></pre>
+<h3 id="nikto-port-3000">nikto port 3000</h3>
+<pre class="shell"><code>nikto -C all -host http://$RHOST:3000 | tee nikto.p3000.txt
 - Nikto v2.1.6
 ---------------------------------------------------------------------------
 + Target IP:          192.168.56.95
@@ -232,22 +203,18 @@ nikto -C all -host http://$RHOST:3000 | tee nikto.p3000.txt
 + The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
 + The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
 + Cookie lang created without the httponly flag
-+ Uncommon header 'content-transfer-encoding' found, with contents: binary
-+ Uncommon header 'content-disposition' found, with contents: attachment; filename=favicon.png
-+ Uncommon header 'content-description' found, with contents: File Transfer
++ Uncommon header &#39;content-transfer-encoding&#39; found, with contents: binary
++ Uncommon header &#39;content-disposition&#39; found, with contents: attachment; filename=favicon.png
++ Uncommon header &#39;content-description&#39; found, with contents: File Transfer
 + Cookie redirect_to created without the httponly flag
 + /debug/: Possible debug directory/program found.
 + 26525 requests: 0 error(s) and 8 item(s) reported on remote host
 + End Time:           2022-01-09 06:51:03 (GMT5.5) (76 seconds)
 ---------------------------------------------------------------------------
 + 1 host(s) tested
-
-```
-
-### feroxbuster port 80
-
-```shell
-feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
+</code></pre>
+<h3 id="feroxbuster-port-80">feroxbuster port 80</h3>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
 403        8l       22w      210c http://192.168.56.95/cgi-bin/
 200     1006l     4983w        0c http://192.168.56.95/icons/
 500       23l       93w      943c http://192.168.56.95/posts/
@@ -256,26 +223,21 @@ feroxbuster -q -u http://$RHOST/ -w /usr/share/dirbuster/wordlists/directory-lis
 Scanning: http://192.168.56.95/
 Scanning: http://192.168.56.95/cgi-bin/
 Scanning: http://192.168.56.95/icons/
-
-```
-
-- `/cgi-bin/`
-- `/posts/`
-
-![3.posts-on-default-web](3.posts-on-default-web.png)
-
->  The warrior Achilles is one of the great heroes of Greek mythology.
-> According to legend, Achilles was extraordinarily strong, courageous and loyal,
-> but he had one vulnerability–his Achilles heel.
->
-> Homer’s epic poem The Iliad tells the story of his adventures during the last year of the Trojan War.
-
-This is surprising, as the returned http status code is 500.
-
-### feroxbuster port 3000
-
-```shell
-feroxbuster -q -u http://$RHOST:3000 -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
+</code></pre>
+<ul>
+<li><code>/cgi-bin/</code></li>
+<li><code>/posts/</code></li>
+</ul>
+<figure>
+<img src="3.posts-on-default-web.png" alt="" /><figcaption>3.posts-on-default-web</figcaption>
+</figure>
+<blockquote>
+<p>The warrior Achilles is one of the great heroes of Greek mythology. According to legend, Achilles was extraordinarily strong, courageous and loyal, but he had one vulnerability–his Achilles heel.</p>
+<p>Homer’s epic poem The Iliad tells the story of his adventures during the last year of the Trojan War.</p>
+</blockquote>
+<p>This is surprising, as the returned http status code is 500.</p>
+<h3 id="feroxbuster-port-3000">feroxbuster port 3000</h3>
+<pre class="shell"><code>feroxbuster -q -u http://$RHOST:3000 -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt --rate-limit 100 -d 2 -L 4 -k -f
 302        2l        2w       34c http://192.168.56.95:3000/admin/
 302        2l        2w       34c http://192.168.56.95:3000/issues/
 302        2l        2w       37c http://192.168.56.95:3000/explore/
@@ -406,40 +368,32 @@ feroxbuster -q -u http://$RHOST:3000 -w /usr/share/dirbuster/wordlists/directory
 Scanning: http://192.168.56.95:3000
 Scanning: http://192.168.56.95:3000/debug/
 Scanning: http://192.168.56.95:3000/achilles/
-
-```
-
-- `/admin/`
-- `/issues/`
-- `/explore/`
-- `/debug/`
-- `/milestones/`
-- `/notifications/`
-- `/achilles/`
-
-![4.achilles-on-port-3000](4.achilles-on-port-3000.png)
-
-### gobuster port 80
-
-
-```shell
-gobuster dir --url http://$RHOST -x jpg,png,cgi,py,txt,php,log,bak,zip --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -q -f
+</code></pre>
+<ul>
+<li><code>/admin/</code></li>
+<li><code>/issues/</code></li>
+<li><code>/explore/</code></li>
+<li><code>/debug/</code></li>
+<li><code>/milestones/</code></li>
+<li><code>/notifications/</code></li>
+<li><code>/achilles/</code></li>
+</ul>
+<figure>
+<img src="4.achilles-on-port-3000.png" alt="" /><figcaption>4.achilles-on-port-3000</figcaption>
+</figure>
+<h3 id="gobuster-port-80">gobuster port 80</h3>
+<pre class="shell"><code>gobuster dir --url http://$RHOST -x jpg,png,cgi,py,txt,php,log,bak,zip --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -q -f
 /cgi-bin/             (Status: 403) [Size: 210]
 /icons/               (Status: 200) [Size: 74409]
 /image.jpg            (Status: 200) [Size: 271800]
 /posts/               (Status: 500) [Size: 943]
 ^C
 [!] Keyboard interrupt detected, terminating.
-
-```
-
-
-### gobuster port 3000
-
-```shell
-gobuster dir --url http://$RHOST:3000 -x jpg,png,cgi,py,txt,php,log,bak,zip --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -q -f
-/admin/               (Status: 302) [Size: 34] [--> /user/login]
-/issues/              (Status: 302) [Size: 34] [--> /user/login]
+</code></pre>
+<h3 id="gobuster-port-3000">gobuster port 3000</h3>
+<pre class="shell"><code>gobuster dir --url http://$RHOST:3000 -x jpg,png,cgi,py,txt,php,log,bak,zip --wordlist=/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -q -f
+/admin/               (Status: 302) [Size: 34] [--&gt; /user/login]
+/issues/              (Status: 302) [Size: 34] [--&gt; /user/login]
 /file.php             (Status: 500) [Size: 8390]
 /status/              (Status: 500) [Size: 8346]
 /Internet.bak         (Status: 500) [Size: 8479]
@@ -452,22 +406,15 @@ gobuster dir --url http://$RHOST:3000 -x jpg,png,cgi,py,txt,php,log,bak,zip --wo
 /voip.txt             (Status: 500) [Size: 8390]
 ^C
 [!] Keyboard interrupt detected, terminating.
-
-```
-
-### At this point
-
-I have found a blog post on default web (80) and a user on gitea (3000). There can be other users, so I am firing a scan for that via username list.
-
-### Users
-
-![5.explore-users](5.explore-users.png)
-
-### ffuf
-
-
-```shell
-ffuf -u "http://$RHOST:3000/FUZZ" -w /usr/share/wordlists/dirbuster/directories.jbrofuzz -fc 403,404,401,400 -s | grep -v "^#"
+</code></pre>
+<h3 id="at-this-point">At this point</h3>
+<p>I have found a blog post on default web (80) and a user on gitea (3000). There can be other users, so I am firing a scan for that via username list.</p>
+<h3 id="users">Users</h3>
+<figure>
+<img src="5.explore-users.png" alt="" /><figcaption>5.explore-users</figcaption>
+</figure>
+<h3 id="ffuf">ffuf</h3>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST:3000/FUZZ&quot; -w /usr/share/wordlists/dirbuster/directories.jbrofuzz -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
 
 .
 ??
@@ -484,11 +431,8 @@ milestones
 notifications
 vendor
 
-
-```
-
-```shell
-ffuf -u "http://$RHOST:3000/FUZZ" -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt -fc 403,404,401,400 -s | grep -v "^#"
+</code></pre>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST:3000/FUZZ&quot; -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
 
 img
 healthcheck
@@ -503,17 +447,11 @@ vendor
 explore
 notifications
 
-
-```
-
-```shell
-ffuf -u "http://$RHOST:3000/FUZZ" -w /usr/share/wordlists/dirbuster/apache-user-enum-1.0.txt -fc 403,404,401,400 -s | grep -v "^#"
-ffuf -u "http://$RHOST:3000/FUZZ" -w /usr/share/wordlists/dirbuster/apache-user-enum-2.0.txt -fc 403,404,401,400 -s | grep -v "^#"
-
-```
-
-```shell
-ffuf -u "http://$RHOST:3000/FUZZ" -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -fc 403,404,401,400 -s | grep -v "^#"
+</code></pre>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST:3000/FUZZ&quot; -w /usr/share/wordlists/dirbuster/apache-user-enum-1.0.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
+ffuf -u &quot;http://$RHOST:3000/FUZZ&quot; -w /usr/share/wordlists/dirbuster/apache-user-enum-2.0.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
+</code></pre>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST:3000/FUZZ&quot; -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
 img
 
 admin
@@ -529,11 +467,8 @@ notifications
 achilles
 
 
-
-```
-
-```shell
-ffuf -u "http://$RHOST:3000/FUZZ" -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt -fc 403,404,401,400 -s | grep -v "^#"
+</code></pre>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST:3000/FUZZ&quot; -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
 img
 
 admin
@@ -550,13 +485,11 @@ achilles
 
 healthcheck
 
-
-```
-
-![6.healthcheck](6.healthcheck.png)
-
-```shell
-ffuf -u "http://$RHOST:3000/FUZZ" -w /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt -fc 403,404,401,400 -s | grep -v "^#"
+</code></pre>
+<figure>
+<img src="6.healthcheck.png" alt="" /><figcaption>6.healthcheck</figcaption>
+</figure>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST:3000/FUZZ&quot; -w /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
 admin
 avatars
 css
@@ -568,11 +501,8 @@ js
 notifications
 vendor
 
-
-```
-
-```shell
-ffuf -u "http://$RHOST:3000/FUZZ" -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -fc 403,404,401,400 -s | grep -v "^#"
+</code></pre>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST:3000/FUZZ&quot; -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
 admin
 js
 css
@@ -588,48 +518,45 @@ healthcheck
 milestones
 achilles
 
-
-```
-
-![7.what-is-even-vendor](7.what-is-even-vendor.png)
-
-![8.user-zayotic](8.user-zayotic.png)
-
-```shell
-ffuf -u "http://$RHOST/FUZZ" -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files-lowercase.txt -fc 403,404,401,400 -s | grep -v "^#"
+</code></pre>
+<figure>
+<img src="7.what-is-even-vendor.png" alt="" /><figcaption>7.what-is-even-vendor</figcaption>
+</figure>
+<figure>
+<img src="8.user-zayotic.png" alt="" /><figcaption>8.user-zayotic</figcaption>
+</figure>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST/FUZZ&quot; -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-files-lowercase.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
 index.html
 .
 image.jpg
 
-
-```
-
-```shell
-ffuf -u "http://$RHOST/FUZZ" -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -fc 403,404,401,400 -s | grep -v "^#"
+</code></pre>
+<pre class="shell"><code>ffuf -u &quot;http://$RHOST/FUZZ&quot; -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -fc 403,404,401,400 -s | grep -v &quot;^#&quot;
 .
 posts
 flyspray
 
-
-```
-
-### :80/flyspray
-
-![9.flyspray](9.flyspray.png)
-
-![10.bug-report](10.bug-report.png)
-
-[FlySpray: http://www.flyspray.org/](http://www.flyspray.org/)
-
-![11.flyspray-org](11.flyspray-org.png)
-
-![12.register-a-user-at-flyspray](12.register-a-user-at-flyspray.png)
-
-![13.failed-attempt-at-RCE](13.failed-attempt-at-RCE.png)
-
-![14.failed-at-bold](14.failed-at-bold.png)
-
-Cannot move forward as of yet. To be continued...
-
+</code></pre>
+<h3 id="flyspray">:80/flyspray</h3>
+<figure>
+<img src="9.flyspray.png" alt="" /><figcaption>9.flyspray</figcaption>
+</figure>
+<figure>
+<img src="10.bug-report.png" alt="" /><figcaption>10.bug-report</figcaption>
+</figure>
+<p><a href="http://www.flyspray.org/">FlySpray: http://www.flyspray.org/</a></p>
+<figure>
+<img src="11.flyspray-org.png" alt="" /><figcaption>11.flyspray-org</figcaption>
+</figure>
+<figure>
+<img src="12.register-a-user-at-flyspray.png" alt="" /><figcaption>12.register-a-user-at-flyspray</figcaption>
+</figure>
+<figure>
+<img src="13.failed-attempt-at-RCE.png" alt="" /><figcaption>13.failed-attempt-at-RCE</figcaption>
+</figure>
+<figure>
+<img src="14.failed-at-bold.png" alt="" /><figcaption>14.failed-at-bold</figcaption>
+</figure>
+<p>Cannot move forward as of yet. To be continued…</p>
 </body>
 </html>
