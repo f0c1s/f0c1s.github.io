@@ -752,9 +752,638 @@ export default function Counter({klass}: CounterProps = {klass: "light"}) {
 
 ```
 
-### Creating two different counters.
+## 2022.01.09 counter-2
 
-To be continued...
+Interestingly a better implementation is found in template project that you can get from `yarn create react-app counter-2 --template redux-typescript `
+
+![19.counter-2](19.counter-2.png)
+
+### /features/counter/Counter.module.css
+
+```css
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row > button {
+  margin-left: 4px;
+  margin-right: 8px;
+}
+
+.row:not(:last-child) {
+  margin-bottom: 16px;
+}
+
+.value {
+  font-size: 78px;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-top: 2px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.button {
+  appearance: none;
+  background: none;
+  font-size: 32px;
+  padding-left: 12px;
+  padding-right: 12px;
+  outline: none;
+  border: 2px solid transparent;
+  color: rgb(112, 76, 182);
+  padding-bottom: 4px;
+  cursor: pointer;
+  background-color: rgba(112, 76, 182, 0.1);
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+
+.textbox {
+  font-size: 32px;
+  padding: 2px;
+  width: 64px;
+  text-align: center;
+  margin-right: 4px;
+}
+
+.button:hover,
+.button:focus {
+  border: 2px solid rgba(112, 76, 182, 0.4);
+}
+
+.button:active {
+  background-color: rgba(112, 76, 182, 0.2);
+}
+
+.asyncButton {
+  composes: button;
+  position: relative;
+}
+
+.asyncButton:after {
+  content: '';
+  background-color: rgba(112, 76, 182, 0.15);
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: width 1s linear, opacity 0.5s ease 1s;
+}
+
+.asyncButton:active:after {
+  width: 0%;
+  opacity: 1;
+  transition: 0s;
+}
+
+```
+
+### /features/counter/Counter.tsx
+
+```typescript
+import React, { useState } from 'react';
+
+import { useAppSelector, useAppDispatch } from '../../app/hooks';
+import {
+  decrement,
+  increment,
+  incrementByAmount,
+  incrementAsync,
+  incrementIfOdd,
+  selectCount,
+} from './counterSlice';
+import styles from './Counter.module.css';
+
+export function Counter() {
+  const count = useAppSelector(selectCount);
+  const dispatch = useAppDispatch();
+  const [incrementAmount, setIncrementAmount] = useState('2');
+
+  const incrementValue = Number(incrementAmount) || 0;
+
+  return (
+    <div>
+      <div className={styles.row}>
+        <button
+          className={styles.button}
+          aria-label="Decrement value"
+          onClick={() => dispatch(decrement())}
+        >
+          -
+        </button>
+        <span className={styles.value}>{count}</span>
+        <button
+          className={styles.button}
+          aria-label="Increment value"
+          onClick={() => dispatch(increment())}
+        >
+          +
+        </button>
+      </div>
+      <div className={styles.row}>
+        <input
+          className={styles.textbox}
+          aria-label="Set increment amount"
+          value={incrementAmount}
+          onChange={(e) => setIncrementAmount(e.target.value)}
+        />
+        <button
+          className={styles.button}
+          onClick={() => dispatch(incrementByAmount(incrementValue))}
+        >
+          Add Amount
+        </button>
+        <button
+          className={styles.asyncButton}
+          onClick={() => dispatch(incrementAsync(incrementValue))}
+        >
+          Add Async
+        </button>
+        <button
+          className={styles.button}
+          onClick={() => dispatch(incrementIfOdd(incrementValue))}
+        >
+          Add If Odd
+        </button>
+      </div>
+    </div>
+  );
+}
+
+```
+
+### /features/counter/counterAPI.ts
+
+```typescript
+// A mock function to mimic making an async request for data
+export function fetchCount(amount = 1) {
+  return new Promise<{ data: number }>((resolve) =>
+    setTimeout(() => resolve({ data: amount }), 500)
+  );
+}
+
+```
+
+### /features/counter/counterSlice.spec.ts
+
+```typescript
+import counterReducer, {
+  CounterState,
+  increment,
+  decrement,
+  incrementByAmount,
+} from './counterSlice';
+
+describe('counter reducer', () => {
+  const initialState: CounterState = {
+    value: 3,
+    status: 'idle',
+  };
+  it('should handle initial state', () => {
+    expect(counterReducer(undefined, { type: 'unknown' })).toEqual({
+      value: 0,
+      status: 'idle',
+    });
+  });
+
+  it('should handle increment', () => {
+    const actual = counterReducer(initialState, increment());
+    expect(actual.value).toEqual(4);
+  });
+
+  it('should handle decrement', () => {
+    const actual = counterReducer(initialState, decrement());
+    expect(actual.value).toEqual(2);
+  });
+
+  it('should handle incrementByAmount', () => {
+    const actual = counterReducer(initialState, incrementByAmount(2));
+    expect(actual.value).toEqual(5);
+  });
+});
+
+```
+
+One thing that I have not paid any attention to is testing so far. One week, I will sit down to test. Not today.
+
+### /features/counter/counterSlice.ts
+
+```typescript
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RootState, AppThunk } from '../../app/store';
+import { fetchCount } from './counterAPI';
+
+export interface CounterState {
+  value: number;
+  status: 'idle' | 'loading' | 'failed';
+}
+
+const initialState: CounterState = {
+  value: 0,
+  status: 'idle',
+};
+
+// The function below is called a thunk and allows us to perform async logic. It
+// can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This
+// will call the thunk with the `dispatch` function as the first argument. Async
+// code can then be executed and other actions can be dispatched. Thunks are
+// typically used to make async requests.
+export const incrementAsync = createAsyncThunk(
+  'counter/fetchCount',
+  async (amount: number) => {
+    const response = await fetchCount(amount);
+    // The value we return becomes the `fulfilled` action payload
+    return response.data;
+  }
+);
+
+export const counterSlice = createSlice({
+  name: 'counter',
+  initialState,
+  // The `reducers` field lets us define reducers and generate associated actions
+  reducers: {
+    increment: (state) => {
+      // Redux Toolkit allows us to write "mutating" logic in reducers. It
+      // doesn't actually mutate the state because it uses the Immer library,
+      // which detects changes to a "draft state" and produces a brand new
+      // immutable state based off those changes
+      state.value += 1;
+    },
+    decrement: (state) => {
+      state.value -= 1;
+    },
+    // Use the PayloadAction type to declare the contents of `action.payload`
+    incrementByAmount: (state, action: PayloadAction<number>) => {
+      state.value += action.payload;
+    },
+  },
+  // The `extraReducers` field lets the slice handle actions defined elsewhere,
+  // including actions generated by createAsyncThunk or in other slices.
+  extraReducers: (builder) => {
+    builder
+      .addCase(incrementAsync.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(incrementAsync.fulfilled, (state, action) => {
+        state.status = 'idle';
+        state.value += action.payload;
+      });
+  },
+});
+
+export const { increment, decrement, incrementByAmount } = counterSlice.actions;
+
+// The function below is called a selector and allows us to select a value from
+// the state. Selectors can also be defined inline where they're used instead of
+// in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
+export const selectCount = (state: RootState) => state.counter.value;
+
+// We can also write thunks by hand, which may contain both sync and async logic.
+// Here's an example of conditionally dispatching actions based on current state.
+export const incrementIfOdd = (amount: number): AppThunk => (
+  dispatch,
+  getState
+) => {
+  const currentValue = selectCount(getState());
+  if (currentValue % 2 === 1) {
+    dispatch(incrementByAmount(amount));
+  }
+};
+
+export default counterSlice.reducer;
+
+```
+
+#### `createAsyncThunk`
+
+```typescript
+export declare function createAsyncThunk
+    <Returned, ThunkArg = void>
+    (
+    typePrefix: string,
+    payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, {}>,
+    options?: AsyncThunkOptions<ThunkArg, {}>
+    )
+    : AsyncThunk<Returned, ThunkArg, {}>;
+
+export declare function createAsyncThunk
+    <Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig>
+        (
+        typePrefix: string,
+        payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,
+        options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
+        )
+        : AsyncThunk<Returned, ThunkArg, ThunkApiConfig>;
+
+```
+
+Source code from reduxjs/redux-toolkit
+
+```typescript
+export function createAsyncThunk<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig
+>(
+  typePrefix: string,
+  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,
+  options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
+): AsyncThunk<Returned, ThunkArg, ThunkApiConfig> {
+  type RejectedValue = GetRejectValue<ThunkApiConfig>
+  type PendingMeta = GetPendingMeta<ThunkApiConfig>
+  type FulfilledMeta = GetFulfilledMeta<ThunkApiConfig>
+  type RejectedMeta = GetRejectedMeta<ThunkApiConfig>
+
+  const fulfilled: AsyncThunkFulfilledActionCreator<
+    Returned,
+    ThunkArg,
+    ThunkApiConfig
+  > = createAction(
+    typePrefix + '/fulfilled',
+    (
+      payload: Returned,
+      requestId: string,
+      arg: ThunkArg,
+      meta?: FulfilledMeta
+    ) => ({
+      payload,
+      meta: {
+        ...((meta as any) || {}),
+        arg,
+        requestId,
+        requestStatus: 'fulfilled' as const,
+      },
+    })
+  )
+
+  const pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> =
+    createAction(
+      typePrefix + '/pending',
+      (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
+        payload: undefined,
+        meta: {
+          ...((meta as any) || {}),
+          arg,
+          requestId,
+          requestStatus: 'pending' as const,
+        },
+      })
+    )
+
+  const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
+    createAction(
+      typePrefix + '/rejected',
+      (
+        error: Error | null,
+        requestId: string,
+        arg: ThunkArg,
+        payload?: RejectedValue,
+        meta?: RejectedMeta
+      ) => ({
+        payload,
+        error: ((options && options.serializeError) || miniSerializeError)(
+          error || 'Rejected'
+        ) as GetSerializedErrorType<ThunkApiConfig>,
+        meta: {
+          ...((meta as any) || {}),
+          arg,
+          requestId,
+          rejectedWithValue: !!payload,
+          requestStatus: 'rejected' as const,
+          aborted: error?.name === 'AbortError',
+          condition: error?.name === 'ConditionError',
+        },
+      })
+    )
+
+  let displayedWarning = false
+
+  const AC =
+    typeof AbortController !== 'undefined'
+      ? AbortController
+      : class implements AbortController {
+          signal: AbortSignal = {
+            aborted: false,
+            addEventListener() {},
+            dispatchEvent() {
+              return false
+            },
+            onabort() {},
+            removeEventListener() {},
+          }
+          abort() {
+            if (process.env.NODE_ENV !== 'production') {
+              if (!displayedWarning) {
+                displayedWarning = true
+                console.info(
+                  `This platform does not implement AbortController.
+If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'.`
+                )
+              }
+            }
+          }
+        }
+
+  function actionCreator(
+    arg: ThunkArg
+  ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+    return (dispatch, getState, extra) => {
+      const requestId = options?.idGenerator
+        ? options.idGenerator(arg)
+        : nanoid()
+
+      const abortController = new AC()
+      let abortReason: string | undefined
+
+      const abortedPromise = new Promise<never>((_, reject) =>
+        abortController.signal.addEventListener('abort', () =>
+          reject({ name: 'AbortError', message: abortReason || 'Aborted' })
+        )
+      )
+
+      let started = false
+      function abort(reason?: string) {
+        if (started) {
+          abortReason = reason
+          abortController.abort()
+        }
+      }
+
+      const promise = (async function () {
+        let finalAction: ReturnType<typeof fulfilled | typeof rejected>
+        try {
+          let conditionResult = options?.condition?.(arg, { getState, extra })
+          if (isThenable(conditionResult)) {
+            conditionResult = await conditionResult
+          }
+          if (conditionResult === false) {
+            // eslint-disable-next-line no-throw-literal
+            throw {
+              name: 'ConditionError',
+              message: 'Aborted due to condition callback returning false.',
+            }
+          }
+          started = true
+          dispatch(
+            pending(
+              requestId,
+              arg,
+              options?.getPendingMeta?.({ requestId, arg }, { getState, extra })
+            )
+          )
+          finalAction = await Promise.race([
+            abortedPromise,
+            Promise.resolve(
+              payloadCreator(arg, {
+                dispatch,
+                getState,
+                extra,
+                requestId,
+                signal: abortController.signal,
+                rejectWithValue: ((
+                  value: RejectedValue,
+                  meta?: RejectedMeta
+                ) => {
+                  return new RejectWithValue(value, meta)
+                }) as any,
+                fulfillWithValue: ((value: unknown, meta?: FulfilledMeta) => {
+                  return new FulfillWithMeta(value, meta)
+                }) as any,
+              })
+            ).then((result) => {
+              if (result instanceof RejectWithValue) {
+                throw result
+              }
+              if (result instanceof FulfillWithMeta) {
+                return fulfilled(result.payload, requestId, arg, result.meta)
+              }
+              return fulfilled(result as any, requestId, arg)
+            }),
+          ])
+        } catch (err) {
+          finalAction =
+            err instanceof RejectWithValue
+              ? rejected(null, requestId, arg, err.payload, err.meta)
+              : rejected(err as any, requestId, arg)
+        }
+        // We dispatch the result action _after_ the catch, to avoid having any errors
+        // here get swallowed by the try/catch block,
+        // per https://twitter.com/dan_abramov/status/770914221638942720
+        // and https://github.com/reduxjs/redux-toolkit/blob/e85eb17b39a2118d859f7b7746e0f3fee523e089/docs/tutorials/advanced-tutorial.md#async-error-handling-logic-in-thunks
+
+        const skipDispatch =
+          options &&
+          !options.dispatchConditionRejection &&
+          rejected.match(finalAction) &&
+          (finalAction as any).meta.condition
+
+        if (!skipDispatch) {
+          dispatch(finalAction)
+        }
+        return finalAction
+      })()
+      return Object.assign(promise as Promise<any>, {
+        abort,
+        requestId,
+        arg,
+        unwrap() {
+          return promise.then<any>(unwrapResult)
+        },
+      })
+    }
+  }
+
+  return Object.assign(
+    actionCreator as AsyncThunkActionCreator<
+      Returned,
+      ThunkArg,
+      ThunkApiConfig
+    >,
+    {
+      pending,
+      rejected,
+      fulfilled,
+      typePrefix,
+    }
+  )
+}
+```
+
+When I print the value via `console.info(incrementAsync);` we get:
+
+![21.what-is-incrementAsync](21.what-is-incrementAsync.png)
+
+The return values do match.
+
+Executing the object "incrementAsync" obtained from calling `createAsyncThunk`.
+
+![22.executing-incrementAsync](22.executing-incrementAsync.png)
+
+If you notice, temp0 is store, and temp1 is incrementAsync.
+
+As per code, we can call what is returned by `createAsyncThunk` and pass it to `dispatch`.
+
+#### `type AsyncThunk`
+
+```typescript
+/**
+ * A type describing the return value of `createAsyncThunk`.
+ * Might be useful for wrapping `createAsyncThunk` in custom abstractions.
+ *
+ * @public
+ */
+export type AsyncThunk<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig
+> = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> & {
+  pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig>
+  rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
+  fulfilled: AsyncThunkFulfilledActionCreator<
+    Returned,
+    ThunkArg,
+    ThunkApiConfig
+  >
+  typePrefix: string
+}
+```
+
+![23.type-AsyncThunk](23.type-AsyncThunk.png)
+
+#### counter-2/src/features/counter/counterSlice.ts incrementAsync
+
+```typescript
+// The function below is called a thunk and allows us to perform async logic. It
+// can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This
+// will call the thunk with the `dispatch` function as the first argument. Async
+// code can then be executed and other actions can be dispatched. Thunks are
+// typically used to make async requests.
+export const incrementAsync = createAsyncThunk(
+    'counter/fetchCount',
+    async (amount: number) => {
+        const response = await fetchCount(amount);
+        // The value we return becomes the `fulfilled` action payload
+        return response.data;
+    }
+);
+```
+
+![24.incrementAsync](24.incrementAsync.png)
+
+### running app
+
+![20.running-app](20.running-app.png)
+
+Though it has added features, unfortunately it also is designed for single instance. Singletons be damned.
+
+I should realise that redux is for maintaining a global store. A global store, by design, is singleton.
+
+
 
 ## References
 

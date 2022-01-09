@@ -612,8 +612,590 @@ yarn add -D @types/redux @types/react-redux</code></pre>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a>    <span class="kw">display</span>: <span class="dv">inline-block</span><span class="op">;</span></span>
 <span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a>    <span class="kw">border-bottom</span>: <span class="dv">thin</span> <span class="dv">solid</span> <span class="cn">silver</span><span class="op">;</span></span>
 <span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a>}</span></code></pre></div>
-<h3 id="creating-two-different-counters.">Creating two different counters.</h3>
-<p>To be continued…</p>
+<h2 id="counter-2">2022.01.09 counter-2</h2>
+<p>Interestingly a better implementation is found in template project that you can get from <code>yarn create react-app counter-2 --template redux-typescript</code></p>
+<figure>
+<img src="19.counter-2.png" alt="" /><figcaption>19.counter-2</figcaption>
+</figure>
+<h3 id="featurescountercounter.module.css">/features/counter/Counter.module.css</h3>
+<div class="sourceCode" id="cb27"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="fu">.row</span> {</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a>  <span class="kw">display</span>: flex<span class="op">;</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a>  <span class="kw">align-items</span>: <span class="dv">center</span><span class="op">;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a>  <span class="kw">justify-content</span>: <span class="dv">center</span><span class="op">;</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a>}</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a><span class="fu">.row</span> <span class="op">&gt;</span> button {</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true"></a>  <span class="kw">margin-left</span>: <span class="dv">4</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true"></a>  <span class="kw">margin-right</span>: <span class="dv">8</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true"></a>}</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true"></a></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true"></a><span class="fu">.row</span><span class="in">:not(</span>:last-child<span class="in">)</span> {</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true"></a>  <span class="kw">margin-bottom</span>: <span class="dv">16</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true"></a>}</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true"></a></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true"></a><span class="fu">.value</span> {</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true"></a>  <span class="kw">font-size</span>: <span class="dv">78</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true"></a>  <span class="kw">padding-left</span>: <span class="dv">16</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true"></a>  <span class="kw">padding-right</span>: <span class="dv">16</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true"></a>  <span class="kw">margin-top</span>: <span class="dv">2</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true"></a>  <span class="kw">font-family</span>: <span class="st">&#39;Courier New&#39;</span><span class="op">,</span> Courier<span class="op">,</span> <span class="dv">monospace</span><span class="op">;</span></span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true"></a>}</span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true"></a></span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true"></a><span class="fu">.button</span> {</span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true"></a>  <span class="kw">appearance</span>: <span class="dv">none</span><span class="op">;</span></span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true"></a>  <span class="kw">background</span>: <span class="dv">none</span><span class="op">;</span></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true"></a>  <span class="kw">font-size</span>: <span class="dv">32</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true"></a>  <span class="kw">padding-left</span>: <span class="dv">12</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true"></a>  <span class="kw">padding-right</span>: <span class="dv">12</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true"></a>  <span class="kw">outline</span>: <span class="dv">none</span><span class="op">;</span></span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true"></a>  <span class="kw">border</span>: <span class="dv">2</span><span class="dt">px</span> <span class="dv">solid</span> <span class="dv">transparent</span><span class="op">;</span></span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true"></a>  <span class="kw">color</span>: <span class="fu">rgb(</span><span class="dv">112</span><span class="op">,</span> <span class="dv">76</span><span class="op">,</span> <span class="dv">182</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true"></a>  <span class="kw">padding-bottom</span>: <span class="dv">4</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true"></a>  <span class="kw">cursor</span>: <span class="dv">pointer</span><span class="op">;</span></span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true"></a>  <span class="kw">background-color</span>: <span class="fu">rgba(</span><span class="dv">112</span><span class="op">,</span> <span class="dv">76</span><span class="op">,</span> <span class="dv">182</span><span class="op">,</span> <span class="dv">0.1</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true"></a>  <span class="kw">border-radius</span>: <span class="dv">2</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-37"><a href="#cb27-37" aria-hidden="true"></a>  <span class="kw">transition</span>: <span class="dv">all</span> <span class="dv">0.15</span><span class="dt">s</span><span class="op">;</span></span>
+<span id="cb27-38"><a href="#cb27-38" aria-hidden="true"></a>}</span>
+<span id="cb27-39"><a href="#cb27-39" aria-hidden="true"></a></span>
+<span id="cb27-40"><a href="#cb27-40" aria-hidden="true"></a><span class="fu">.textbox</span> {</span>
+<span id="cb27-41"><a href="#cb27-41" aria-hidden="true"></a>  <span class="kw">font-size</span>: <span class="dv">32</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-42"><a href="#cb27-42" aria-hidden="true"></a>  <span class="kw">padding</span>: <span class="dv">2</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-43"><a href="#cb27-43" aria-hidden="true"></a>  <span class="kw">width</span>: <span class="dv">64</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-44"><a href="#cb27-44" aria-hidden="true"></a>  <span class="kw">text-align</span>: <span class="dv">center</span><span class="op">;</span></span>
+<span id="cb27-45"><a href="#cb27-45" aria-hidden="true"></a>  <span class="kw">margin-right</span>: <span class="dv">4</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb27-46"><a href="#cb27-46" aria-hidden="true"></a>}</span>
+<span id="cb27-47"><a href="#cb27-47" aria-hidden="true"></a></span>
+<span id="cb27-48"><a href="#cb27-48" aria-hidden="true"></a><span class="fu">.button</span><span class="in">:hover</span><span class="op">,</span></span>
+<span id="cb27-49"><a href="#cb27-49" aria-hidden="true"></a><span class="fu">.button</span><span class="in">:focus</span> {</span>
+<span id="cb27-50"><a href="#cb27-50" aria-hidden="true"></a>  <span class="kw">border</span>: <span class="dv">2</span><span class="dt">px</span> <span class="dv">solid</span> <span class="fu">rgba(</span><span class="dv">112</span><span class="op">,</span> <span class="dv">76</span><span class="op">,</span> <span class="dv">182</span><span class="op">,</span> <span class="dv">0.4</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb27-51"><a href="#cb27-51" aria-hidden="true"></a>}</span>
+<span id="cb27-52"><a href="#cb27-52" aria-hidden="true"></a></span>
+<span id="cb27-53"><a href="#cb27-53" aria-hidden="true"></a><span class="fu">.button</span><span class="in">:active</span> {</span>
+<span id="cb27-54"><a href="#cb27-54" aria-hidden="true"></a>  <span class="kw">background-color</span>: <span class="fu">rgba(</span><span class="dv">112</span><span class="op">,</span> <span class="dv">76</span><span class="op">,</span> <span class="dv">182</span><span class="op">,</span> <span class="dv">0.2</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb27-55"><a href="#cb27-55" aria-hidden="true"></a>}</span>
+<span id="cb27-56"><a href="#cb27-56" aria-hidden="true"></a></span>
+<span id="cb27-57"><a href="#cb27-57" aria-hidden="true"></a><span class="fu">.asyncButton</span> {</span>
+<span id="cb27-58"><a href="#cb27-58" aria-hidden="true"></a>  composes: button<span class="op">;</span></span>
+<span id="cb27-59"><a href="#cb27-59" aria-hidden="true"></a>  <span class="kw">position</span>: <span class="dv">relative</span><span class="op">;</span></span>
+<span id="cb27-60"><a href="#cb27-60" aria-hidden="true"></a>}</span>
+<span id="cb27-61"><a href="#cb27-61" aria-hidden="true"></a></span>
+<span id="cb27-62"><a href="#cb27-62" aria-hidden="true"></a><span class="fu">.asyncButton</span><span class="in">:after</span> {</span>
+<span id="cb27-63"><a href="#cb27-63" aria-hidden="true"></a>  <span class="kw">content</span>: <span class="st">&#39;&#39;</span><span class="op">;</span></span>
+<span id="cb27-64"><a href="#cb27-64" aria-hidden="true"></a>  <span class="kw">background-color</span>: <span class="fu">rgba(</span><span class="dv">112</span><span class="op">,</span> <span class="dv">76</span><span class="op">,</span> <span class="dv">182</span><span class="op">,</span> <span class="dv">0.15</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb27-65"><a href="#cb27-65" aria-hidden="true"></a>  <span class="kw">display</span>: <span class="dv">block</span><span class="op">;</span></span>
+<span id="cb27-66"><a href="#cb27-66" aria-hidden="true"></a>  <span class="kw">position</span>: <span class="dv">absolute</span><span class="op">;</span></span>
+<span id="cb27-67"><a href="#cb27-67" aria-hidden="true"></a>  <span class="kw">width</span>: <span class="dv">100</span><span class="dt">%</span><span class="op">;</span></span>
+<span id="cb27-68"><a href="#cb27-68" aria-hidden="true"></a>  <span class="kw">height</span>: <span class="dv">100</span><span class="dt">%</span><span class="op">;</span></span>
+<span id="cb27-69"><a href="#cb27-69" aria-hidden="true"></a>  <span class="kw">left</span>: <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb27-70"><a href="#cb27-70" aria-hidden="true"></a>  <span class="kw">top</span>: <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb27-71"><a href="#cb27-71" aria-hidden="true"></a>  <span class="kw">opacity</span>: <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb27-72"><a href="#cb27-72" aria-hidden="true"></a>  <span class="kw">transition</span>: width <span class="dv">1</span><span class="dt">s</span> <span class="dv">linear</span><span class="op">,</span> opacity <span class="dv">0.5</span><span class="dt">s</span> <span class="dv">ease</span> <span class="dv">1</span><span class="dt">s</span><span class="op">;</span></span>
+<span id="cb27-73"><a href="#cb27-73" aria-hidden="true"></a>}</span>
+<span id="cb27-74"><a href="#cb27-74" aria-hidden="true"></a></span>
+<span id="cb27-75"><a href="#cb27-75" aria-hidden="true"></a><span class="fu">.asyncButton</span><span class="in">:active:after</span> {</span>
+<span id="cb27-76"><a href="#cb27-76" aria-hidden="true"></a>  <span class="kw">width</span>: <span class="dv">0</span><span class="dt">%</span><span class="op">;</span></span>
+<span id="cb27-77"><a href="#cb27-77" aria-hidden="true"></a>  <span class="kw">opacity</span>: <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb27-78"><a href="#cb27-78" aria-hidden="true"></a>  <span class="kw">transition</span>: <span class="dv">0</span><span class="dt">s</span><span class="op">;</span></span>
+<span id="cb27-79"><a href="#cb27-79" aria-hidden="true"></a>}</span></code></pre></div>
+<h3 id="featurescountercounter.tsx">/features/counter/Counter.tsx</h3>
+<div class="sourceCode" id="cb28"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="im">import</span> React<span class="op">,</span> { useState } from <span class="st">&#39;react&#39;</span><span class="op">;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="im">import</span> { useAppSelector<span class="op">,</span> useAppDispatch } from <span class="st">&#39;../../app/hooks&#39;</span><span class="op">;</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="im">import</span> {</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a>  decrement<span class="op">,</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true"></a>  increment<span class="op">,</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true"></a>  incrementByAmount<span class="op">,</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true"></a>  incrementAsync<span class="op">,</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true"></a>  incrementIfOdd<span class="op">,</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true"></a>  selectCount<span class="op">,</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true"></a>} from <span class="st">&#39;./counterSlice&#39;</span><span class="op">;</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true"></a><span class="im">import</span> styles from <span class="st">&#39;./Counter.module.css&#39;</span><span class="op">;</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true"></a></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true"></a>export <span class="kw">function</span> <span class="fu">Counter</span>() {</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true"></a>  const count <span class="op">=</span> <span class="fu">useAppSelector</span>(selectCount)<span class="op">;</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true"></a>  const dispatch <span class="op">=</span> <span class="fu">useAppDispatch</span>()<span class="op">;</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true"></a>  const [incrementAmount<span class="op">,</span> setIncrementAmount] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;2&#39;</span>)<span class="op">;</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true"></a></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true"></a>  const incrementValue <span class="op">=</span> <span class="bu">Number</span>(incrementAmount) <span class="op">||</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true"></a>  <span class="fu">return</span> (</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true"></a>    <span class="op">&lt;</span>div<span class="op">&gt;</span></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true"></a>      <span class="op">&lt;</span>div className<span class="op">=</span>{styles<span class="op">.</span><span class="at">row</span>}<span class="op">&gt;</span></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true"></a>        <span class="op">&lt;</span>button</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true"></a>          className<span class="op">=</span>{styles<span class="op">.</span><span class="at">button</span>}</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true"></a>          aria<span class="op">-</span>label<span class="op">=</span><span class="st">&quot;Decrement value&quot;</span></span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true"></a>          onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">dispatch</span>(<span class="fu">decrement</span>())}</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true"></a>        <span class="op">&gt;</span></span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true"></a>          <span class="op">-</span></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true"></a>        <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true"></a>        <span class="op">&lt;</span>span className<span class="op">=</span>{styles<span class="op">.</span><span class="at">value</span>}<span class="op">&gt;</span>{count}<span class="op">&lt;/</span>span<span class="op">&gt;</span></span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true"></a>        <span class="op">&lt;</span>button</span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true"></a>          className<span class="op">=</span>{styles<span class="op">.</span><span class="at">button</span>}</span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true"></a>          aria<span class="op">-</span>label<span class="op">=</span><span class="st">&quot;Increment value&quot;</span></span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true"></a>          onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">dispatch</span>(<span class="fu">increment</span>())}</span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true"></a>        <span class="op">&gt;</span></span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true"></a>          <span class="op">+</span></span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true"></a>        <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true"></a>      <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true"></a>      <span class="op">&lt;</span>div className<span class="op">=</span>{styles<span class="op">.</span><span class="at">row</span>}<span class="op">&gt;</span></span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true"></a>        <span class="op">&lt;</span>input</span>
+<span id="cb28-42"><a href="#cb28-42" aria-hidden="true"></a>          className<span class="op">=</span>{styles<span class="op">.</span><span class="at">textbox</span>}</span>
+<span id="cb28-43"><a href="#cb28-43" aria-hidden="true"></a>          aria<span class="op">-</span>label<span class="op">=</span><span class="st">&quot;Set increment amount&quot;</span></span>
+<span id="cb28-44"><a href="#cb28-44" aria-hidden="true"></a>          value<span class="op">=</span>{incrementAmount}</span>
+<span id="cb28-45"><a href="#cb28-45" aria-hidden="true"></a>          onChange<span class="op">=</span>{(e) <span class="kw">=&gt;</span> <span class="fu">setIncrementAmount</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)}</span>
+<span id="cb28-46"><a href="#cb28-46" aria-hidden="true"></a>        <span class="op">/&gt;</span></span>
+<span id="cb28-47"><a href="#cb28-47" aria-hidden="true"></a>        <span class="op">&lt;</span>button</span>
+<span id="cb28-48"><a href="#cb28-48" aria-hidden="true"></a>          className<span class="op">=</span>{styles<span class="op">.</span><span class="at">button</span>}</span>
+<span id="cb28-49"><a href="#cb28-49" aria-hidden="true"></a>          onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">dispatch</span>(<span class="fu">incrementByAmount</span>(incrementValue))}</span>
+<span id="cb28-50"><a href="#cb28-50" aria-hidden="true"></a>        <span class="op">&gt;</span></span>
+<span id="cb28-51"><a href="#cb28-51" aria-hidden="true"></a>          Add Amount</span>
+<span id="cb28-52"><a href="#cb28-52" aria-hidden="true"></a>        <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb28-53"><a href="#cb28-53" aria-hidden="true"></a>        <span class="op">&lt;</span>button</span>
+<span id="cb28-54"><a href="#cb28-54" aria-hidden="true"></a>          className<span class="op">=</span>{styles<span class="op">.</span><span class="at">asyncButton</span>}</span>
+<span id="cb28-55"><a href="#cb28-55" aria-hidden="true"></a>          onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">dispatch</span>(<span class="fu">incrementAsync</span>(incrementValue))}</span>
+<span id="cb28-56"><a href="#cb28-56" aria-hidden="true"></a>        <span class="op">&gt;</span></span>
+<span id="cb28-57"><a href="#cb28-57" aria-hidden="true"></a>          Add Async</span>
+<span id="cb28-58"><a href="#cb28-58" aria-hidden="true"></a>        <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb28-59"><a href="#cb28-59" aria-hidden="true"></a>        <span class="op">&lt;</span>button</span>
+<span id="cb28-60"><a href="#cb28-60" aria-hidden="true"></a>          className<span class="op">=</span>{styles<span class="op">.</span><span class="at">button</span>}</span>
+<span id="cb28-61"><a href="#cb28-61" aria-hidden="true"></a>          onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">dispatch</span>(<span class="fu">incrementIfOdd</span>(incrementValue))}</span>
+<span id="cb28-62"><a href="#cb28-62" aria-hidden="true"></a>        <span class="op">&gt;</span></span>
+<span id="cb28-63"><a href="#cb28-63" aria-hidden="true"></a>          Add If Odd</span>
+<span id="cb28-64"><a href="#cb28-64" aria-hidden="true"></a>        <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb28-65"><a href="#cb28-65" aria-hidden="true"></a>      <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb28-66"><a href="#cb28-66" aria-hidden="true"></a>    <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb28-67"><a href="#cb28-67" aria-hidden="true"></a>  )<span class="op">;</span></span>
+<span id="cb28-68"><a href="#cb28-68" aria-hidden="true"></a>}</span></code></pre></div>
+<h3 id="featurescountercounterapi.ts">/features/counter/counterAPI.ts</h3>
+<div class="sourceCode" id="cb29"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="co">// A mock function to mimic making an async request for data</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a>export <span class="kw">function</span> <span class="fu">fetchCount</span>(amount <span class="op">=</span> <span class="dv">1</span>) {</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a>  return <span class="kw">new</span> <span class="bu">Promise</span><span class="op">&lt;</span>{ data<span class="op">:</span> <span class="dt">number</span> }<span class="op">&gt;</span>((resolve) <span class="kw">=&gt;</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a>    <span class="fu">setTimeout</span>(() <span class="kw">=&gt;</span> <span class="fu">resolve</span>({ data<span class="op">:</span> amount })<span class="op">,</span> <span class="dv">500</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a>  )<span class="op">;</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a>}</span></code></pre></div>
+<h3 id="featurescountercounterslice.spec.ts">/features/counter/counterSlice.spec.ts</h3>
+<div class="sourceCode" id="cb30"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="im">import</span> counterReducer<span class="op">,</span> {</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a>  CounterState<span class="op">,</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a>  increment<span class="op">,</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a>  decrement<span class="op">,</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a>  incrementByAmount<span class="op">,</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true"></a>} from <span class="st">&#39;./counterSlice&#39;</span><span class="op">;</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true"></a></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true"></a><span class="fu">describe</span>(<span class="st">&#39;counter reducer&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true"></a>  const initialState<span class="op">:</span> CounterState <span class="op">=</span> {</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true"></a>    value<span class="op">:</span> <span class="dv">3</span><span class="op">,</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true"></a>    status<span class="op">:</span> <span class="st">&#39;idle&#39;</span><span class="op">,</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true"></a>  }<span class="op">;</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true"></a>  <span class="fu">it</span>(<span class="st">&#39;should handle initial state&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true"></a>    <span class="fu">expect</span>(<span class="fu">counterReducer</span>(undefined<span class="op">,</span> { type<span class="op">:</span> <span class="st">&#39;unknown&#39;</span> }))<span class="op">.</span><span class="fu">toEqual</span>({</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true"></a>      value<span class="op">:</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true"></a>      status<span class="op">:</span> <span class="st">&#39;idle&#39;</span><span class="op">,</span></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true"></a>    })<span class="op">;</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true"></a>  })<span class="op">;</span></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true"></a></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true"></a>  <span class="fu">it</span>(<span class="st">&#39;should handle increment&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true"></a>    const actual <span class="op">=</span> <span class="fu">counterReducer</span>(initialState<span class="op">,</span> <span class="fu">increment</span>())<span class="op">;</span></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true"></a>    <span class="fu">expect</span>(actual<span class="op">.</span><span class="at">value</span>)<span class="op">.</span><span class="fu">toEqual</span>(<span class="dv">4</span>)<span class="op">;</span></span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true"></a>  })<span class="op">;</span></span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true"></a></span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true"></a>  <span class="fu">it</span>(<span class="st">&#39;should handle decrement&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true"></a>    const actual <span class="op">=</span> <span class="fu">counterReducer</span>(initialState<span class="op">,</span> <span class="fu">decrement</span>())<span class="op">;</span></span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true"></a>    <span class="fu">expect</span>(actual<span class="op">.</span><span class="at">value</span>)<span class="op">.</span><span class="fu">toEqual</span>(<span class="dv">2</span>)<span class="op">;</span></span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true"></a>  })<span class="op">;</span></span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true"></a></span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true"></a>  <span class="fu">it</span>(<span class="st">&#39;should handle incrementByAmount&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true"></a>    const actual <span class="op">=</span> <span class="fu">counterReducer</span>(initialState<span class="op">,</span> <span class="fu">incrementByAmount</span>(<span class="dv">2</span>))<span class="op">;</span></span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true"></a>    <span class="fu">expect</span>(actual<span class="op">.</span><span class="at">value</span>)<span class="op">.</span><span class="fu">toEqual</span>(<span class="dv">5</span>)<span class="op">;</span></span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true"></a>  })<span class="op">;</span></span>
+<span id="cb30-34"><a href="#cb30-34" aria-hidden="true"></a>})<span class="op">;</span></span></code></pre></div>
+<p>One thing that I have not paid any attention to is testing so far. One week, I will sit down to test. Not today.</p>
+<h3 id="featurescountercounterslice.ts">/features/counter/counterSlice.ts</h3>
+<div class="sourceCode" id="cb31"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="im">import</span> { createAsyncThunk<span class="op">,</span> createSlice<span class="op">,</span> PayloadAction } from <span class="st">&#39;@reduxjs/toolkit&#39;</span><span class="op">;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="im">import</span> { RootState<span class="op">,</span> AppThunk } from <span class="st">&#39;../../app/store&#39;</span><span class="op">;</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a><span class="im">import</span> { fetchCount } from <span class="st">&#39;./counterAPI&#39;</span><span class="op">;</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true"></a>export interface CounterState {</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true"></a>  value<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true"></a>  status<span class="op">:</span> <span class="st">&#39;idle&#39;</span> <span class="op">|</span> <span class="st">&#39;loading&#39;</span> <span class="op">|</span> <span class="st">&#39;failed&#39;</span><span class="op">;</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true"></a>}</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true"></a></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true"></a>const initialState<span class="op">:</span> CounterState <span class="op">=</span> {</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true"></a>  value<span class="op">:</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true"></a>  status<span class="op">:</span> <span class="st">&#39;idle&#39;</span><span class="op">,</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true"></a>}<span class="op">;</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true"></a></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true"></a><span class="co">// The function below is called a thunk and allows us to perform async logic. It</span></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true"></a><span class="co">// can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This</span></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true"></a><span class="co">// will call the thunk with the `dispatch` function as the first argument. Async</span></span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true"></a><span class="co">// code can then be executed and other actions can be dispatched. Thunks are</span></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true"></a><span class="co">// typically used to make async requests.</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true"></a>export const incrementAsync <span class="op">=</span> <span class="fu">createAsyncThunk</span>(</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true"></a>  <span class="st">&#39;counter/fetchCount&#39;</span><span class="op">,</span></span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true"></a>  <span class="fu">async</span> (amount<span class="op">:</span> <span class="dt">number</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true"></a>    const response <span class="op">=</span> await <span class="fu">fetchCount</span>(amount)<span class="op">;</span></span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true"></a>    <span class="co">// The value we return becomes the `fulfilled` action payload</span></span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true"></a>    return response<span class="op">.</span><span class="at">data</span><span class="op">;</span></span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true"></a>  }</span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true"></a>)<span class="op">;</span></span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true"></a></span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true"></a>export const counterSlice <span class="op">=</span> <span class="fu">createSlice</span>({</span>
+<span id="cb31-30"><a href="#cb31-30" aria-hidden="true"></a>  name<span class="op">:</span> <span class="st">&#39;counter&#39;</span><span class="op">,</span></span>
+<span id="cb31-31"><a href="#cb31-31" aria-hidden="true"></a>  initialState<span class="op">,</span></span>
+<span id="cb31-32"><a href="#cb31-32" aria-hidden="true"></a>  <span class="co">// The `reducers` field lets us define reducers and generate associated actions</span></span>
+<span id="cb31-33"><a href="#cb31-33" aria-hidden="true"></a>  reducers<span class="op">:</span> {</span>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true"></a>    increment<span class="op">:</span> (state) <span class="kw">=&gt;</span> {</span>
+<span id="cb31-35"><a href="#cb31-35" aria-hidden="true"></a>      <span class="co">// Redux Toolkit allows us to write &quot;mutating&quot; logic in reducers. It</span></span>
+<span id="cb31-36"><a href="#cb31-36" aria-hidden="true"></a>      <span class="co">// doesn&#39;t actually mutate the state because it uses the Immer library,</span></span>
+<span id="cb31-37"><a href="#cb31-37" aria-hidden="true"></a>      <span class="co">// which detects changes to a &quot;draft state&quot; and produces a brand new</span></span>
+<span id="cb31-38"><a href="#cb31-38" aria-hidden="true"></a>      <span class="co">// immutable state based off those changes</span></span>
+<span id="cb31-39"><a href="#cb31-39" aria-hidden="true"></a>      state<span class="op">.</span><span class="at">value</span> <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb31-40"><a href="#cb31-40" aria-hidden="true"></a>    }<span class="op">,</span></span>
+<span id="cb31-41"><a href="#cb31-41" aria-hidden="true"></a>    decrement<span class="op">:</span> (state) <span class="kw">=&gt;</span> {</span>
+<span id="cb31-42"><a href="#cb31-42" aria-hidden="true"></a>      state<span class="op">.</span><span class="at">value</span> <span class="op">-=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb31-43"><a href="#cb31-43" aria-hidden="true"></a>    }<span class="op">,</span></span>
+<span id="cb31-44"><a href="#cb31-44" aria-hidden="true"></a>    <span class="co">// Use the PayloadAction type to declare the contents of `action.payload`</span></span>
+<span id="cb31-45"><a href="#cb31-45" aria-hidden="true"></a>    incrementByAmount<span class="op">:</span> (state<span class="op">,</span> action<span class="op">:</span> PayloadAction<span class="op">&lt;</span><span class="dt">number</span><span class="op">&gt;</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb31-46"><a href="#cb31-46" aria-hidden="true"></a>      state<span class="op">.</span><span class="at">value</span> <span class="op">+=</span> action<span class="op">.</span><span class="at">payload</span><span class="op">;</span></span>
+<span id="cb31-47"><a href="#cb31-47" aria-hidden="true"></a>    }<span class="op">,</span></span>
+<span id="cb31-48"><a href="#cb31-48" aria-hidden="true"></a>  }<span class="op">,</span></span>
+<span id="cb31-49"><a href="#cb31-49" aria-hidden="true"></a>  <span class="co">// The `extraReducers` field lets the slice handle actions defined elsewhere,</span></span>
+<span id="cb31-50"><a href="#cb31-50" aria-hidden="true"></a>  <span class="co">// including actions generated by createAsyncThunk or in other slices.</span></span>
+<span id="cb31-51"><a href="#cb31-51" aria-hidden="true"></a>  extraReducers<span class="op">:</span> (builder) <span class="kw">=&gt;</span> {</span>
+<span id="cb31-52"><a href="#cb31-52" aria-hidden="true"></a>    builder</span>
+<span id="cb31-53"><a href="#cb31-53" aria-hidden="true"></a>      <span class="op">.</span><span class="fu">addCase</span>(incrementAsync<span class="op">.</span><span class="at">pending</span><span class="op">,</span> (state) <span class="kw">=&gt;</span> {</span>
+<span id="cb31-54"><a href="#cb31-54" aria-hidden="true"></a>        state<span class="op">.</span><span class="at">status</span> <span class="op">=</span> <span class="st">&#39;loading&#39;</span><span class="op">;</span></span>
+<span id="cb31-55"><a href="#cb31-55" aria-hidden="true"></a>      })</span>
+<span id="cb31-56"><a href="#cb31-56" aria-hidden="true"></a>      <span class="op">.</span><span class="fu">addCase</span>(incrementAsync<span class="op">.</span><span class="at">fulfilled</span><span class="op">,</span> (state<span class="op">,</span> action) <span class="kw">=&gt;</span> {</span>
+<span id="cb31-57"><a href="#cb31-57" aria-hidden="true"></a>        state<span class="op">.</span><span class="at">status</span> <span class="op">=</span> <span class="st">&#39;idle&#39;</span><span class="op">;</span></span>
+<span id="cb31-58"><a href="#cb31-58" aria-hidden="true"></a>        state<span class="op">.</span><span class="at">value</span> <span class="op">+=</span> action<span class="op">.</span><span class="at">payload</span><span class="op">;</span></span>
+<span id="cb31-59"><a href="#cb31-59" aria-hidden="true"></a>      })<span class="op">;</span></span>
+<span id="cb31-60"><a href="#cb31-60" aria-hidden="true"></a>  }<span class="op">,</span></span>
+<span id="cb31-61"><a href="#cb31-61" aria-hidden="true"></a>})<span class="op">;</span></span>
+<span id="cb31-62"><a href="#cb31-62" aria-hidden="true"></a></span>
+<span id="cb31-63"><a href="#cb31-63" aria-hidden="true"></a>export const { increment<span class="op">,</span> decrement<span class="op">,</span> incrementByAmount } <span class="op">=</span> counterSlice<span class="op">.</span><span class="at">actions</span><span class="op">;</span></span>
+<span id="cb31-64"><a href="#cb31-64" aria-hidden="true"></a></span>
+<span id="cb31-65"><a href="#cb31-65" aria-hidden="true"></a><span class="co">// The function below is called a selector and allows us to select a value from</span></span>
+<span id="cb31-66"><a href="#cb31-66" aria-hidden="true"></a><span class="co">// the state. Selectors can also be defined inline where they&#39;re used instead of</span></span>
+<span id="cb31-67"><a href="#cb31-67" aria-hidden="true"></a><span class="co">// in the slice file. For example: `useSelector((state: RootState) =&gt; state.counter.value)`</span></span>
+<span id="cb31-68"><a href="#cb31-68" aria-hidden="true"></a>export const selectCount <span class="op">=</span> (state<span class="op">:</span> RootState) <span class="kw">=&gt;</span> state<span class="op">.</span><span class="at">counter</span><span class="op">.</span><span class="at">value</span><span class="op">;</span></span>
+<span id="cb31-69"><a href="#cb31-69" aria-hidden="true"></a></span>
+<span id="cb31-70"><a href="#cb31-70" aria-hidden="true"></a><span class="co">// We can also write thunks by hand, which may contain both sync and async logic.</span></span>
+<span id="cb31-71"><a href="#cb31-71" aria-hidden="true"></a><span class="co">// Here&#39;s an example of conditionally dispatching actions based on current state.</span></span>
+<span id="cb31-72"><a href="#cb31-72" aria-hidden="true"></a>export const incrementIfOdd <span class="op">=</span> (amount<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> AppThunk <span class="kw">=&gt;</span> (</span>
+<span id="cb31-73"><a href="#cb31-73" aria-hidden="true"></a>  dispatch<span class="op">,</span></span>
+<span id="cb31-74"><a href="#cb31-74" aria-hidden="true"></a>  getState</span>
+<span id="cb31-75"><a href="#cb31-75" aria-hidden="true"></a>) <span class="kw">=&gt;</span> {</span>
+<span id="cb31-76"><a href="#cb31-76" aria-hidden="true"></a>  const currentValue <span class="op">=</span> <span class="fu">selectCount</span>(<span class="fu">getState</span>())<span class="op">;</span></span>
+<span id="cb31-77"><a href="#cb31-77" aria-hidden="true"></a>  <span class="fu">if</span> (currentValue <span class="op">%</span> <span class="dv">2</span> <span class="op">===</span> <span class="dv">1</span>) {</span>
+<span id="cb31-78"><a href="#cb31-78" aria-hidden="true"></a>    <span class="fu">dispatch</span>(<span class="fu">incrementByAmount</span>(amount))<span class="op">;</span></span>
+<span id="cb31-79"><a href="#cb31-79" aria-hidden="true"></a>  }</span>
+<span id="cb31-80"><a href="#cb31-80" aria-hidden="true"></a>}<span class="op">;</span></span>
+<span id="cb31-81"><a href="#cb31-81" aria-hidden="true"></a></span>
+<span id="cb31-82"><a href="#cb31-82" aria-hidden="true"></a>export default counterSlice<span class="op">.</span><span class="at">reducer</span><span class="op">;</span></span></code></pre></div>
+<h4 id="createasyncthunk"><code>createAsyncThunk</code></h4>
+<div class="sourceCode" id="cb32"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a>export <span class="kw">declare</span> <span class="kw">function</span> createAsyncThunk</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a>    <span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg <span class="op">=</span> <span class="dt">void</span><span class="op">&gt;</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true"></a>    (</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true"></a>    typePrefix<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true"></a>    payloadCreator<span class="op">:</span> AsyncThunkPayloadCreator<span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> {}<span class="op">&gt;,</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true"></a>    options<span class="op">?:</span> AsyncThunkOptions<span class="op">&lt;</span>ThunkArg<span class="op">,</span> {}<span class="op">&gt;</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true"></a>    )</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true"></a>    <span class="op">:</span> AsyncThunk<span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> {}<span class="op">&gt;;</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true"></a></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true"></a>export <span class="kw">declare</span> <span class="kw">function</span> createAsyncThunk</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true"></a>    <span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> ThunkApiConfig extends AsyncThunkConfig<span class="op">&gt;</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true"></a>        (</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true"></a>        typePrefix<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true"></a>        payloadCreator<span class="op">:</span> AsyncThunkPayloadCreator<span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;,</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true"></a>        options<span class="op">?:</span> AsyncThunkOptions<span class="op">&lt;</span>ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true"></a>        )</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true"></a>        <span class="op">:</span> AsyncThunk<span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;;</span></span></code></pre></div>
+<p>Source code from reduxjs/redux-toolkit</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a>export <span class="kw">function</span> createAsyncThunk<span class="op">&lt;</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a>  Returned<span class="op">,</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a>  ThunkArg<span class="op">,</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true"></a>  ThunkApiConfig extends AsyncThunkConfig</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true"></a><span class="op">&gt;</span>(</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true"></a>  typePrefix<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true"></a>  payloadCreator<span class="op">:</span> AsyncThunkPayloadCreator<span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;,</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true"></a>  options<span class="op">?:</span> AsyncThunkOptions<span class="op">&lt;</span>ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true"></a>)<span class="op">:</span> AsyncThunk<span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span> {</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true"></a>  <span class="kw">type</span> RejectedValue <span class="op">=</span> GetRejectValue<span class="op">&lt;</span>ThunkApiConfig<span class="op">&gt;</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true"></a>  <span class="kw">type</span> PendingMeta <span class="op">=</span> GetPendingMeta<span class="op">&lt;</span>ThunkApiConfig<span class="op">&gt;</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true"></a>  <span class="kw">type</span> FulfilledMeta <span class="op">=</span> GetFulfilledMeta<span class="op">&lt;</span>ThunkApiConfig<span class="op">&gt;</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true"></a>  <span class="kw">type</span> RejectedMeta <span class="op">=</span> GetRejectedMeta<span class="op">&lt;</span>ThunkApiConfig<span class="op">&gt;</span></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true"></a></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true"></a>  const fulfilled<span class="op">:</span> AsyncThunkFulfilledActionCreator<span class="op">&lt;</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true"></a>    Returned<span class="op">,</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true"></a>    ThunkArg<span class="op">,</span></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true"></a>    ThunkApiConfig</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true"></a>  <span class="op">&gt;</span> <span class="op">=</span> <span class="fu">createAction</span>(</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true"></a>    typePrefix <span class="op">+</span> <span class="st">&#39;/fulfilled&#39;</span><span class="op">,</span></span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true"></a>    (</span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true"></a>      payload<span class="op">:</span> Returned<span class="op">,</span></span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true"></a>      requestId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true"></a>      arg<span class="op">:</span> ThunkArg<span class="op">,</span></span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true"></a>      meta<span class="op">?:</span> FulfilledMeta</span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true"></a>    ) <span class="kw">=&gt;</span> ({</span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true"></a>      payload<span class="op">,</span></span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true"></a>      meta<span class="op">:</span> {</span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true"></a>        <span class="op">...</span>((meta <span class="im">as</span> <span class="dt">any</span>) <span class="op">||</span> {})<span class="op">,</span></span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true"></a>        arg<span class="op">,</span></span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true"></a>        requestId<span class="op">,</span></span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true"></a>        requestStatus<span class="op">:</span> <span class="st">&#39;fulfilled&#39;</span> <span class="im">as</span> const<span class="op">,</span></span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true"></a>      }<span class="op">,</span></span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true"></a>    })</span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true"></a>  )</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true"></a></span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true"></a>  const pending<span class="op">:</span> AsyncThunkPendingActionCreator<span class="op">&lt;</span>ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span> <span class="op">=</span></span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true"></a>    <span class="fu">createAction</span>(</span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true"></a>      typePrefix <span class="op">+</span> <span class="st">&#39;/pending&#39;</span><span class="op">,</span></span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true"></a>      (requestId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span> arg<span class="op">:</span> ThunkArg<span class="op">,</span> meta<span class="op">?:</span> PendingMeta) <span class="kw">=&gt;</span> ({</span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true"></a>        payload<span class="op">:</span> <span class="dt">undefined</span><span class="op">,</span></span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true"></a>        meta<span class="op">:</span> {</span>
+<span id="cb33-43"><a href="#cb33-43" aria-hidden="true"></a>          <span class="op">...</span>((meta <span class="im">as</span> <span class="dt">any</span>) <span class="op">||</span> {})<span class="op">,</span></span>
+<span id="cb33-44"><a href="#cb33-44" aria-hidden="true"></a>          arg<span class="op">,</span></span>
+<span id="cb33-45"><a href="#cb33-45" aria-hidden="true"></a>          requestId<span class="op">,</span></span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true"></a>          requestStatus<span class="op">:</span> <span class="st">&#39;pending&#39;</span> <span class="im">as</span> const<span class="op">,</span></span>
+<span id="cb33-47"><a href="#cb33-47" aria-hidden="true"></a>        }<span class="op">,</span></span>
+<span id="cb33-48"><a href="#cb33-48" aria-hidden="true"></a>      })</span>
+<span id="cb33-49"><a href="#cb33-49" aria-hidden="true"></a>    )</span>
+<span id="cb33-50"><a href="#cb33-50" aria-hidden="true"></a></span>
+<span id="cb33-51"><a href="#cb33-51" aria-hidden="true"></a>  const rejected<span class="op">:</span> AsyncThunkRejectedActionCreator<span class="op">&lt;</span>ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span> <span class="op">=</span></span>
+<span id="cb33-52"><a href="#cb33-52" aria-hidden="true"></a>    <span class="fu">createAction</span>(</span>
+<span id="cb33-53"><a href="#cb33-53" aria-hidden="true"></a>      typePrefix <span class="op">+</span> <span class="st">&#39;/rejected&#39;</span><span class="op">,</span></span>
+<span id="cb33-54"><a href="#cb33-54" aria-hidden="true"></a>      (</span>
+<span id="cb33-55"><a href="#cb33-55" aria-hidden="true"></a>        error<span class="op">:</span> Error <span class="op">|</span> <span class="dt">null</span><span class="op">,</span></span>
+<span id="cb33-56"><a href="#cb33-56" aria-hidden="true"></a>        requestId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb33-57"><a href="#cb33-57" aria-hidden="true"></a>        arg<span class="op">:</span> ThunkArg<span class="op">,</span></span>
+<span id="cb33-58"><a href="#cb33-58" aria-hidden="true"></a>        payload<span class="op">?:</span> RejectedValue<span class="op">,</span></span>
+<span id="cb33-59"><a href="#cb33-59" aria-hidden="true"></a>        meta<span class="op">?:</span> RejectedMeta</span>
+<span id="cb33-60"><a href="#cb33-60" aria-hidden="true"></a>      ) <span class="kw">=&gt;</span> ({</span>
+<span id="cb33-61"><a href="#cb33-61" aria-hidden="true"></a>        payload<span class="op">,</span></span>
+<span id="cb33-62"><a href="#cb33-62" aria-hidden="true"></a>        error<span class="op">:</span> ((options <span class="op">&amp;&amp;</span> options<span class="op">.</span><span class="at">serializeError</span>) <span class="op">||</span> miniSerializeError)(</span>
+<span id="cb33-63"><a href="#cb33-63" aria-hidden="true"></a>          error <span class="op">||</span> <span class="st">&#39;Rejected&#39;</span></span>
+<span id="cb33-64"><a href="#cb33-64" aria-hidden="true"></a>        ) <span class="im">as</span> GetSerializedErrorType<span class="op">&lt;</span>ThunkApiConfig<span class="op">&gt;,</span></span>
+<span id="cb33-65"><a href="#cb33-65" aria-hidden="true"></a>        meta<span class="op">:</span> {</span>
+<span id="cb33-66"><a href="#cb33-66" aria-hidden="true"></a>          <span class="op">...</span>((meta <span class="im">as</span> <span class="dt">any</span>) <span class="op">||</span> {})<span class="op">,</span></span>
+<span id="cb33-67"><a href="#cb33-67" aria-hidden="true"></a>          arg<span class="op">,</span></span>
+<span id="cb33-68"><a href="#cb33-68" aria-hidden="true"></a>          requestId<span class="op">,</span></span>
+<span id="cb33-69"><a href="#cb33-69" aria-hidden="true"></a>          rejectedWithValue<span class="op">:</span> <span class="op">!!</span>payload<span class="op">,</span></span>
+<span id="cb33-70"><a href="#cb33-70" aria-hidden="true"></a>          requestStatus<span class="op">:</span> <span class="st">&#39;rejected&#39;</span> <span class="im">as</span> const<span class="op">,</span></span>
+<span id="cb33-71"><a href="#cb33-71" aria-hidden="true"></a>          aborted<span class="op">:</span> error<span class="op">?.</span><span class="at">name</span> <span class="op">===</span> <span class="st">&#39;AbortError&#39;</span><span class="op">,</span></span>
+<span id="cb33-72"><a href="#cb33-72" aria-hidden="true"></a>          condition<span class="op">:</span> error<span class="op">?.</span><span class="at">name</span> <span class="op">===</span> <span class="st">&#39;ConditionError&#39;</span><span class="op">,</span></span>
+<span id="cb33-73"><a href="#cb33-73" aria-hidden="true"></a>        }<span class="op">,</span></span>
+<span id="cb33-74"><a href="#cb33-74" aria-hidden="true"></a>      })</span>
+<span id="cb33-75"><a href="#cb33-75" aria-hidden="true"></a>    )</span>
+<span id="cb33-76"><a href="#cb33-76" aria-hidden="true"></a></span>
+<span id="cb33-77"><a href="#cb33-77" aria-hidden="true"></a>  let displayedWarning <span class="op">=</span> false</span>
+<span id="cb33-78"><a href="#cb33-78" aria-hidden="true"></a></span>
+<span id="cb33-79"><a href="#cb33-79" aria-hidden="true"></a>  const AC <span class="op">=</span></span>
+<span id="cb33-80"><a href="#cb33-80" aria-hidden="true"></a>    typeof AbortController <span class="op">!==</span> <span class="st">&#39;undefined&#39;</span></span>
+<span id="cb33-81"><a href="#cb33-81" aria-hidden="true"></a>      <span class="op">?</span> AbortController</span>
+<span id="cb33-82"><a href="#cb33-82" aria-hidden="true"></a>      <span class="op">:</span> class implements AbortController {</span>
+<span id="cb33-83"><a href="#cb33-83" aria-hidden="true"></a>          signal<span class="op">:</span> AbortSignal <span class="op">=</span> {</span>
+<span id="cb33-84"><a href="#cb33-84" aria-hidden="true"></a>            aborted<span class="op">:</span> false<span class="op">,</span></span>
+<span id="cb33-85"><a href="#cb33-85" aria-hidden="true"></a>            <span class="fu">addEventListener</span>() {}<span class="op">,</span></span>
+<span id="cb33-86"><a href="#cb33-86" aria-hidden="true"></a>            <span class="fu">dispatchEvent</span>() {</span>
+<span id="cb33-87"><a href="#cb33-87" aria-hidden="true"></a>              return false</span>
+<span id="cb33-88"><a href="#cb33-88" aria-hidden="true"></a>            }<span class="op">,</span></span>
+<span id="cb33-89"><a href="#cb33-89" aria-hidden="true"></a>            <span class="fu">onabort</span>() {}<span class="op">,</span></span>
+<span id="cb33-90"><a href="#cb33-90" aria-hidden="true"></a>            <span class="fu">removeEventListener</span>() {}<span class="op">,</span></span>
+<span id="cb33-91"><a href="#cb33-91" aria-hidden="true"></a>          }</span>
+<span id="cb33-92"><a href="#cb33-92" aria-hidden="true"></a>          <span class="fu">abort</span>() {</span>
+<span id="cb33-93"><a href="#cb33-93" aria-hidden="true"></a>            <span class="fu">if</span> (<span class="bu">process</span><span class="op">.</span><span class="at">env</span><span class="op">.</span><span class="at">NODE_ENV</span> <span class="op">!==</span> <span class="st">&#39;production&#39;</span>) {</span>
+<span id="cb33-94"><a href="#cb33-94" aria-hidden="true"></a>              <span class="fu">if</span> (<span class="op">!</span>displayedWarning) {</span>
+<span id="cb33-95"><a href="#cb33-95" aria-hidden="true"></a>                displayedWarning <span class="op">=</span> true</span>
+<span id="cb33-96"><a href="#cb33-96" aria-hidden="true"></a>                <span class="bu">console</span><span class="op">.</span><span class="fu">info</span>(</span>
+<span id="cb33-97"><a href="#cb33-97" aria-hidden="true"></a>                  <span class="vs">`This platform does not implement AbortController.</span></span>
+<span id="cb33-98"><a href="#cb33-98" aria-hidden="true"></a><span class="vs">If you want to use the AbortController to react to </span><span class="sc">\`</span><span class="vs">abort</span><span class="sc">\`</span><span class="vs"> events, please consider importing a polyfill like &#39;abortcontroller-polyfill/dist/abortcontroller-polyfill-only&#39;.`</span></span>
+<span id="cb33-99"><a href="#cb33-99" aria-hidden="true"></a>                )</span>
+<span id="cb33-100"><a href="#cb33-100" aria-hidden="true"></a>              }</span>
+<span id="cb33-101"><a href="#cb33-101" aria-hidden="true"></a>            }</span>
+<span id="cb33-102"><a href="#cb33-102" aria-hidden="true"></a>          }</span>
+<span id="cb33-103"><a href="#cb33-103" aria-hidden="true"></a>        }</span>
+<span id="cb33-104"><a href="#cb33-104" aria-hidden="true"></a></span>
+<span id="cb33-105"><a href="#cb33-105" aria-hidden="true"></a>  <span class="kw">function</span> <span class="fu">actionCreator</span>(</span>
+<span id="cb33-106"><a href="#cb33-106" aria-hidden="true"></a>    arg<span class="op">:</span> ThunkArg</span>
+<span id="cb33-107"><a href="#cb33-107" aria-hidden="true"></a>  )<span class="op">:</span> AsyncThunkAction<span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span> {</span>
+<span id="cb33-108"><a href="#cb33-108" aria-hidden="true"></a>    <span class="fu">return</span> (dispatch<span class="op">,</span> getState<span class="op">,</span> extra) <span class="kw">=&gt;</span> {</span>
+<span id="cb33-109"><a href="#cb33-109" aria-hidden="true"></a>      const requestId <span class="op">=</span> options<span class="op">?.</span><span class="at">idGenerator</span></span>
+<span id="cb33-110"><a href="#cb33-110" aria-hidden="true"></a>        <span class="op">?</span> options<span class="op">.</span><span class="fu">idGenerator</span>(arg)</span>
+<span id="cb33-111"><a href="#cb33-111" aria-hidden="true"></a>        <span class="op">:</span> <span class="fu">nanoid</span>()</span>
+<span id="cb33-112"><a href="#cb33-112" aria-hidden="true"></a></span>
+<span id="cb33-113"><a href="#cb33-113" aria-hidden="true"></a>      const abortController <span class="op">=</span> <span class="kw">new</span> <span class="fu">AC</span>()</span>
+<span id="cb33-114"><a href="#cb33-114" aria-hidden="true"></a>      let abortReason<span class="op">:</span> <span class="dt">string</span> <span class="op">|</span> <span class="dt">undefined</span></span>
+<span id="cb33-115"><a href="#cb33-115" aria-hidden="true"></a></span>
+<span id="cb33-116"><a href="#cb33-116" aria-hidden="true"></a>      const abortedPromise <span class="op">=</span> <span class="kw">new</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">never</span><span class="op">&gt;</span>((_<span class="op">,</span> reject) <span class="kw">=&gt;</span></span>
+<span id="cb33-117"><a href="#cb33-117" aria-hidden="true"></a>        abortController<span class="op">.</span><span class="at">signal</span><span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&#39;abort&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span></span>
+<span id="cb33-118"><a href="#cb33-118" aria-hidden="true"></a>          <span class="fu">reject</span>({ name<span class="op">:</span> <span class="st">&#39;AbortError&#39;</span><span class="op">,</span> message<span class="op">:</span> abortReason <span class="op">||</span> <span class="st">&#39;Aborted&#39;</span> })</span>
+<span id="cb33-119"><a href="#cb33-119" aria-hidden="true"></a>        )</span>
+<span id="cb33-120"><a href="#cb33-120" aria-hidden="true"></a>      )</span>
+<span id="cb33-121"><a href="#cb33-121" aria-hidden="true"></a></span>
+<span id="cb33-122"><a href="#cb33-122" aria-hidden="true"></a>      let started <span class="op">=</span> false</span>
+<span id="cb33-123"><a href="#cb33-123" aria-hidden="true"></a>      <span class="kw">function</span> <span class="fu">abort</span>(reason<span class="op">?:</span> <span class="dt">string</span>) {</span>
+<span id="cb33-124"><a href="#cb33-124" aria-hidden="true"></a>        <span class="fu">if</span> (started) {</span>
+<span id="cb33-125"><a href="#cb33-125" aria-hidden="true"></a>          abortReason <span class="op">=</span> reason</span>
+<span id="cb33-126"><a href="#cb33-126" aria-hidden="true"></a>          abortController<span class="op">.</span><span class="fu">abort</span>()</span>
+<span id="cb33-127"><a href="#cb33-127" aria-hidden="true"></a>        }</span>
+<span id="cb33-128"><a href="#cb33-128" aria-hidden="true"></a>      }</span>
+<span id="cb33-129"><a href="#cb33-129" aria-hidden="true"></a></span>
+<span id="cb33-130"><a href="#cb33-130" aria-hidden="true"></a>      const promise <span class="op">=</span> (async <span class="kw">function</span> () {</span>
+<span id="cb33-131"><a href="#cb33-131" aria-hidden="true"></a>        let finalAction<span class="op">:</span> <span class="bu">ReturnType</span><span class="op">&lt;</span>typeof fulfilled <span class="op">|</span> typeof rejected<span class="op">&gt;</span></span>
+<span id="cb33-132"><a href="#cb33-132" aria-hidden="true"></a>        try {</span>
+<span id="cb33-133"><a href="#cb33-133" aria-hidden="true"></a>          let conditionResult <span class="op">=</span> options<span class="op">?.</span><span class="at">condition</span><span class="op">?.</span>(arg<span class="op">,</span> { getState<span class="op">,</span> extra })</span>
+<span id="cb33-134"><a href="#cb33-134" aria-hidden="true"></a>          <span class="fu">if</span> (<span class="fu">isThenable</span>(conditionResult)) {</span>
+<span id="cb33-135"><a href="#cb33-135" aria-hidden="true"></a>            conditionResult <span class="op">=</span> await conditionResult</span>
+<span id="cb33-136"><a href="#cb33-136" aria-hidden="true"></a>          }</span>
+<span id="cb33-137"><a href="#cb33-137" aria-hidden="true"></a>          <span class="fu">if</span> (conditionResult <span class="op">===</span> false) {</span>
+<span id="cb33-138"><a href="#cb33-138" aria-hidden="true"></a>            <span class="co">// eslint-disable-next-line no-throw-literal</span></span>
+<span id="cb33-139"><a href="#cb33-139" aria-hidden="true"></a>            throw {</span>
+<span id="cb33-140"><a href="#cb33-140" aria-hidden="true"></a>              name<span class="op">:</span> <span class="st">&#39;ConditionError&#39;</span><span class="op">,</span></span>
+<span id="cb33-141"><a href="#cb33-141" aria-hidden="true"></a>              message<span class="op">:</span> <span class="st">&#39;Aborted due to condition callback returning false.&#39;</span><span class="op">,</span></span>
+<span id="cb33-142"><a href="#cb33-142" aria-hidden="true"></a>            }</span>
+<span id="cb33-143"><a href="#cb33-143" aria-hidden="true"></a>          }</span>
+<span id="cb33-144"><a href="#cb33-144" aria-hidden="true"></a>          started <span class="op">=</span> true</span>
+<span id="cb33-145"><a href="#cb33-145" aria-hidden="true"></a>          <span class="fu">dispatch</span>(</span>
+<span id="cb33-146"><a href="#cb33-146" aria-hidden="true"></a>            <span class="fu">pending</span>(</span>
+<span id="cb33-147"><a href="#cb33-147" aria-hidden="true"></a>              requestId<span class="op">,</span></span>
+<span id="cb33-148"><a href="#cb33-148" aria-hidden="true"></a>              arg<span class="op">,</span></span>
+<span id="cb33-149"><a href="#cb33-149" aria-hidden="true"></a>              options<span class="op">?.</span><span class="at">getPendingMeta</span><span class="op">?.</span>({ requestId<span class="op">,</span> arg }<span class="op">,</span> { getState<span class="op">,</span> extra })</span>
+<span id="cb33-150"><a href="#cb33-150" aria-hidden="true"></a>            )</span>
+<span id="cb33-151"><a href="#cb33-151" aria-hidden="true"></a>          )</span>
+<span id="cb33-152"><a href="#cb33-152" aria-hidden="true"></a>          finalAction <span class="op">=</span> await <span class="bu">Promise</span><span class="op">.</span><span class="fu">race</span>([</span>
+<span id="cb33-153"><a href="#cb33-153" aria-hidden="true"></a>            abortedPromise<span class="op">,</span></span>
+<span id="cb33-154"><a href="#cb33-154" aria-hidden="true"></a>            <span class="bu">Promise</span><span class="op">.</span><span class="fu">resolve</span>(</span>
+<span id="cb33-155"><a href="#cb33-155" aria-hidden="true"></a>              <span class="fu">payloadCreator</span>(arg<span class="op">,</span> {</span>
+<span id="cb33-156"><a href="#cb33-156" aria-hidden="true"></a>                dispatch<span class="op">,</span></span>
+<span id="cb33-157"><a href="#cb33-157" aria-hidden="true"></a>                getState<span class="op">,</span></span>
+<span id="cb33-158"><a href="#cb33-158" aria-hidden="true"></a>                extra<span class="op">,</span></span>
+<span id="cb33-159"><a href="#cb33-159" aria-hidden="true"></a>                requestId<span class="op">,</span></span>
+<span id="cb33-160"><a href="#cb33-160" aria-hidden="true"></a>                signal<span class="op">:</span> abortController<span class="op">.</span><span class="at">signal</span><span class="op">,</span></span>
+<span id="cb33-161"><a href="#cb33-161" aria-hidden="true"></a>                rejectWithValue<span class="op">:</span> ((</span>
+<span id="cb33-162"><a href="#cb33-162" aria-hidden="true"></a>                  value<span class="op">:</span> RejectedValue<span class="op">,</span></span>
+<span id="cb33-163"><a href="#cb33-163" aria-hidden="true"></a>                  meta<span class="op">?:</span> RejectedMeta</span>
+<span id="cb33-164"><a href="#cb33-164" aria-hidden="true"></a>                ) <span class="kw">=&gt;</span> {</span>
+<span id="cb33-165"><a href="#cb33-165" aria-hidden="true"></a>                  return <span class="kw">new</span> <span class="fu">RejectWithValue</span>(value<span class="op">,</span> meta)</span>
+<span id="cb33-166"><a href="#cb33-166" aria-hidden="true"></a>                }) <span class="im">as</span> <span class="dt">any</span><span class="op">,</span></span>
+<span id="cb33-167"><a href="#cb33-167" aria-hidden="true"></a>                fulfillWithValue<span class="op">:</span> ((value<span class="op">:</span> <span class="dt">unknown</span><span class="op">,</span> meta<span class="op">?:</span> FulfilledMeta) <span class="kw">=&gt;</span> {</span>
+<span id="cb33-168"><a href="#cb33-168" aria-hidden="true"></a>                  return <span class="kw">new</span> <span class="fu">FulfillWithMeta</span>(value<span class="op">,</span> meta)</span>
+<span id="cb33-169"><a href="#cb33-169" aria-hidden="true"></a>                }) <span class="im">as</span> <span class="dt">any</span><span class="op">,</span></span>
+<span id="cb33-170"><a href="#cb33-170" aria-hidden="true"></a>              })</span>
+<span id="cb33-171"><a href="#cb33-171" aria-hidden="true"></a>            )<span class="op">.</span><span class="fu">then</span>((result) <span class="kw">=&gt;</span> {</span>
+<span id="cb33-172"><a href="#cb33-172" aria-hidden="true"></a>              <span class="fu">if</span> (result instanceof RejectWithValue) {</span>
+<span id="cb33-173"><a href="#cb33-173" aria-hidden="true"></a>                throw result</span>
+<span id="cb33-174"><a href="#cb33-174" aria-hidden="true"></a>              }</span>
+<span id="cb33-175"><a href="#cb33-175" aria-hidden="true"></a>              <span class="fu">if</span> (result instanceof FulfillWithMeta) {</span>
+<span id="cb33-176"><a href="#cb33-176" aria-hidden="true"></a>                return <span class="fu">fulfilled</span>(result<span class="op">.</span><span class="at">payload</span><span class="op">,</span> requestId<span class="op">,</span> arg<span class="op">,</span> result<span class="op">.</span><span class="at">meta</span>)</span>
+<span id="cb33-177"><a href="#cb33-177" aria-hidden="true"></a>              }</span>
+<span id="cb33-178"><a href="#cb33-178" aria-hidden="true"></a>              return <span class="fu">fulfilled</span>(result <span class="im">as</span> <span class="dt">any</span><span class="op">,</span> requestId<span class="op">,</span> arg)</span>
+<span id="cb33-179"><a href="#cb33-179" aria-hidden="true"></a>            })<span class="op">,</span></span>
+<span id="cb33-180"><a href="#cb33-180" aria-hidden="true"></a>          ])</span>
+<span id="cb33-181"><a href="#cb33-181" aria-hidden="true"></a>        } <span class="fu">catch</span> (err) {</span>
+<span id="cb33-182"><a href="#cb33-182" aria-hidden="true"></a>          finalAction <span class="op">=</span></span>
+<span id="cb33-183"><a href="#cb33-183" aria-hidden="true"></a>            err instanceof RejectWithValue</span>
+<span id="cb33-184"><a href="#cb33-184" aria-hidden="true"></a>              <span class="op">?</span> <span class="fu">rejected</span>(null<span class="op">,</span> requestId<span class="op">,</span> arg<span class="op">,</span> err<span class="op">.</span><span class="at">payload</span><span class="op">,</span> err<span class="op">.</span><span class="at">meta</span>)</span>
+<span id="cb33-185"><a href="#cb33-185" aria-hidden="true"></a>              <span class="op">:</span> <span class="fu">rejected</span>(err <span class="im">as</span> <span class="dt">any</span><span class="op">,</span> requestId<span class="op">,</span> arg)</span>
+<span id="cb33-186"><a href="#cb33-186" aria-hidden="true"></a>        }</span>
+<span id="cb33-187"><a href="#cb33-187" aria-hidden="true"></a>        <span class="co">// We dispatch the result action _after_ the catch, to avoid having any errors</span></span>
+<span id="cb33-188"><a href="#cb33-188" aria-hidden="true"></a>        <span class="co">// here get swallowed by the try/catch block,</span></span>
+<span id="cb33-189"><a href="#cb33-189" aria-hidden="true"></a>        <span class="co">// per https://twitter.com/dan_abramov/status/770914221638942720</span></span>
+<span id="cb33-190"><a href="#cb33-190" aria-hidden="true"></a>        <span class="co">// and https://github.com/reduxjs/redux-toolkit/blob/e85eb17b39a2118d859f7b7746e0f3fee523e089/docs/tutorials/advanced-tutorial.md#async-error-handling-logic-in-thunks</span></span>
+<span id="cb33-191"><a href="#cb33-191" aria-hidden="true"></a></span>
+<span id="cb33-192"><a href="#cb33-192" aria-hidden="true"></a>        const skipDispatch <span class="op">=</span></span>
+<span id="cb33-193"><a href="#cb33-193" aria-hidden="true"></a>          options <span class="op">&amp;&amp;</span></span>
+<span id="cb33-194"><a href="#cb33-194" aria-hidden="true"></a>          <span class="op">!</span>options<span class="op">.</span><span class="at">dispatchConditionRejection</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb33-195"><a href="#cb33-195" aria-hidden="true"></a>          rejected<span class="op">.</span><span class="fu">match</span>(finalAction) <span class="op">&amp;&amp;</span></span>
+<span id="cb33-196"><a href="#cb33-196" aria-hidden="true"></a>          (finalAction <span class="im">as</span> <span class="dt">any</span>)<span class="op">.</span><span class="at">meta</span><span class="op">.</span><span class="at">condition</span></span>
+<span id="cb33-197"><a href="#cb33-197" aria-hidden="true"></a></span>
+<span id="cb33-198"><a href="#cb33-198" aria-hidden="true"></a>        <span class="fu">if</span> (<span class="op">!</span>skipDispatch) {</span>
+<span id="cb33-199"><a href="#cb33-199" aria-hidden="true"></a>          <span class="fu">dispatch</span>(finalAction)</span>
+<span id="cb33-200"><a href="#cb33-200" aria-hidden="true"></a>        }</span>
+<span id="cb33-201"><a href="#cb33-201" aria-hidden="true"></a>        return finalAction</span>
+<span id="cb33-202"><a href="#cb33-202" aria-hidden="true"></a>      })()</span>
+<span id="cb33-203"><a href="#cb33-203" aria-hidden="true"></a>      return Object<span class="op">.</span><span class="fu">assign</span>(promise <span class="im">as</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">any</span><span class="op">&gt;,</span> {</span>
+<span id="cb33-204"><a href="#cb33-204" aria-hidden="true"></a>        abort<span class="op">,</span></span>
+<span id="cb33-205"><a href="#cb33-205" aria-hidden="true"></a>        requestId<span class="op">,</span></span>
+<span id="cb33-206"><a href="#cb33-206" aria-hidden="true"></a>        arg<span class="op">,</span></span>
+<span id="cb33-207"><a href="#cb33-207" aria-hidden="true"></a>        <span class="fu">unwrap</span>() {</span>
+<span id="cb33-208"><a href="#cb33-208" aria-hidden="true"></a>          return promise<span class="op">.</span><span class="fu">then</span><span class="op">&lt;</span><span class="dt">any</span><span class="op">&gt;</span>(unwrapResult)</span>
+<span id="cb33-209"><a href="#cb33-209" aria-hidden="true"></a>        }<span class="op">,</span></span>
+<span id="cb33-210"><a href="#cb33-210" aria-hidden="true"></a>      })</span>
+<span id="cb33-211"><a href="#cb33-211" aria-hidden="true"></a>    }</span>
+<span id="cb33-212"><a href="#cb33-212" aria-hidden="true"></a>  }</span>
+<span id="cb33-213"><a href="#cb33-213" aria-hidden="true"></a></span>
+<span id="cb33-214"><a href="#cb33-214" aria-hidden="true"></a>  return Object<span class="op">.</span><span class="fu">assign</span>(</span>
+<span id="cb33-215"><a href="#cb33-215" aria-hidden="true"></a>    actionCreator <span class="im">as</span> AsyncThunkActionCreator<span class="op">&lt;</span></span>
+<span id="cb33-216"><a href="#cb33-216" aria-hidden="true"></a>      Returned<span class="op">,</span></span>
+<span id="cb33-217"><a href="#cb33-217" aria-hidden="true"></a>      ThunkArg<span class="op">,</span></span>
+<span id="cb33-218"><a href="#cb33-218" aria-hidden="true"></a>      ThunkApiConfig</span>
+<span id="cb33-219"><a href="#cb33-219" aria-hidden="true"></a>    <span class="op">&gt;,</span></span>
+<span id="cb33-220"><a href="#cb33-220" aria-hidden="true"></a>    {</span>
+<span id="cb33-221"><a href="#cb33-221" aria-hidden="true"></a>      pending<span class="op">,</span></span>
+<span id="cb33-222"><a href="#cb33-222" aria-hidden="true"></a>      rejected<span class="op">,</span></span>
+<span id="cb33-223"><a href="#cb33-223" aria-hidden="true"></a>      fulfilled<span class="op">,</span></span>
+<span id="cb33-224"><a href="#cb33-224" aria-hidden="true"></a>      typePrefix<span class="op">,</span></span>
+<span id="cb33-225"><a href="#cb33-225" aria-hidden="true"></a>    }</span>
+<span id="cb33-226"><a href="#cb33-226" aria-hidden="true"></a>  )</span>
+<span id="cb33-227"><a href="#cb33-227" aria-hidden="true"></a>}</span></code></pre></div>
+<p>When I print the value via <code>console.info(incrementAsync);</code> we get:</p>
+<figure>
+<img src="21.what-is-incrementAsync.png" alt="" /><figcaption>21.what-is-incrementAsync</figcaption>
+</figure>
+<p>The return values do match.</p>
+<p>Executing the object “incrementAsync” obtained from calling <code>createAsyncThunk</code>.</p>
+<figure>
+<img src="22.executing-incrementAsync.png" alt="" /><figcaption>22.executing-incrementAsync</figcaption>
+</figure>
+<p>If you notice, temp0 is store, and temp1 is incrementAsync.</p>
+<p>As per code, we can call what is returned by <code>createAsyncThunk</code> and pass it to <code>dispatch</code>.</p>
+<h4 id="type-asyncthunk"><code>type AsyncThunk</code></h4>
+<div class="sourceCode" id="cb34"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true"></a><span class="co"> * A type describing the return value of `createAsyncThunk`.</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true"></a><span class="co"> * Might be useful for wrapping `createAsyncThunk` in custom abstractions.</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true"></a><span class="co"> * </span><span class="an">@public</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true"></a><span class="im">export type</span> AsyncThunk<span class="op">&lt;</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true"></a>  Returned<span class="op">,</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true"></a>  ThunkArg<span class="op">,</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true"></a>  ThunkApiConfig extends AsyncThunkConfig</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true"></a><span class="op">&gt;</span> <span class="op">=</span> AsyncThunkActionCreator<span class="op">&lt;</span>Returned<span class="op">,</span> ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span> <span class="op">&amp;</span> {</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true"></a>  pending<span class="op">:</span> AsyncThunkPendingActionCreator<span class="op">&lt;</span>ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true"></a>  rejected<span class="op">:</span> AsyncThunkRejectedActionCreator<span class="op">&lt;</span>ThunkArg<span class="op">,</span> ThunkApiConfig<span class="op">&gt;</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true"></a>  fulfilled<span class="op">:</span> AsyncThunkFulfilledActionCreator<span class="op">&lt;</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true"></a>    Returned<span class="op">,</span></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true"></a>    ThunkArg<span class="op">,</span></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true"></a>    ThunkApiConfig</span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true"></a>  <span class="op">&gt;</span></span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true"></a>  typePrefix<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true"></a>}</span></code></pre></div>
+<figure>
+<img src="23.type-AsyncThunk.png" alt="" /><figcaption>23.type-AsyncThunk</figcaption>
+</figure>
+<h4 id="counter-2srcfeaturescountercounterslice.ts-incrementasync">counter-2/src/features/counter/counterSlice.ts incrementAsync</h4>
+<div class="sourceCode" id="cb35"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a><span class="co">// The function below is called a thunk and allows us to perform async logic. It</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true"></a><span class="co">// can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true"></a><span class="co">// will call the thunk with the `dispatch` function as the first argument. Async</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true"></a><span class="co">// code can then be executed and other actions can be dispatched. Thunks are</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true"></a><span class="co">// typically used to make async requests.</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true"></a>export const incrementAsync <span class="op">=</span> <span class="fu">createAsyncThunk</span>(</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true"></a>    <span class="st">&#39;counter/fetchCount&#39;</span><span class="op">,</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true"></a>    <span class="fu">async</span> (amount<span class="op">:</span> <span class="dt">number</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true"></a>        const response <span class="op">=</span> await <span class="fu">fetchCount</span>(amount)<span class="op">;</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true"></a>        <span class="co">// The value we return becomes the `fulfilled` action payload</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true"></a>        return response<span class="op">.</span><span class="at">data</span><span class="op">;</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true"></a>    }</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true"></a>)<span class="op">;</span></span></code></pre></div>
+<figure>
+<img src="24.incrementAsync.png" alt="" /><figcaption>24.incrementAsync</figcaption>
+</figure>
+<h3 id="running-app">running app</h3>
+<figure>
+<img src="20.running-app.png" alt="" /><figcaption>20.running-app</figcaption>
+</figure>
+<p>Though it has added features, unfortunately it also is designed for single instance. Singletons be damned.</p>
+<p>I should realise that redux is for maintaining a global store. A global store, by design, is singleton.</p>
 <h2 id="references">References</h2>
 <ul>
 <li><a href="https://egghead.io/lessons/react-create-a-reducer-with-redux-toolkit-and-dispatch-its-action-with-the-useappdispatch-hook">https://egghead.io/lessons/react-create-a-reducer-with-redux-toolkit-and-dispatch-its-action-with-the-useappdispatch-hook</a></li>
