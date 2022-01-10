@@ -752,7 +752,7 @@ export default function Counter({klass}: CounterProps = {klass: "light"}) {
 
 ```
 
-## 2022.01.09 counter-2
+## counter-2
 
 Interestingly a better implementation is found in template project that you can get from `yarn create react-app counter-2 --template redux-typescript `
 
@@ -1403,7 +1403,227 @@ And when I change the input type to string, `ThunkArg` changes to `string`.
 
 ![28.ThunkArg-changed-to-string](28.ThunkArg-changed-to-string.png)
 
- to be continued...
+### `PayloadAction`
+
+```typescript
+/**
+ * An action with a string type and an associated payload. This is the
+ * type of action returned by `createAction()` action creators.
+ *
+ * @template P The type of the action's payload.
+ * @template T the type used for the action type.
+ * @template M The type of the action's meta (optional)
+ * @template E The type of the action's error (optional)
+ *
+ * @public
+ */
+export type PayloadAction<
+  P = void,
+  T extends string = string,
+  M = never,
+  E = never
+> = {
+  payload: P
+  type: T
+} & ([M] extends [never]
+  ? {}
+  : {
+      meta: M
+    }) &
+  ([E] extends [never]
+    ? {}
+    : {
+        error: E
+      })
+```
+
+This is used in `counterSlice`'s reducer `incrementByAmount`, which basically allows for passing payload to reducer.
+
+`action.payload` is the number value here; it represents the value by which we want to increment counter (state) value.
+
+![29.payload-passing-in-reducer](29.payload-passing-in-reducer.png)
+
+`incrementByAmount` is fired via following code in `Counter.tsx`
+
+```typescript
+// Sets up initial value of incrementAmount
+const [incrementAmount, setIncrementAmount] = useState('2');
+// Sets up incrementValue to either incrementAmount number or zero
+const incrementValue = Number(incrementAmount) || 0;
+
+// somewhere down the component
+// clicking this button will fire incrementByAmount reducer
+<button
+    className={styles.button}
+    onClick={() => dispatch(incrementByAmount(incrementValue))}
+    >
+```
+
+![30.contrast-increment-with-incrementByAmount](30.contrast-increment-with-incrementByAmount.png)
+
+![31.contrast-counterSlice-reducers-too](31.contrast-counterSlice-reducers-too.png)
+
+`state` is passed to reducers no matter what. And we can call reducers without state and rest of the params.
+
+In case of increment/decrement reducers, there is no other param, but in case of `incrementByAmount` there is the action param.
+
+`action` param contains payload which is a number in this case.
+
+I am not able to figure out how a value is converted to `action.payload`.
+
+## How a slice turns functions to reducers.
+
+- createSlice gets reducers passed to it via options: createSlice(options:{reducers :{ functions here }})
+- createSlice calls buildReducer
+- buildReducer calls createReducer
+- createSlice calls createAction
+
+### `createAction`
+
+It takes a string and an optional function and retuns a function that can be used by reducer.
+
+The returned `actionCreator` function with patched functionality on it. The returned function has redefined `toString` which just returns `type`.
+
+It also has `type` and `match` properties.
+
+```typescript
+/**
+ * A utility function to create an action creator for the given action type
+ * string. The action creator accepts a single argument, which will be included
+ * in the action object as a field called payload. The action creator function
+ * will also have its toString() overriden so that it returns the action type,
+ * allowing it to be used in reducer logic that is looking for that action type.
+ *
+ * @param type The action type to use for created actions.
+ * @param prepare (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.
+ *                If this is given, the resulting action creator will pass its arguments to this method to calculate payload & meta.
+ *
+ * @public
+ */
+export function createAction<P = void, T extends string = string>(
+  type: T
+): PayloadActionCreator<P, T>
+
+/**
+ * A utility function to create an action creator for the given action type
+ * string. The action creator accepts a single argument, which will be included
+ * in the action object as a field called payload. The action creator function
+ * will also have its toString() overriden so that it returns the action type,
+ * allowing it to be used in reducer logic that is looking for that action type.
+ *
+ * @param type The action type to use for created actions.
+ * @param prepare (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.
+ *                If this is given, the resulting action creator will pass its arguments to this method to calculate payload & meta.
+ *
+ * @public
+ */
+export function createAction<
+  PA extends PrepareAction<any>,
+  T extends string = string
+>(
+  type: T,
+  prepareAction: PA
+): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>
+
+export function createAction(type: string, prepareAction?: Function): any {
+  function actionCreator(...args: any[]) {
+    if (prepareAction) {
+      let prepared = prepareAction(...args)
+      if (!prepared) {
+        throw new Error('prepareAction did not return an object')
+      }
+
+      return {
+        type,
+        payload: prepared.payload,
+        ...('meta' in prepared && { meta: prepared.meta }),
+        ...('error' in prepared && { error: prepared.error }),
+      }
+    }
+    return { type, payload: args[0] }
+  }
+
+  actionCreator.toString = () => `${type}`
+
+  actionCreator.type = type
+
+  actionCreator.match = (action: Action<unknown>): action is PayloadAction =>
+    action.type === type
+
+  return actionCreator
+}
+```
+
+If `prepareAction` is missing, then `actionCreator` just returns `{type, payload: args[0]}`. This is basically a `{string, any}` type.
+
+One example could be:
+
+```
+// createSlice
+options: { ... reducers: { increment: state => state + 1 }, name: 'increment' }
+
+// => createAction('increment', undefined) => actionCreator(value) => { type: 'increment', payload: value }
+```
+
+#### `createAction` in action
+
+```typescript
+// add this to counterSlice.ts
+export const doubeIt = createAction("counter/doubleIt", (value: number) => ({payload: value * 2}));
+
+// add this to extrareducers: (builder) => { ...here... }
+.addCase(doubeIt, (state, action) => {
+    state.value = action.payload;
+});
+
+// add this to Counter.tsx
+<button className={styles.button} onClick={() => dispatch(doubeIt(count))}>double {count}</button>
+```
+
+![32.working-createAction-example](32.working-createAction-example.png)
+
+![33.doubleIt-documentation](33.doubleIt-documentation.png)
+
+```
+doubeIt(value: number): {payload: number, type: "counter/doubleIt"}
+Calling this redux#ActionCreator with Args will return an Action with a payload of type P and (depending on the PrepareAction method used) a meta- and error property of types M and E respectively.
+```
+
+`doubIt` gets defined as `export const doubeIt: ActionCreatorWithPreparedPayload<[value: number], number, "counter/doubleIt", never, never>`
+
+### `ActionCreatorWithPreparedPayload` interface
+
+```typescript
+/**
+ * An action creator that takes multiple arguments that are passed
+ * to a `PrepareAction` method to create the final Action.
+ * @typeParam Args arguments for the action creator function
+ * @typeParam P `payload` type
+ * @typeParam T `type` name
+ * @typeParam E optional `error` type
+ * @typeParam M optional `meta` type
+ *
+ * @inheritdoc {redux#ActionCreator}
+ *
+ * @public
+ */
+export interface ActionCreatorWithPreparedPayload<
+  Args extends unknown[],
+  P,
+  T extends string = string,
+  E = never,
+  M = never
+> extends BaseActionCreator<P, T, M, E> {
+  /**
+   * Calling this {@link redux#ActionCreator} with `Args` will return
+   * an Action with a payload of type `P` and (depending on the `PrepareAction`
+   * method used) a `meta`- and `error` property of types `M` and `E` respectively.
+   */
+  (...args: Args): PayloadAction<P, T, M, E>
+}
+```
+
+to be continued...
 
 ## References
 

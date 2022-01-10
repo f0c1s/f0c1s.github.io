@@ -612,7 +612,7 @@ yarn add -D @types/redux @types/react-redux</code></pre>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a>    <span class="kw">display</span>: <span class="dv">inline-block</span><span class="op">;</span></span>
 <span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a>    <span class="kw">border-bottom</span>: <span class="dv">thin</span> <span class="dv">solid</span> <span class="cn">silver</span><span class="op">;</span></span>
 <span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a>}</span></code></pre></div>
-<h2 id="counter-2">2022.01.09 counter-2</h2>
+<h2 id="counter-2">counter-2</h2>
 <p>Interestingly a better implementation is found in template project that you can get from <code>yarn create react-app counter-2 --template redux-typescript</code></p>
 <figure>
 <img src="19.counter-2.png" alt="" /><figcaption>19.counter-2</figcaption>
@@ -1214,6 +1214,193 @@ yarn add -D @types/redux @types/react-redux</code></pre>
 <figure>
 <img src="28.ThunkArg-changed-to-string.png" alt="" /><figcaption>28.ThunkArg-changed-to-string</figcaption>
 </figure>
+<h3 id="payloadaction"><code>PayloadAction</code></h3>
+<div class="sourceCode" id="cb36"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true"></a><span class="co"> * An action with a string type and an associated payload. This is the</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true"></a><span class="co"> * type of action returned by `createAction()` action creators.</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true"></a><span class="co"> * </span><span class="an">@template</span><span class="co"> P The type of the action&#39;s payload.</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true"></a><span class="co"> * </span><span class="an">@template</span><span class="co"> T the type used for the action type.</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true"></a><span class="co"> * </span><span class="an">@template</span><span class="co"> M The type of the action&#39;s meta (optional)</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true"></a><span class="co"> * </span><span class="an">@template</span><span class="co"> E The type of the action&#39;s error (optional)</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true"></a><span class="co"> * </span><span class="an">@public</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true"></a><span class="im">export type</span> PayloadAction<span class="op">&lt;</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true"></a>  P <span class="op">=</span> void<span class="op">,</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true"></a>  T extends string <span class="op">=</span> string<span class="op">,</span></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true"></a>  M <span class="op">=</span> never<span class="op">,</span></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true"></a>  E <span class="op">=</span> never</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true"></a><span class="op">&gt;</span> <span class="op">=</span> {</span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true"></a>  payload<span class="op">:</span> P</span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true"></a>  type<span class="op">:</span> T</span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true"></a>} <span class="op">&amp;</span> ([M] extends [never]</span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true"></a>  <span class="op">?</span> {}</span>
+<span id="cb36-22"><a href="#cb36-22" aria-hidden="true"></a>  <span class="op">:</span> {</span>
+<span id="cb36-23"><a href="#cb36-23" aria-hidden="true"></a>      meta<span class="op">:</span> M</span>
+<span id="cb36-24"><a href="#cb36-24" aria-hidden="true"></a>    }) <span class="op">&amp;</span></span>
+<span id="cb36-25"><a href="#cb36-25" aria-hidden="true"></a>  ([E] extends [never]</span>
+<span id="cb36-26"><a href="#cb36-26" aria-hidden="true"></a>    <span class="op">?</span> {}</span>
+<span id="cb36-27"><a href="#cb36-27" aria-hidden="true"></a>    <span class="op">:</span> {</span>
+<span id="cb36-28"><a href="#cb36-28" aria-hidden="true"></a>        error<span class="op">:</span> E</span>
+<span id="cb36-29"><a href="#cb36-29" aria-hidden="true"></a>      })</span></code></pre></div>
+<p>This is used in <code>counterSlice</code>’s reducer <code>incrementByAmount</code>, which basically allows for passing payload to reducer.</p>
+<p><code>action.payload</code> is the number value here; it represents the value by which we want to increment counter (state) value.</p>
+<figure>
+<img src="29.payload-passing-in-reducer.png" alt="" /><figcaption>29.payload-passing-in-reducer</figcaption>
+</figure>
+<p><code>incrementByAmount</code> is fired via following code in <code>Counter.tsx</code></p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="co">// Sets up initial value of incrementAmount</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a>const [incrementAmount<span class="op">,</span> setIncrementAmount] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;2&#39;</span>)<span class="op">;</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a><span class="co">// Sets up incrementValue to either incrementAmount number or zero</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a>const incrementValue <span class="op">=</span> <span class="bu">Number</span>(incrementAmount) <span class="op">||</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true"></a><span class="co">// somewhere down the component</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true"></a><span class="co">// clicking this button will fire incrementByAmount reducer</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true"></a><span class="op">&lt;</span>button</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true"></a>    className<span class="op">=</span>{styles<span class="op">.</span><span class="at">button</span>}</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true"></a>    onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">dispatch</span>(<span class="fu">incrementByAmount</span>(incrementValue))}</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true"></a>    <span class="op">&gt;</span></span></code></pre></div>
+<figure>
+<img src="30.contrast-increment-with-incrementByAmount.png" alt="" /><figcaption>30.contrast-increment-with-incrementByAmount</figcaption>
+</figure>
+<figure>
+<img src="31.contrast-counterSlice-reducers-too.png" alt="" /><figcaption>31.contrast-counterSlice-reducers-too</figcaption>
+</figure>
+<p><code>state</code> is passed to reducers no matter what. And we can call reducers without state and rest of the params.</p>
+<p>In case of increment/decrement reducers, there is no other param, but in case of <code>incrementByAmount</code> there is the action param.</p>
+<p><code>action</code> param contains payload which is a number in this case.</p>
+<p>I am not able to figure out how a value is converted to <code>action.payload</code>.</p>
+<h2 id="how-a-slice-turns-functions-to-reducers.">How a slice turns functions to reducers.</h2>
+<ul>
+<li>createSlice gets reducers passed to it via options: createSlice(options:{reducers :{ functions here }})</li>
+<li>createSlice calls buildReducer</li>
+<li>buildReducer calls createReducer</li>
+<li>createSlice calls createAction</li>
+</ul>
+<h3 id="createaction"><code>createAction</code></h3>
+<p>It takes a string and an optional function and retuns a function that can be used by reducer.</p>
+<p>The returned <code>actionCreator</code> function with patched functionality on it. The returned function has redefined <code>toString</code> which just returns <code>type</code>.</p>
+<p>It also has <code>type</code> and <code>match</code> properties.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true"></a><span class="co"> * A utility function to create an action creator for the given action type</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true"></a><span class="co"> * string. The action creator accepts a single argument, which will be included</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true"></a><span class="co"> * in the action object as a field called payload. The action creator function</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true"></a><span class="co"> * will also have its toString() overriden so that it returns the action type,</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true"></a><span class="co"> * allowing it to be used in reducer logic that is looking for that action type.</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">type</span><span class="co"> The action type to use for created actions.</span></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">prepare</span><span class="co"> (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.</span></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true"></a><span class="co"> *                If this is given, the resulting action creator will pass its arguments to this method to calculate payload &amp; meta.</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true"></a><span class="co"> * </span><span class="an">@public</span></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true"></a>export <span class="kw">function</span> <span class="fu">createAction</span><span class="op">&lt;</span>P <span class="op">=</span> <span class="dt">void</span><span class="op">,</span> T extends <span class="dt">string</span> <span class="op">=</span> <span class="dt">string</span><span class="op">&gt;</span>(</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true"></a>  type<span class="op">:</span> T</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true"></a>)<span class="op">:</span> PayloadActionCreator<span class="op">&lt;</span>P<span class="op">,</span> T<span class="op">&gt;</span></span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true"></a></span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true"></a><span class="co"> * A utility function to create an action creator for the given action type</span></span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true"></a><span class="co"> * string. The action creator accepts a single argument, which will be included</span></span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true"></a><span class="co"> * in the action object as a field called payload. The action creator function</span></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true"></a><span class="co"> * will also have its toString() overriden so that it returns the action type,</span></span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true"></a><span class="co"> * allowing it to be used in reducer logic that is looking for that action type.</span></span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">type</span><span class="co"> The action type to use for created actions.</span></span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">prepare</span><span class="co"> (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.</span></span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true"></a><span class="co"> *                If this is given, the resulting action creator will pass its arguments to this method to calculate payload &amp; meta.</span></span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true"></a><span class="co"> * </span><span class="an">@public</span></span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true"></a>export <span class="kw">function</span> createAction<span class="op">&lt;</span></span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true"></a>  PA extends PrepareAction<span class="op">&lt;</span><span class="dt">any</span><span class="op">&gt;,</span></span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true"></a>  T extends string <span class="op">=</span> string</span>
+<span id="cb38-34"><a href="#cb38-34" aria-hidden="true"></a><span class="op">&gt;</span>(</span>
+<span id="cb38-35"><a href="#cb38-35" aria-hidden="true"></a>  type<span class="op">:</span> T<span class="op">,</span></span>
+<span id="cb38-36"><a href="#cb38-36" aria-hidden="true"></a>  prepareAction<span class="op">:</span> PA</span>
+<span id="cb38-37"><a href="#cb38-37" aria-hidden="true"></a>)<span class="op">:</span> PayloadActionCreator<span class="op">&lt;</span><span class="bu">ReturnType</span><span class="op">&lt;</span>PA<span class="op">&gt;</span>[<span class="st">&#39;payload&#39;</span>]<span class="op">,</span> T<span class="op">,</span> PA<span class="op">&gt;</span></span>
+<span id="cb38-38"><a href="#cb38-38" aria-hidden="true"></a></span>
+<span id="cb38-39"><a href="#cb38-39" aria-hidden="true"></a>export <span class="kw">function</span> <span class="fu">createAction</span>(type<span class="op">:</span> <span class="dt">string</span><span class="op">,</span> prepareAction<span class="op">?:</span> Function)<span class="op">:</span> <span class="dt">any</span> {</span>
+<span id="cb38-40"><a href="#cb38-40" aria-hidden="true"></a>  <span class="kw">function</span> <span class="fu">actionCreator</span>(<span class="op">...</span>args<span class="op">:</span> <span class="dt">any</span>[]) {</span>
+<span id="cb38-41"><a href="#cb38-41" aria-hidden="true"></a>    <span class="fu">if</span> (prepareAction) {</span>
+<span id="cb38-42"><a href="#cb38-42" aria-hidden="true"></a>      let prepared <span class="op">=</span> <span class="fu">prepareAction</span>(<span class="op">...</span>args)</span>
+<span id="cb38-43"><a href="#cb38-43" aria-hidden="true"></a>      <span class="fu">if</span> (<span class="op">!</span>prepared) {</span>
+<span id="cb38-44"><a href="#cb38-44" aria-hidden="true"></a>        throw <span class="kw">new</span> <span class="fu">Error</span>(<span class="st">&#39;prepareAction did not return an object&#39;</span>)</span>
+<span id="cb38-45"><a href="#cb38-45" aria-hidden="true"></a>      }</span>
+<span id="cb38-46"><a href="#cb38-46" aria-hidden="true"></a></span>
+<span id="cb38-47"><a href="#cb38-47" aria-hidden="true"></a>      return {</span>
+<span id="cb38-48"><a href="#cb38-48" aria-hidden="true"></a>        <span class="kw">type</span><span class="op">,</span></span>
+<span id="cb38-49"><a href="#cb38-49" aria-hidden="true"></a>        payload<span class="op">:</span> prepared<span class="op">.</span><span class="at">payload</span><span class="op">,</span></span>
+<span id="cb38-50"><a href="#cb38-50" aria-hidden="true"></a>        <span class="op">...</span>(<span class="st">&#39;meta&#39;</span> in prepared <span class="op">&amp;&amp;</span> { meta<span class="op">:</span> prepared<span class="op">.</span><span class="at">meta</span> })<span class="op">,</span></span>
+<span id="cb38-51"><a href="#cb38-51" aria-hidden="true"></a>        <span class="op">...</span>(<span class="st">&#39;error&#39;</span> in prepared <span class="op">&amp;&amp;</span> { error<span class="op">:</span> prepared<span class="op">.</span><span class="at">error</span> })<span class="op">,</span></span>
+<span id="cb38-52"><a href="#cb38-52" aria-hidden="true"></a>      }</span>
+<span id="cb38-53"><a href="#cb38-53" aria-hidden="true"></a>    }</span>
+<span id="cb38-54"><a href="#cb38-54" aria-hidden="true"></a>    return { <span class="kw">type</span><span class="op">,</span> payload<span class="op">:</span> args[<span class="dv">0</span>] }</span>
+<span id="cb38-55"><a href="#cb38-55" aria-hidden="true"></a>  }</span>
+<span id="cb38-56"><a href="#cb38-56" aria-hidden="true"></a></span>
+<span id="cb38-57"><a href="#cb38-57" aria-hidden="true"></a>  actionCreator<span class="op">.</span><span class="at">toString</span> <span class="op">=</span> () <span class="kw">=&gt;</span> <span class="vs">`</span><span class="sc">${</span><span class="kw">type</span><span class="sc">}</span><span class="vs">`</span></span>
+<span id="cb38-58"><a href="#cb38-58" aria-hidden="true"></a></span>
+<span id="cb38-59"><a href="#cb38-59" aria-hidden="true"></a>  actionCreator<span class="op">.</span><span class="at">type</span> <span class="op">=</span> <span class="kw">type</span></span>
+<span id="cb38-60"><a href="#cb38-60" aria-hidden="true"></a></span>
+<span id="cb38-61"><a href="#cb38-61" aria-hidden="true"></a>  actionCreator<span class="op">.</span><span class="at">match</span> <span class="op">=</span> (action<span class="op">:</span> Action<span class="op">&lt;</span><span class="dt">unknown</span><span class="op">&gt;</span>)<span class="op">:</span> action <span class="kw">is</span> PayloadAction <span class="kw">=&gt;</span></span>
+<span id="cb38-62"><a href="#cb38-62" aria-hidden="true"></a>    action<span class="op">.</span><span class="at">type</span> <span class="op">===</span> <span class="kw">type</span></span>
+<span id="cb38-63"><a href="#cb38-63" aria-hidden="true"></a></span>
+<span id="cb38-64"><a href="#cb38-64" aria-hidden="true"></a>  return actionCreator</span>
+<span id="cb38-65"><a href="#cb38-65" aria-hidden="true"></a>}</span></code></pre></div>
+<p>If <code>prepareAction</code> is missing, then <code>actionCreator</code> just returns <code>{type, payload: args[0]}</code>. This is basically a <code>{string, any}</code> type.</p>
+<p>One example could be:</p>
+<pre><code>// createSlice
+options: { ... reducers: { increment: state =&gt; state + 1 }, name: &#39;increment&#39; }
+
+// =&gt; createAction(&#39;increment&#39;, undefined) =&gt; actionCreator(value) =&gt; { type: &#39;increment&#39;, payload: value }</code></pre>
+<h4 id="createaction-in-action"><code>createAction</code> in action</h4>
+<div class="sourceCode" id="cb40"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true"></a><span class="co">// add this to counterSlice.ts</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true"></a>export const doubeIt <span class="op">=</span> <span class="fu">createAction</span>(<span class="st">&quot;counter/doubleIt&quot;</span><span class="op">,</span> (value<span class="op">:</span> <span class="dt">number</span>) <span class="kw">=&gt;</span> ({payload<span class="op">:</span> value <span class="op">*</span> <span class="dv">2</span>}))<span class="op">;</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true"></a></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true"></a><span class="co">// add this to extrareducers: (builder) =&gt; { ...here... }</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true"></a><span class="op">.</span><span class="fu">addCase</span>(doubeIt<span class="op">,</span> (state<span class="op">,</span> action) <span class="kw">=&gt;</span> {</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true"></a>    state<span class="op">.</span><span class="at">value</span> <span class="op">=</span> action<span class="op">.</span><span class="at">payload</span><span class="op">;</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true"></a>})<span class="op">;</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true"></a></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true"></a><span class="co">// add this to Counter.tsx</span></span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true"></a><span class="op">&lt;</span>button className<span class="op">=</span>{styles<span class="op">.</span><span class="at">button</span>} onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">dispatch</span>(<span class="fu">doubeIt</span>(count))}<span class="op">&gt;</span>double {count}<span class="op">&lt;/</span>button<span class="op">&gt;</span></span></code></pre></div>
+<figure>
+<img src="32.working-createAction-example.png" alt="" /><figcaption>32.working-createAction-example</figcaption>
+</figure>
+<figure>
+<img src="33.doubleIt-documentation.png" alt="" /><figcaption>33.doubleIt-documentation</figcaption>
+</figure>
+<pre><code>doubeIt(value: number): {payload: number, type: &quot;counter/doubleIt&quot;}
+Calling this redux#ActionCreator with Args will return an Action with a payload of type P and (depending on the PrepareAction method used) a meta- and error property of types M and E respectively.</code></pre>
+<p><code>doubIt</code> gets defined as <code>export const doubeIt: ActionCreatorWithPreparedPayload&lt;[value: number], number, "counter/doubleIt", never, never&gt;</code></p>
+<h3 id="actioncreatorwithpreparedpayload-interface"><code>ActionCreatorWithPreparedPayload</code> interface</h3>
+<div class="sourceCode" id="cb42"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true"></a><span class="co"> * An action creator that takes multiple arguments that are passed</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true"></a><span class="co"> * to a `PrepareAction` method to create the final Action.</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true"></a><span class="co"> * </span><span class="an">@typeParam</span><span class="co"> Args arguments for the action creator function</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true"></a><span class="co"> * </span><span class="an">@typeParam</span><span class="co"> P `payload` type</span></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true"></a><span class="co"> * </span><span class="an">@typeParam</span><span class="co"> T `type` name</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true"></a><span class="co"> * </span><span class="an">@typeParam</span><span class="co"> E optional `error` type</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true"></a><span class="co"> * </span><span class="an">@typeParam</span><span class="co"> M optional `meta` type</span></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true"></a><span class="co"> * </span><span class="an">@inheritdoc</span><span class="co"> {redux#ActionCreator}</span></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true"></a><span class="co"> * </span><span class="an">@public</span></span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true"></a>export interface ActionCreatorWithPreparedPayload<span class="op">&lt;</span></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true"></a>  Args extends unknown[]<span class="op">,</span></span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true"></a>  P<span class="op">,</span></span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true"></a>  T extends string <span class="op">=</span> string<span class="op">,</span></span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true"></a>  E <span class="op">=</span> never<span class="op">,</span></span>
+<span id="cb42-19"><a href="#cb42-19" aria-hidden="true"></a>  M <span class="op">=</span> never</span>
+<span id="cb42-20"><a href="#cb42-20" aria-hidden="true"></a><span class="op">&gt;</span> extends BaseActionCreator<span class="op">&lt;</span>P<span class="op">,</span> T<span class="op">,</span> M<span class="op">,</span> E<span class="op">&gt;</span> {</span>
+<span id="cb42-21"><a href="#cb42-21" aria-hidden="true"></a>  <span class="co">/**</span></span>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true"></a><span class="co">   * Calling this {</span><span class="an">@link</span><span class="co"> </span><span class="cv">redux#ActionCreator}</span><span class="co"> with `Args` will return</span></span>
+<span id="cb42-23"><a href="#cb42-23" aria-hidden="true"></a><span class="co">   * an Action with a payload of type `P` and (depending on the `PrepareAction`</span></span>
+<span id="cb42-24"><a href="#cb42-24" aria-hidden="true"></a><span class="co">   * method used) a `meta`- and `error` property of types `M` and `E` respectively.</span></span>
+<span id="cb42-25"><a href="#cb42-25" aria-hidden="true"></a><span class="co">   */</span></span>
+<span id="cb42-26"><a href="#cb42-26" aria-hidden="true"></a>  (<span class="op">...</span>args<span class="op">:</span> Args)<span class="op">:</span> PayloadAction<span class="op">&lt;</span>P<span class="op">,</span> T<span class="op">,</span> M<span class="op">,</span> E<span class="op">&gt;</span></span>
+<span id="cb42-27"><a href="#cb42-27" aria-hidden="true"></a>}</span></code></pre></div>
 <p>to be continued…</p>
 <h2 id="references">References</h2>
 <ul>
