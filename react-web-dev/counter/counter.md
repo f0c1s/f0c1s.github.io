@@ -1697,7 +1697,23 @@ If `payload` function extends `PrepareAction` then type `_ActionCreatorWithPrepa
 
 A `PrepareAction` is a method which is passed to `createAction` as second param. It doesn't have `type`, that gets added later.
 
+## `incrementAsync`
+
+We have seen this earlier. Lets quickly go through it. `createAsyncThunk` returns the object that is used as `incrementAsync`.
+
+`incrementAsync` is defined by the type system as `export const incrementAsync: AsyncThunk<number, number, {}>`.
+
+We have seen code for it above, and for the type `AsyncThunk` too. Lets get past that now.
+
+The returned object from `createAsyncThunk` looks like `{pending, rejected, fulfilled, typePrefix}`. We have seen this earlier too.
+
+[See above: https://blog.f0c1s.com/react-web-dev/counter/counter.html#createasyncthunk](https://blog.f0c1s.com/react-web-dev/counter/counter.html#createasyncthunk)
+
+`fulfilled`, `pending` and `rejected` are created by calling `createAction` function. And they add their own suffix to `typePrefix` to create different types. These types are then used in `counterSlice`.
+
 to be continued...
+
+
 
 ## References
 

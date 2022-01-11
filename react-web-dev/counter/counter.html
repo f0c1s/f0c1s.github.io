@@ -1458,6 +1458,13 @@ Calling this redux#ActionCreator with Args will return an Action with a payload 
 <p><code>ActionCreatorWithPreparedPayload</code> extends <code>BaseActionCreator</code> interface, it defines a <code>type</code> and a <code>match</code> member. <code>BasicActionCreator</code> is base for all action creators.</p>
 <p>If <code>payload</code> function extends <code>PrepareAction</code> then type <code>_ActionCreatorWithPreparedPayload</code> resolves to <code>ActionCreatorWithPreparedPayload</code>.</p>
 <p>A <code>PrepareAction</code> is a method which is passed to <code>createAction</code> as second param. It doesn’t have <code>type</code>, that gets added later.</p>
+<h2 id="incrementasync"><code>incrementAsync</code></h2>
+<p>We have seen this earlier. Lets quickly go through it. <code>createAsyncThunk</code> returns the object that is used as <code>incrementAsync</code>.</p>
+<p><code>incrementAsync</code> is defined by the type system as <code>export const incrementAsync: AsyncThunk&lt;number, number, {}&gt;</code>.</p>
+<p>We have seen code for it above, and for the type <code>AsyncThunk</code> too. Lets get past that now.</p>
+<p>The returned object from <code>createAsyncThunk</code> looks like <code>{pending, rejected, fulfilled, typePrefix}</code>. We have seen this earlier too.</p>
+<p><a href="https://blog.f0c1s.com/react-web-dev/counter/counter.html#createasyncthunk">See above: https://blog.f0c1s.com/react-web-dev/counter/counter.html#createasyncthunk</a></p>
+<p><code>fulfilled</code>, <code>pending</code> and <code>rejected</code> are created by calling <code>createAction</code> function. And they add their own suffix to <code>typePrefix</code> to create different types. These types are then used in <code>counterSlice</code>.</p>
 <p>to be continued…</p>
 <h2 id="references">References</h2>
 <ul>
