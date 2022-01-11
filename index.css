@@ -23,7 +23,9 @@ body {
     font-family: monospace;
     font-size: 14px;
     border: thin solid #000;
+    box-shadow: 0 0 4px 2px black;
     word-wrap: break-word;
+    min-height: 1000px;
 }
 
 body.dark {
@@ -81,16 +83,29 @@ body.teal a:active {
 }
 
 figure, img {
-    max-width: inherit;
+    max-width: 100%;
     margin: 2rem auto;
 }
 
 figcaption {
-    width: 50%;
+    width: 40%;
     margin: -4px auto 20px;
-    background-color: teal;
+    background-color: black;
     color: white;
     text-align: center;
+    padding: 4px;
+    text-shadow: 2px 2px 2px black;
+    font-size: 1.2em;
+}
+
+body.pink figcaption {
+    background-color: hotpink;
+    color: white;
+}
+
+body.teal figcaption {
+    background-color: teal;
+    color: white;
 }
 
 img {
@@ -109,15 +124,22 @@ pre code {
     padding: 15px;
 }
 
+p code {
+    font-family: monospace;
+    border-bottom: dotted 1px white;
+    padding: 0 5px;
+}
+
 h1, h2, h3, h4, h5, h6 {
     background-color: var(--fgc);
     color: var(--bgc);
     padding: calc(2 * var(--d)) var(--d);
     margin: 10px calc(-1 * var(--d));
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
     font-weight: bold;
     font-size: 20px;
     text-shadow: 2px 2px 1px black;
+    border-bottom: red solid 2px;
 }
 
 body.dark h1,
@@ -254,35 +276,31 @@ a.in {
 
 @media screen and (min-width: 320px) {
     body {
-        width: 320px;
-        max-width: 320px;
-        padding: var(--d) 0;
-        margin: var(--d) 0;
+        min-width: 320px;
+        padding: var(--d);
+        margin: var(--d) auto;
     }
 }
 
 @media screen and (min-width: 480px) {
     body {
-        width: 480px;
-        max-width: 480px;
-        padding: var(--d) 0;
-        margin: var(--d) 0;
+        min-width: 480px;
+        padding: var(--d);
+        margin: var(--d) auto;
     }
 }
 
 @media screen and (min-width: 760px) {
     body {
-        width: 760px;
-        max-width: 760px;
+        min-width: 760px;
         padding: var(--d);
-        margin: var(--d);
+        margin: var(--d) auto;
     }
 }
 
 @media screen and (min-width: 960px) {
     body {
-        width: 960px;
-        max-width: 960px;
+        min-width: 960px;
         padding: var(--d);
         margin: var(--d) auto;
     }

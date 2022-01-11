@@ -17,15 +17,19 @@ function setup() {
 }
 
 function setFontFamily() {
-    const fontFamily = (localStorage.getItem("text-font-family") || document.querySelector("body").style.fontFamily);
+    const fontFamily = (localStorage.getItem("text-font-family") || document.querySelector("body").style.fontFamily || "monospace");
     localStorage.setItem("text-font-family", fontFamily);
     document.querySelector("body").style.fontFamily = fontFamily;
+
+    Array.from(document.querySelectorAll("code")).forEach(element => element.style.fontFamily = "monospace");
 }
 
 function setFontSize() {
     const fontSize = (localStorage.getItem("text-font-size") || document.querySelector("body").style.fontSize || 13);
     localStorage.setItem("text-font-size", fontSize);
     document.querySelector("body").style.fontSize = fontSize + "px";
+
+    Array.from(document.querySelectorAll("code")).forEach(element => element.style.fontSize = "14px");
 }
 
 function progressBar() {

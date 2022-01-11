@@ -583,7 +583,7 @@ After creating store via `createStore` we are getting this object:
 
 It has the state of our application, and a dispatch function that we can use to update state.
 
-![15.firing-disatch](15.firing-disatch.png)
+![15.firing-dispatch](15.firing-dispatch.png)
 
 Notice how on firing dispatch three times, the value is updated.
 
@@ -1623,7 +1623,52 @@ export interface ActionCreatorWithPreparedPayload<
 }
 ```
 
-to be continued...
+I have no idea why this was called; my guess is that it is due to types and params we end up at this function.
+
+`doubleIt` calls `createAction`, which calls `actionCreator`, which calls `prepareAction`.
+
+`createAction` when invoked with
+
+```typescript
+/**
+ * An action creator that produces actions with a `payload` attribute.
+ *
+ * @typeParam P the `payload` type
+ * @typeParam T the `type` of the resulting action
+ * @typeParam PA if the resulting action is preprocessed by a `prepare` method, the signature of said method.
+ *
+ * @public
+ */
+export type PayloadActionCreator<
+  P = void,
+  T extends string = string,
+  PA extends PrepareAction<P> | void = void
+> = IfPrepareActionMethodProvided<
+  PA,
+  _ActionCreatorWithPreparedPayload<PA, T>,
+  // else
+  IsAny<
+    P,
+    ActionCreatorWithPayload<any, T>,
+    IsUnknownOrNonInferrable<
+      P,
+      ActionCreatorWithNonInferrablePayload<T>,
+      // else
+      IfVoid<
+        P,
+        ActionCreatorWithoutPayload<T>,
+        // else
+        IfMaybeUndefined<
+          P,
+          ActionCreatorWithOptionalPayload<P, T>,
+          // else
+          ActionCreatorWithPayload<P, T>
+        >
+      >
+    >
+  >
+>
+```
 
 ## References
 
