@@ -1623,11 +1623,15 @@ export interface ActionCreatorWithPreparedPayload<
 }
 ```
 
-I have no idea why this was called; my guess is that it is due to types and params we end up at this function.
+I have no idea why this was called; my guess is that it is due to types and params, and we end up at this function.
 
 `doubleIt` calls `createAction`, which calls `actionCreator`, which calls `prepareAction`.
 
-`createAction` when invoked with
+`createAction` when invoked with a `prepareAction` function along with `type` param, results in `ActionCreatorWithPreparedPayload` interface being invoked.
+
+`ActionCreatorWithPreparedPayload` comes from the type `_ActionCreatorWithPreparedPayload`.
+
+### `PayloadActionCreator` type
 
 ```typescript
 /**
@@ -1639,36 +1643,61 @@ I have no idea why this was called; my guess is that it is due to types and para
  *
  * @public
  */
-export type PayloadActionCreator<
-  P = void,
-  T extends string = string,
-  PA extends PrepareAction<P> | void = void
-> = IfPrepareActionMethodProvided<
-  PA,
-  _ActionCreatorWithPreparedPayload<PA, T>,
-  // else
-  IsAny<
-    P,
-    ActionCreatorWithPayload<any, T>,
-    IsUnknownOrNonInferrable<
-      P,
-      ActionCreatorWithNonInferrablePayload<T>,
-      // else
-      IfVoid<
-        P,
-        ActionCreatorWithoutPayload<T>,
-        // else
-        IfMaybeUndefined<
-          P,
-          ActionCreatorWithOptionalPayload<P, T>,
-          // else
-          ActionCreatorWithPayload<P, T>
-        >
-      >
-    >
-  >
->
+export type PayloadActionCreator<P = void,
+    T extends string = string,
+    PA extends PrepareAction<P> | void = void> = IfPrepareActionMethodProvided<PA,
+    _ActionCreatorWithPreparedPayload<PA, T>,
+    // else
+    IsAny<P,
+        ActionCreatorWithPayload<any, T>,
+        IsUnknownOrNonInferrable<P,
+            ActionCreatorWithNonInferrablePayload<T>,
+            // else
+            IfVoid<P,
+                ActionCreatorWithoutPayload<T>,
+                // else
+                IfMaybeUndefined<P,
+                    ActionCreatorWithOptionalPayload<P, T>,
+                    // else
+                    ActionCreatorWithPayload<P, T>>>>>>
 ```
+
+### internal `ActionCreatorWithPreparedPayload` type
+
+```typescript
+/**
+ * Internal version of `ActionCreatorWithPreparedPayload`. Not to be used externally.
+ *
+ * @internal
+ */
+export type _ActionCreatorWithPreparedPayload<PA extends PrepareAction<any> | void,
+    T extends string = string> = PA extends PrepareAction<infer P>
+    ? ActionCreatorWithPreparedPayload<Parameters<PA>,
+        P,
+        T,
+        ReturnType<PA> extends {
+                error: infer E
+            }
+            ? E
+            : never,
+        ReturnType<PA> extends {
+                meta: infer M
+            }
+            ? M
+            : never>
+    : void
+```
+
+Now from the top, `PayloadAction` is a type which will accept an undefined `payload`, but it must exist.
+An object of this interface gets returned from `ActionCreatorWithPreparedPayload`.
+
+`ActionCreatorWithPreparedPayload` extends `BaseActionCreator` interface, it defines a `type` and a `match` member. `BasicActionCreator` is base for all action creators.
+
+If `payload` function extends `PrepareAction` then type `_ActionCreatorWithPreparedPayload` resolves to `ActionCreatorWithPreparedPayload`.
+
+A `PrepareAction` is a method which is passed to `createAction` as second param. It doesn't have `type`, that gets added later.
+
+to be continued...
 
 ## References
 

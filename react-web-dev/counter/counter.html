@@ -483,7 +483,7 @@ yarn add -D @types/redux @types/react-redux</code></pre>
 </figure>
 <p>It has the state of our application, and a dispatch function that we can use to update state.</p>
 <figure>
-<img src="15.firing-disatch.png" alt="" /><figcaption>15.firing-disatch</figcaption>
+<img src="15.firing-dispatch.png" alt="" /><figcaption>15.firing-dispatch</figcaption>
 </figure>
 <p>Notice how on firing dispatch three times, the value is updated.</p>
 <p>This is because the app state is same as the one being manipulated via redux store’s dispatch call.</p>
@@ -1401,6 +1401,63 @@ Calling this redux#ActionCreator with Args will return an Action with a payload 
 <span id="cb42-25"><a href="#cb42-25" aria-hidden="true"></a><span class="co">   */</span></span>
 <span id="cb42-26"><a href="#cb42-26" aria-hidden="true"></a>  (<span class="op">...</span>args<span class="op">:</span> Args)<span class="op">:</span> PayloadAction<span class="op">&lt;</span>P<span class="op">,</span> T<span class="op">,</span> M<span class="op">,</span> E<span class="op">&gt;</span></span>
 <span id="cb42-27"><a href="#cb42-27" aria-hidden="true"></a>}</span></code></pre></div>
+<p>I have no idea why this was called; my guess is that it is due to types and params, and we end up at this function.</p>
+<p><code>doubleIt</code> calls <code>createAction</code>, which calls <code>actionCreator</code>, which calls <code>prepareAction</code>.</p>
+<p><code>createAction</code> when invoked with a <code>prepareAction</code> function along with <code>type</code> param, results in <code>ActionCreatorWithPreparedPayload</code> interface being invoked.</p>
+<p><code>ActionCreatorWithPreparedPayload</code> comes from the type <code>_ActionCreatorWithPreparedPayload</code>.</p>
+<h3 id="payloadactioncreator-type"><code>PayloadActionCreator</code> type</h3>
+<div class="sourceCode" id="cb43"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true"></a><span class="co"> * An action creator that produces actions with a `payload` attribute.</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true"></a><span class="co"> * </span><span class="an">@typeParam</span><span class="co"> P the `payload` type</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true"></a><span class="co"> * </span><span class="an">@typeParam</span><span class="co"> T the `type` of the resulting action</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true"></a><span class="co"> * </span><span class="an">@typeParam</span><span class="co"> PA if the resulting action is preprocessed by a `prepare` method, the signature of said method.</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true"></a><span class="co"> * </span><span class="an">@public</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true"></a><span class="im">export type</span> PayloadActionCreator<span class="op">&lt;</span>P <span class="op">=</span> void<span class="op">,</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true"></a>    T extends string <span class="op">=</span> string<span class="op">,</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true"></a>    PA extends PrepareAction<span class="op">&lt;</span>P<span class="op">&gt;</span> <span class="op">|</span> void <span class="op">=</span> void<span class="op">&gt;</span> <span class="op">=</span> IfPrepareActionMethodProvided<span class="op">&lt;</span>PA<span class="op">,</span></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true"></a>    _ActionCreatorWithPreparedPayload<span class="op">&lt;</span>PA<span class="op">,</span> T<span class="op">&gt;,</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true"></a>    <span class="co">// else</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true"></a>    IsAny<span class="op">&lt;</span>P<span class="op">,</span></span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true"></a>        ActionCreatorWithPayload<span class="op">&lt;</span><span class="dt">any</span><span class="op">,</span> T<span class="op">&gt;,</span></span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true"></a>        IsUnknownOrNonInferrable<span class="op">&lt;</span>P<span class="op">,</span></span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true"></a>            ActionCreatorWithNonInferrablePayload<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true"></a>            <span class="co">// else</span></span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true"></a>            IfVoid<span class="op">&lt;</span>P<span class="op">,</span></span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true"></a>                ActionCreatorWithoutPayload<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true"></a>                <span class="co">// else</span></span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true"></a>                IfMaybeUndefined<span class="op">&lt;</span>P<span class="op">,</span></span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true"></a>                    ActionCreatorWithOptionalPayload<span class="op">&lt;</span>P<span class="op">,</span> T<span class="op">&gt;,</span></span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true"></a>                    <span class="co">// else</span></span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true"></a>                    ActionCreatorWithPayload<span class="op">&lt;</span>P<span class="op">,</span> T<span class="op">&gt;&gt;&gt;&gt;&gt;&gt;</span></span></code></pre></div>
+<h3 id="internal-actioncreatorwithpreparedpayload-type">internal <code>ActionCreatorWithPreparedPayload</code> type</h3>
+<div class="sourceCode" id="cb44"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true"></a><span class="co"> * Internal version of `ActionCreatorWithPreparedPayload`. Not to be used externally.</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true"></a><span class="co"> * </span><span class="an">@internal</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true"></a><span class="im">export type</span> _ActionCreatorWithPreparedPayload<span class="op">&lt;</span>PA extends PrepareAction<span class="op">&lt;</span><span class="dt">any</span><span class="op">&gt;</span> <span class="op">|</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true"></a>    T extends string <span class="op">=</span> string<span class="op">&gt;</span> <span class="op">=</span> PA extends PrepareAction<span class="op">&lt;</span><span class="kw">infer</span> P<span class="op">&gt;</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true"></a>    <span class="op">?</span> ActionCreatorWithPreparedPayload<span class="op">&lt;</span>Parameters<span class="op">&lt;</span>PA<span class="op">&gt;,</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true"></a>        P<span class="op">,</span></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true"></a>        T<span class="op">,</span></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true"></a>        <span class="bu">ReturnType</span><span class="op">&lt;</span>PA<span class="op">&gt;</span> extends {</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true"></a>                error<span class="op">:</span> <span class="kw">infer</span> E</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true"></a>            }</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true"></a>            <span class="op">?</span> E</span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true"></a>            <span class="op">:</span> never<span class="op">,</span></span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true"></a>        <span class="bu">ReturnType</span><span class="op">&lt;</span>PA<span class="op">&gt;</span> extends {</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true"></a>                meta<span class="op">:</span> <span class="kw">infer</span> M</span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true"></a>            }</span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true"></a>            <span class="op">?</span> M</span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true"></a>            <span class="op">:</span> never<span class="op">&gt;</span></span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true"></a>    <span class="op">:</span> <span class="dt">void</span></span></code></pre></div>
+<p>Now from the top, <code>PayloadAction</code> is a type which will accept an undefined <code>payload</code>, but it must exist. An object of this interface gets returned from <code>ActionCreatorWithPreparedPayload</code>.</p>
+<p><code>ActionCreatorWithPreparedPayload</code> extends <code>BaseActionCreator</code> interface, it defines a <code>type</code> and a <code>match</code> member. <code>BasicActionCreator</code> is base for all action creators.</p>
+<p>If <code>payload</code> function extends <code>PrepareAction</code> then type <code>_ActionCreatorWithPreparedPayload</code> resolves to <code>ActionCreatorWithPreparedPayload</code>.</p>
+<p>A <code>PrepareAction</code> is a method which is passed to <code>createAction</code> as second param. It doesn’t have <code>type</code>, that gets added later.</p>
 <p>to be continued…</p>
 <h2 id="references">References</h2>
 <ul>
