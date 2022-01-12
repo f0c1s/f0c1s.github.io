@@ -1464,7 +1464,227 @@ Calling this redux#ActionCreator with Args will return an Action with a payload 
 <p>We have seen code for it above, and for the type <code>AsyncThunk</code> too. Lets get past that now.</p>
 <p>The returned object from <code>createAsyncThunk</code> looks like <code>{pending, rejected, fulfilled, typePrefix}</code>. We have seen this earlier too.</p>
 <p><a href="https://blog.f0c1s.com/react-web-dev/counter/counter.html#createasyncthunk">See above: https://blog.f0c1s.com/react-web-dev/counter/counter.html#createasyncthunk</a></p>
-<p><code>fulfilled</code>, <code>pending</code> and <code>rejected</code> are created by calling <code>createAction</code> function. And they add their own suffix to <code>typePrefix</code> to create different types. These types are then used in <code>counterSlice</code>.</p>
+<p><code>fulfilled</code>, <code>pending</code> and <code>rejected</code> are created by calling <code>createAction</code> function. And they add their own suffix to <code>typePrefix</code> to create different types. These types are then used in <code>counterSlice</code>. The suffix added are “/fulfilled”, “/pending” and “/rejected”.</p>
+<figure>
+<img src="34.new-types-based-on-prefix-and-suffix.png" alt="" /><figcaption>34.new-types-based-on-prefix-and-suffix</figcaption>
+</figure>
+<p>Lets change gears and do something else for a while.</p>
+<h2 id="counter-3">counter-3</h2>
+<p>I want to keep a list of numbers in react <code>useState</code> and update each value.</p>
+<h3 id="counter-3-react-only">counter-3-react-only</h3>
+<pre class="shell"><code>yarn create react-app counter-3-react-only --template typescript</code></pre>
+<figure>
+<img src="35.project-structure.png" alt="" /><figcaption>35.project-structure</figcaption>
+</figure>
+<h4 id="srcfeaturescountercounter.tsx">/src/features/counter/Counter.tsx</h4>
+<div class="sourceCode" id="cb46"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true"></a><span class="im">import</span> React<span class="op">,</span> {ChangeEvent<span class="op">,</span> useState} from <span class="st">&quot;react&quot;</span><span class="op">;</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true"></a><span class="im">import</span> <span class="st">&#39;./counter.css&#39;</span><span class="op">;</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true"></a>export default <span class="kw">function</span> <span class="fu">Counter</span>() {</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true"></a>    const [counters<span class="op">,</span> setCounters] <span class="op">=</span> <span class="fu">useState</span>([<span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="dv">4</span><span class="op">,</span> <span class="dv">5</span><span class="op">,</span> <span class="dv">6</span>] <span class="im">as</span> <span class="dt">number</span>[])<span class="op">;</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true"></a>    const [mode<span class="op">,</span> setMode] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&quot;show&quot;</span>)<span class="op">;</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true"></a></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true"></a>    <span class="kw">function</span> <span class="fu">onValueChange</span>(v<span class="op">:</span> <span class="dt">number</span><span class="op">,</span> i<span class="op">:</span> <span class="dt">number</span>) {</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true"></a>        const newCounters <span class="op">=</span> [<span class="op">...</span>counters<span class="op">.</span><span class="fu">slice</span>(<span class="dv">0</span><span class="op">,</span> i)<span class="op">,</span> v<span class="op">,</span> <span class="op">...</span>counters<span class="op">.</span><span class="fu">slice</span>(i <span class="op">+</span> <span class="dv">1</span>)]<span class="op">;</span></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true"></a>        <span class="fu">setCounters</span>(newCounters)<span class="op">;</span></span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true"></a>    }</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true"></a></span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true"></a>    <span class="fu">return</span> (</span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true"></a>        <span class="op">&lt;</span>div className<span class="op">=</span>{<span class="st">&quot;counter&quot;</span>}<span class="op">&gt;</span></span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true"></a></span>
+<span id="cb46-16"><a href="#cb46-16" aria-hidden="true"></a>            {</span>
+<span id="cb46-17"><a href="#cb46-17" aria-hidden="true"></a>                counters<span class="op">.</span><span class="fu">map</span>((c<span class="op">:</span> <span class="dt">number</span><span class="op">,</span> i<span class="op">:</span> <span class="dt">number</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb46-18"><a href="#cb46-18" aria-hidden="true"></a>                    <span class="fu">return</span> (</span>
+<span id="cb46-19"><a href="#cb46-19" aria-hidden="true"></a>                        <span class="op">&lt;</span>div key<span class="op">=</span>{<span class="vs">`ci-</span><span class="sc">${</span>i<span class="sc">}</span><span class="vs">`</span>} className<span class="op">=</span>{<span class="st">&quot;counter-item&quot;</span>}<span class="op">&gt;</span></span>
+<span id="cb46-20"><a href="#cb46-20" aria-hidden="true"></a>                            {</span>
+<span id="cb46-21"><a href="#cb46-21" aria-hidden="true"></a>                                mode <span class="op">===</span> <span class="st">&quot;edit&quot;</span> <span class="op">?</span> (</span>
+<span id="cb46-22"><a href="#cb46-22" aria-hidden="true"></a>                                    <span class="op">&lt;</span>input <span class="kw">type</span><span class="op">=</span>{<span class="st">&quot;number&quot;</span>}</span>
+<span id="cb46-23"><a href="#cb46-23" aria-hidden="true"></a>                                           value<span class="op">=</span>{c}</span>
+<span id="cb46-24"><a href="#cb46-24" aria-hidden="true"></a>                                           onChange<span class="op">=</span>{(e<span class="op">:</span> ChangeEvent<span class="op">&lt;</span>HTMLInputElement<span class="op">&gt;</span>) <span class="kw">=&gt;</span> <span class="fu">onValueChange</span>(<span class="fu">parseInt</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)<span class="op">,</span> i)}<span class="op">/&gt;</span></span>
+<span id="cb46-25"><a href="#cb46-25" aria-hidden="true"></a>                                ) <span class="op">:</span> (</span>
+<span id="cb46-26"><a href="#cb46-26" aria-hidden="true"></a>                                    <span class="op">&lt;</span>div<span class="op">&gt;</span>{c}<span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb46-27"><a href="#cb46-27" aria-hidden="true"></a>                                )</span>
+<span id="cb46-28"><a href="#cb46-28" aria-hidden="true"></a>                            }</span>
+<span id="cb46-29"><a href="#cb46-29" aria-hidden="true"></a>                        <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb46-30"><a href="#cb46-30" aria-hidden="true"></a>                    )<span class="op">;</span></span>
+<span id="cb46-31"><a href="#cb46-31" aria-hidden="true"></a>                })</span>
+<span id="cb46-32"><a href="#cb46-32" aria-hidden="true"></a>            }</span>
+<span id="cb46-33"><a href="#cb46-33" aria-hidden="true"></a>            <span class="op">&lt;</span>button onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">setMode</span>(mode <span class="op">===</span> <span class="st">&quot;edit&quot;</span> <span class="op">?</span> <span class="st">&quot;show&quot;</span> <span class="op">:</span> <span class="st">&quot;edit&quot;</span>)}<span class="op">&gt;</span></span>
+<span id="cb46-34"><a href="#cb46-34" aria-hidden="true"></a>                {mode <span class="op">===</span> <span class="st">&quot;edit&quot;</span> <span class="op">?</span> <span class="st">&quot;show&quot;</span> <span class="op">:</span> <span class="st">&quot;edit&quot;</span>}</span>
+<span id="cb46-35"><a href="#cb46-35" aria-hidden="true"></a>            <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb46-36"><a href="#cb46-36" aria-hidden="true"></a>        <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb46-37"><a href="#cb46-37" aria-hidden="true"></a>    )<span class="op">;</span></span>
+<span id="cb46-38"><a href="#cb46-38" aria-hidden="true"></a>}</span></code></pre></div>
+<h4 id="srcfeaturescountercounter.css">/src/features/counter/counter.css</h4>
+<div class="sourceCode" id="cb47"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true"></a><span class="fu">.counter</span> {</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true"></a>}</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true"></a></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true"></a><span class="fu">.counter-item</span> {</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true"></a>    <span class="kw">box-sizing</span>: <span class="dv">border-box</span><span class="op">;</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true"></a>    <span class="kw">display</span>: <span class="dv">inline-block</span><span class="op">;</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true"></a></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true"></a>    <span class="kw">height</span>: <span class="dv">100</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true"></a>    <span class="kw">margin</span>: <span class="dv">.5</span><span class="dt">rem</span><span class="op">;</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true"></a>    <span class="kw">padding</span>: <span class="dv">.5</span><span class="dt">rem</span><span class="op">;</span></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true"></a>    <span class="kw">text-align</span>: <span class="dv">center</span><span class="op">;</span></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true"></a>    <span class="kw">font-size</span>: <span class="dv">32</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true"></a>}</span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true"></a></span></code></pre></div>
+<figure>
+<img src="36.counter-show-mode.png" alt="" /><figcaption>36.counter-show-mode</figcaption>
+</figure>
+<figure>
+<img src="37.counter-edit-mode.png" alt="" /><figcaption>37.counter-edit-mode</figcaption>
+</figure>
+<figure>
+<img src="38.updated-values-in-state.png" alt="" /><figcaption>38.updated-values-in-state</figcaption>
+</figure>
+<p>There is nothing fancy here. An array is used to store all the values. A <code>mode</code> variable keeps track of whether we are in edit or show mode.</p>
+<p>In show mode, we show all the numbers in div. In edit mode, we use <code>input[type="number"]</code>.</p>
+<p>A button toggles <code>mode</code>.</p>
+<h4 id="lets-provide-buttons-in-show-mode.">Lets provide buttons in show mode.</h4>
+<div class="sourceCode" id="cb48"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true"></a><span class="fu">.counter</span> <span class="fu">.btn</span> {</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true"></a>    <span class="kw">display</span>: <span class="dv">inline-block</span><span class="op">;</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true"></a>    <span class="kw">border</span>: <span class="dv">none</span><span class="op">;</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true"></a>    <span class="kw">font-size</span>: <span class="dv">11</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true"></a>    <span class="kw">cursor</span>: <span class="dv">pointer</span><span class="op">;</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true"></a>    <span class="kw">margin</span>: <span class="dv">.2</span><span class="dt">rem</span><span class="op">;</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true"></a>    <span class="kw">padding</span>: <span class="dv">.2</span><span class="dt">rem</span><span class="op">;</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true"></a>    <span class="kw">min-width</span>: <span class="dv">30</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true"></a><span class="op">&lt;</span>div<span class="op">&gt;</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true"></a>    <span class="op">&lt;</span>button className<span class="op">=</span>{<span class="st">&quot;btn&quot;</span>} onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">onValueChange</span>(c<span class="op">-</span><span class="dv">1</span><span class="op">,</span> i)}<span class="op">&gt;</span>[<span class="op">-</span>]<span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true"></a>    {c}</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true"></a>    <span class="op">&lt;</span>button className<span class="op">=</span>{<span class="st">&quot;btn&quot;</span>} onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">onValueChange</span>(c<span class="op">+</span><span class="dv">1</span><span class="op">,</span> i)}<span class="op">&gt;</span>[<span class="op">+</span>]<span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true"></a><span class="op">&lt;/</span>div<span class="op">&gt;</span></span></code></pre></div>
+<p>And thats pretty much it.</p>
+<figure>
+<img src="39.show-mode-buttons-with-increment-decrement-buttons.png" alt="" /><figcaption>39.show-mode-buttons-with-increment-decrement-buttons</figcaption>
+</figure>
+<p>This was pretty easy. Lets do it in redux.</p>
+<p>Interestingly, if I follow react code, I don’t get concrete information on how the code is actually working.</p>
+<h2 id="usestate"><code>useState</code></h2>
+<div class="sourceCode" id="cb50"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true"></a>export <span class="kw">function</span> <span class="fu">useState</span><span class="op">&lt;</span>S<span class="op">&gt;</span>(</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true"></a>  initialState<span class="op">:</span> (() <span class="kw">=&gt;</span> S) <span class="op">|</span> S<span class="op">,</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true"></a>)<span class="op">:</span> [S<span class="op">,</span> Dispatch<span class="op">&lt;</span>BasicStateAction<span class="op">&lt;</span>S<span class="op">&gt;&gt;</span>] {</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true"></a>  const dispatcher <span class="op">=</span> <span class="fu">resolveDispatcher</span>()<span class="op">;</span></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true"></a>  return dispatcher<span class="op">.</span><span class="fu">useState</span>(initialState)<span class="op">;</span></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true"></a>}</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true"></a></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true"></a><span class="kw">type</span> Dispatch<span class="op">&lt;</span>A<span class="op">&gt;</span> <span class="op">=</span> A <span class="kw">=&gt;</span> <span class="dt">void</span><span class="op">;</span></span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true"></a><span class="kw">type</span> BasicStateAction<span class="op">&lt;</span>S<span class="op">&gt;</span> <span class="op">=</span> (S <span class="kw">=&gt;</span> S) <span class="op">|</span> S<span class="op">;</span></span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true"></a></span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true"></a><span class="kw">function</span> <span class="fu">resolveDispatcher</span>() {</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true"></a>  const dispatcher <span class="op">=</span> ReactCurrentDispatcher<span class="op">.</span><span class="at">current</span><span class="op">;</span></span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true"></a>  <span class="fu">if</span> (__DEV__) {</span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true"></a>    <span class="fu">if</span> (dispatcher <span class="op">===</span> null) {</span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true"></a>      <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(</span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true"></a>        <span class="st">&#39;Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for&#39;</span> <span class="op">+</span></span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true"></a>          <span class="st">&#39; one of the following reasons:</span><span class="sc">\n</span><span class="st">&#39;</span> <span class="op">+</span></span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true"></a>          <span class="st">&#39;1. You might have mismatching versions of React and the renderer (such as React DOM)</span><span class="sc">\n</span><span class="st">&#39;</span> <span class="op">+</span></span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true"></a>          <span class="st">&#39;2. You might be breaking the Rules of Hooks</span><span class="sc">\n</span><span class="st">&#39;</span> <span class="op">+</span></span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true"></a>          <span class="st">&#39;3. You might have more than one copy of React in the same app</span><span class="sc">\n</span><span class="st">&#39;</span> <span class="op">+</span></span>
+<span id="cb50-21"><a href="#cb50-21" aria-hidden="true"></a>          <span class="st">&#39;See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.&#39;</span><span class="op">,</span></span>
+<span id="cb50-22"><a href="#cb50-22" aria-hidden="true"></a>      )<span class="op">;</span></span>
+<span id="cb50-23"><a href="#cb50-23" aria-hidden="true"></a>    }</span>
+<span id="cb50-24"><a href="#cb50-24" aria-hidden="true"></a>  }</span>
+<span id="cb50-25"><a href="#cb50-25" aria-hidden="true"></a>  <span class="co">// Will result in a null access error if accessed outside render phase. We</span></span>
+<span id="cb50-26"><a href="#cb50-26" aria-hidden="true"></a>  <span class="co">// intentionally don&#39;t throw our own error because this is in a hot path.</span></span>
+<span id="cb50-27"><a href="#cb50-27" aria-hidden="true"></a>  <span class="co">// Also helps ensure this is inlined.</span></span>
+<span id="cb50-28"><a href="#cb50-28" aria-hidden="true"></a>  <span class="fu">return</span> ((dispatcher<span class="op">:</span> <span class="dt">any</span>)<span class="op">:</span> Dispatcher)<span class="op">;</span></span>
+<span id="cb50-29"><a href="#cb50-29" aria-hidden="true"></a>}</span></code></pre></div>
+<h3 id="reactcurrentdispatcher.js">ReactCurrentDispatcher.js</h3>
+<div class="sourceCode" id="cb51"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true"></a><span class="im">import</span> <span class="im">type</span> {Dispatcher} from <span class="st">&#39;react-reconciler/src/ReactInternalTypes&#39;</span><span class="op">;</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true"></a></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true"></a><span class="co"> * Keeps track of the current dispatcher.</span></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true"></a>const ReactCurrentDispatcher <span class="op">=</span> {</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true"></a>  <span class="co">/**</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true"></a><span class="co">   * </span><span class="an">@internal</span></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true"></a><span class="co">   * </span><span class="an">@type</span><span class="co"> {ReactComponent}</span></span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true"></a><span class="co">   */</span></span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true"></a>  current<span class="op">:</span> (<span class="dt">null</span><span class="op">:</span> <span class="dt">null</span> <span class="op">|</span> Dispatcher)<span class="op">,</span></span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true"></a>}<span class="op">;</span></span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true"></a></span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true"></a>export default ReactCurrentDispatcher<span class="op">;</span></span></code></pre></div>
+<h3 id="react-reconcilersrcreactinternaltypes">react-reconciler/src/ReactInternalTypes</h3>
+<div class="sourceCode" id="cb52"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true"></a><span class="co">//...</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true"></a><span class="im">export type</span> HookType <span class="op">=</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useState&#39;</span></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useReducer&#39;</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useContext&#39;</span></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useRef&#39;</span></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useEffect&#39;</span></span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useInsertionEffect&#39;</span></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useLayoutEffect&#39;</span></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useCallback&#39;</span></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useMemo&#39;</span></span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useImperativeHandle&#39;</span></span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useDebugValue&#39;</span></span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useDeferredValue&#39;</span></span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useTransition&#39;</span></span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useMutableSource&#39;</span></span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useSyncExternalStore&#39;</span></span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useId&#39;</span></span>
+<span id="cb52-19"><a href="#cb52-19" aria-hidden="true"></a>  <span class="op">|</span> <span class="st">&#39;useCacheRefresh&#39;</span><span class="op">;</span></span>
+<span id="cb52-20"><a href="#cb52-20" aria-hidden="true"></a><span class="co">//...</span></span>
+<span id="cb52-21"><a href="#cb52-21" aria-hidden="true"></a><span class="im">export type</span> Dispatcher <span class="op">=</span> {<span class="op">|</span></span>
+<span id="cb52-22"><a href="#cb52-22" aria-hidden="true"></a>  getCacheSignal<span class="op">?:</span> () <span class="kw">=&gt;</span> AbortSignal<span class="op">,</span></span>
+<span id="cb52-23"><a href="#cb52-23" aria-hidden="true"></a>  getCacheForType<span class="op">?:</span> <span class="op">&lt;</span>T<span class="op">&gt;</span>(resourceType<span class="op">:</span> () <span class="kw">=&gt;</span> T) <span class="kw">=&gt;</span> T<span class="op">,</span></span>
+<span id="cb52-24"><a href="#cb52-24" aria-hidden="true"></a>  <span class="fu">readContext</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(context<span class="op">:</span> ReactContext<span class="op">&lt;</span>T<span class="op">&gt;</span>)<span class="op">:</span> T<span class="op">,</span></span>
+<span id="cb52-25"><a href="#cb52-25" aria-hidden="true"></a>  <span class="fu">useState</span><span class="op">&lt;</span>S<span class="op">&gt;</span>(initialState<span class="op">:</span> (() <span class="kw">=&gt;</span> S) <span class="op">|</span> S)<span class="op">:</span> [S<span class="op">,</span> Dispatch<span class="op">&lt;</span>BasicStateAction<span class="op">&lt;</span>S<span class="op">&gt;&gt;</span>]<span class="op">,</span></span>
+<span id="cb52-26"><a href="#cb52-26" aria-hidden="true"></a>  <span class="fu">useReducer</span><span class="op">&lt;</span>S<span class="op">,</span> I<span class="op">,</span> A<span class="op">&gt;</span>(</span>
+<span id="cb52-27"><a href="#cb52-27" aria-hidden="true"></a>    reducer<span class="op">:</span> (S<span class="op">,</span> A) <span class="kw">=&gt;</span> S<span class="op">,</span></span>
+<span id="cb52-28"><a href="#cb52-28" aria-hidden="true"></a>    initialArg<span class="op">:</span> I<span class="op">,</span></span>
+<span id="cb52-29"><a href="#cb52-29" aria-hidden="true"></a>    init<span class="op">?:</span> (I) <span class="kw">=&gt;</span> S<span class="op">,</span></span>
+<span id="cb52-30"><a href="#cb52-30" aria-hidden="true"></a>  )<span class="op">:</span> [S<span class="op">,</span> Dispatch<span class="op">&lt;</span>A<span class="op">&gt;</span>]<span class="op">,</span></span>
+<span id="cb52-31"><a href="#cb52-31" aria-hidden="true"></a>  <span class="fu">useContext</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(context<span class="op">:</span> ReactContext<span class="op">&lt;</span>T<span class="op">&gt;</span>)<span class="op">:</span> T<span class="op">,</span></span>
+<span id="cb52-32"><a href="#cb52-32" aria-hidden="true"></a>  <span class="fu">useRef</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(initialValue<span class="op">:</span> T)<span class="op">:</span> {<span class="op">|</span>current<span class="op">:</span> T<span class="op">|</span>}<span class="op">,</span></span>
+<span id="cb52-33"><a href="#cb52-33" aria-hidden="true"></a>  <span class="fu">useEffect</span>(</span>
+<span id="cb52-34"><a href="#cb52-34" aria-hidden="true"></a>    create<span class="op">:</span> () <span class="kw">=&gt;</span> (() <span class="kw">=&gt;</span> <span class="dt">void</span>) <span class="op">|</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-35"><a href="#cb52-35" aria-hidden="true"></a>    deps<span class="op">:</span> Array<span class="op">&lt;</span>mixed<span class="op">&gt;</span> <span class="op">|</span> <span class="dt">void</span> <span class="op">|</span> <span class="dt">null</span><span class="op">,</span></span>
+<span id="cb52-36"><a href="#cb52-36" aria-hidden="true"></a>  )<span class="op">:</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-37"><a href="#cb52-37" aria-hidden="true"></a>  <span class="fu">useInsertionEffect</span>(</span>
+<span id="cb52-38"><a href="#cb52-38" aria-hidden="true"></a>    create<span class="op">:</span> () <span class="kw">=&gt;</span> (() <span class="kw">=&gt;</span> <span class="dt">void</span>) <span class="op">|</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-39"><a href="#cb52-39" aria-hidden="true"></a>    deps<span class="op">:</span> Array<span class="op">&lt;</span>mixed<span class="op">&gt;</span> <span class="op">|</span> <span class="dt">void</span> <span class="op">|</span> <span class="dt">null</span><span class="op">,</span></span>
+<span id="cb52-40"><a href="#cb52-40" aria-hidden="true"></a>  )<span class="op">:</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-41"><a href="#cb52-41" aria-hidden="true"></a>  <span class="fu">useLayoutEffect</span>(</span>
+<span id="cb52-42"><a href="#cb52-42" aria-hidden="true"></a>    create<span class="op">:</span> () <span class="kw">=&gt;</span> (() <span class="kw">=&gt;</span> <span class="dt">void</span>) <span class="op">|</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-43"><a href="#cb52-43" aria-hidden="true"></a>    deps<span class="op">:</span> Array<span class="op">&lt;</span>mixed<span class="op">&gt;</span> <span class="op">|</span> <span class="dt">void</span> <span class="op">|</span> <span class="dt">null</span><span class="op">,</span></span>
+<span id="cb52-44"><a href="#cb52-44" aria-hidden="true"></a>  )<span class="op">:</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-45"><a href="#cb52-45" aria-hidden="true"></a>  <span class="fu">useCallback</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(callback<span class="op">:</span> T<span class="op">,</span> deps<span class="op">:</span> Array<span class="op">&lt;</span>mixed<span class="op">&gt;</span> <span class="op">|</span> <span class="dt">void</span> <span class="op">|</span> <span class="dt">null</span>)<span class="op">:</span> T<span class="op">,</span></span>
+<span id="cb52-46"><a href="#cb52-46" aria-hidden="true"></a>  <span class="fu">useMemo</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(nextCreate<span class="op">:</span> () <span class="kw">=&gt;</span> T<span class="op">,</span> deps<span class="op">:</span> Array<span class="op">&lt;</span>mixed<span class="op">&gt;</span> <span class="op">|</span> <span class="dt">void</span> <span class="op">|</span> <span class="dt">null</span>)<span class="op">:</span> T<span class="op">,</span></span>
+<span id="cb52-47"><a href="#cb52-47" aria-hidden="true"></a>  <span class="fu">useImperativeHandle</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(</span>
+<span id="cb52-48"><a href="#cb52-48" aria-hidden="true"></a>    ref<span class="op">:</span> {<span class="op">|</span>current<span class="op">:</span> T <span class="op">|</span> <span class="dt">null</span><span class="op">|</span>} <span class="op">|</span> ((inst<span class="op">:</span> T <span class="op">|</span> <span class="dt">null</span>) <span class="kw">=&gt;</span> mixed) <span class="op">|</span> <span class="dt">null</span> <span class="op">|</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-49"><a href="#cb52-49" aria-hidden="true"></a>    create<span class="op">:</span> () <span class="kw">=&gt;</span> T<span class="op">,</span></span>
+<span id="cb52-50"><a href="#cb52-50" aria-hidden="true"></a>    deps<span class="op">:</span> Array<span class="op">&lt;</span>mixed<span class="op">&gt;</span> <span class="op">|</span> <span class="dt">void</span> <span class="op">|</span> <span class="dt">null</span><span class="op">,</span></span>
+<span id="cb52-51"><a href="#cb52-51" aria-hidden="true"></a>  )<span class="op">:</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-52"><a href="#cb52-52" aria-hidden="true"></a>  <span class="fu">useDebugValue</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(value<span class="op">:</span> T<span class="op">,</span> formatterFn<span class="op">:</span> <span class="op">?</span>(value<span class="op">:</span> T) <span class="kw">=&gt;</span> mixed)<span class="op">:</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-53"><a href="#cb52-53" aria-hidden="true"></a>  <span class="fu">useDeferredValue</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(value<span class="op">:</span> T)<span class="op">:</span> T<span class="op">,</span></span>
+<span id="cb52-54"><a href="#cb52-54" aria-hidden="true"></a>  <span class="fu">useTransition</span>()<span class="op">:</span> [<span class="dt">boolean</span><span class="op">,</span> (() <span class="kw">=&gt;</span> <span class="dt">void</span>) <span class="kw">=&gt;</span> <span class="dt">void</span>]<span class="op">,</span></span>
+<span id="cb52-55"><a href="#cb52-55" aria-hidden="true"></a>  <span class="fu">useMutableSource</span><span class="op">&lt;</span>Source<span class="op">,</span> Snapshot<span class="op">&gt;</span>(</span>
+<span id="cb52-56"><a href="#cb52-56" aria-hidden="true"></a>    source<span class="op">:</span> MutableSource<span class="op">&lt;</span>Source<span class="op">&gt;,</span></span>
+<span id="cb52-57"><a href="#cb52-57" aria-hidden="true"></a>    getSnapshot<span class="op">:</span> MutableSourceGetSnapshotFn<span class="op">&lt;</span>Source<span class="op">,</span> Snapshot<span class="op">&gt;,</span></span>
+<span id="cb52-58"><a href="#cb52-58" aria-hidden="true"></a>    subscribe<span class="op">:</span> MutableSourceSubscribeFn<span class="op">&lt;</span>Source<span class="op">,</span> Snapshot<span class="op">&gt;,</span></span>
+<span id="cb52-59"><a href="#cb52-59" aria-hidden="true"></a>  )<span class="op">:</span> Snapshot<span class="op">,</span></span>
+<span id="cb52-60"><a href="#cb52-60" aria-hidden="true"></a>  <span class="fu">useSyncExternalStore</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(</span>
+<span id="cb52-61"><a href="#cb52-61" aria-hidden="true"></a>    subscribe<span class="op">:</span> (() <span class="kw">=&gt;</span> <span class="dt">void</span>) <span class="kw">=&gt;</span> () <span class="kw">=&gt;</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-62"><a href="#cb52-62" aria-hidden="true"></a>    getSnapshot<span class="op">:</span> () <span class="kw">=&gt;</span> T<span class="op">,</span></span>
+<span id="cb52-63"><a href="#cb52-63" aria-hidden="true"></a>    getServerSnapshot<span class="op">?:</span> () <span class="kw">=&gt;</span> T<span class="op">,</span></span>
+<span id="cb52-64"><a href="#cb52-64" aria-hidden="true"></a>  )<span class="op">:</span> T<span class="op">,</span></span>
+<span id="cb52-65"><a href="#cb52-65" aria-hidden="true"></a>  <span class="fu">useId</span>()<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb52-66"><a href="#cb52-66" aria-hidden="true"></a>  useCacheRefresh<span class="op">?:</span> () <span class="kw">=&gt;</span> <span class="op">&lt;</span>T<span class="op">&gt;</span>(<span class="op">?</span>() <span class="kw">=&gt;</span> T<span class="op">,</span> <span class="op">?</span>T) <span class="kw">=&gt;</span> <span class="dt">void</span><span class="op">,</span></span>
+<span id="cb52-67"><a href="#cb52-67" aria-hidden="true"></a></span>
+<span id="cb52-68"><a href="#cb52-68" aria-hidden="true"></a>  unstable_isNewReconciler<span class="op">?:</span> <span class="dt">boolean</span><span class="op">,</span></span>
+<span id="cb52-69"><a href="#cb52-69" aria-hidden="true"></a><span class="op">|</span>}<span class="op">;</span></span></code></pre></div>
+<p><code>Dispatcher</code> is a type. I don’t know how <code>current</code> in <code>ReactCurrentDispatcher</code> is assigned.</p>
+<p><code>resolveDispatcher</code> just returns the <code>current</code> dispatcher.</p>
+<p>And then the <code>useState</code> function calls and returns from <code>dispatcher.useState(initialState)</code>.</p>
+<p>My guess at this point would be that <code>dispatcher</code> is resolved at runtime, and it might depend on the type of react initialization and may be on version too.</p>
+<p>Now I want to keep a list of numbers in redux, and use that as</p>
+<h2 id="counter-3-with-redux">counter-3 (with redux)</h2>
 <p>to be continued…</p>
 <h2 id="references">References</h2>
 <ul>

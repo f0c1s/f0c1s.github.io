@@ -1709,10 +1709,273 @@ The returned object from `createAsyncThunk` looks like `{pending, rejected, fulf
 
 [See above: https://blog.f0c1s.com/react-web-dev/counter/counter.html#createasyncthunk](https://blog.f0c1s.com/react-web-dev/counter/counter.html#createasyncthunk)
 
-`fulfilled`, `pending` and `rejected` are created by calling `createAction` function. And they add their own suffix to `typePrefix` to create different types. These types are then used in `counterSlice`.
+`fulfilled`, `pending` and `rejected` are created by calling `createAction` function.
+And they add their own suffix to `typePrefix` to create different types. These types are then used in `counterSlice`.
+The suffix added are "/fulfilled", "/pending" and "/rejected".
+
+![34.new-types-based-on-prefix-and-suffix](34.new-types-based-on-prefix-and-suffix.png)
+
+Lets change gears and do something else for a while.
+
+## counter-3
+
+I want to keep a list of numbers in react `useState` and update each value.
+
+### counter-3-react-only
+
+```shell
+yarn create react-app counter-3-react-only --template typescript
+```
+
+![35.project-structure](35.project-structure.png)
+
+#### /src/features/counter/Counter.tsx
+
+```typescript
+import React, {ChangeEvent, useState} from "react";
+import './counter.css';
+
+export default function Counter() {
+    const [counters, setCounters] = useState([1, 2, 3, 4, 5, 6] as number[]);
+    const [mode, setMode] = useState("show");
+
+    function onValueChange(v: number, i: number) {
+        const newCounters = [...counters.slice(0, i), v, ...counters.slice(i + 1)];
+        setCounters(newCounters);
+    }
+
+    return (
+        <div className={"counter"}>
+
+            {
+                counters.map((c: number, i: number) => {
+                    return (
+                        <div key={`ci-${i}`} className={"counter-item"}>
+                            {
+                                mode === "edit" ? (
+                                    <input type={"number"}
+                                           value={c}
+                                           onChange={(e: ChangeEvent<HTMLInputElement>) => onValueChange(parseInt(e.target.value), i)}/>
+                                ) : (
+                                    <div>{c}</div>
+                                )
+                            }
+                        </div>
+                    );
+                })
+            }
+            <button onClick={() => setMode(mode === "edit" ? "show" : "edit")}>
+                {mode === "edit" ? "show" : "edit"}
+            </button>
+        </div>
+    );
+}
+
+```
+
+#### /src/features/counter/counter.css
+
+```css
+.counter {
+
+}
+
+.counter-item {
+    box-sizing: border-box;
+    display: inline-block;
+
+    height: 100px;
+    margin: .5rem;
+    padding: .5rem;
+    text-align: center;
+    font-size: 32px;
+}
+
+
+```
+
+![36.counter-show-mode](36.counter-show-mode.png)
+
+![37.counter-edit-mode](37.counter-edit-mode.png)
+
+![38.updated-values-in-state](38.updated-values-in-state.png)
+
+There is nothing fancy here. An array is used to store all the values. A `mode` variable keeps track of whether we are in edit or show mode.
+
+In show mode, we show all the numbers in div. In edit mode, we use `input[type="number"]`.
+
+A button toggles `mode`.
+
+#### Lets provide buttons in show mode.
+
+```css
+.counter .btn {
+    display: inline-block;
+    border: none;
+    font-size: 11px;
+    cursor: pointer;
+    margin: .2rem;
+    padding: .2rem;
+    min-width: 30px;
+}
+```
+
+```typescript
+<div>
+    <button className={"btn"} onClick={() => onValueChange(c-1, i)}>[-]</button>
+    {c}
+    <button className={"btn"} onClick={() => onValueChange(c+1, i)}>[+]</button>
+</div>
+```
+
+And thats pretty much it.
+
+![39.show-mode-buttons-with-increment-decrement-buttons](39.show-mode-buttons-with-increment-decrement-buttons.png)
+
+This was pretty easy. Lets do it in redux.
+
+Interestingly, if I follow react code, I don't get concrete information on how the code is actually working.
+
+## `useState`
+
+```typescript
+export function useState<S>(
+  initialState: (() => S) | S,
+): [S, Dispatch<BasicStateAction<S>>] {
+  const dispatcher = resolveDispatcher();
+  return dispatcher.useState(initialState);
+}
+
+type Dispatch<A> = A => void;
+type BasicStateAction<S> = (S => S) | S;
+
+function resolveDispatcher() {
+  const dispatcher = ReactCurrentDispatcher.current;
+  if (__DEV__) {
+    if (dispatcher === null) {
+      console.error(
+        'Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for' +
+          ' one of the following reasons:\n' +
+          '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
+          '2. You might be breaking the Rules of Hooks\n' +
+          '3. You might have more than one copy of React in the same app\n' +
+          'See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.',
+      );
+    }
+  }
+  // Will result in a null access error if accessed outside render phase. We
+  // intentionally don't throw our own error because this is in a hot path.
+  // Also helps ensure this is inlined.
+  return ((dispatcher: any): Dispatcher);
+}
+```
+
+### ReactCurrentDispatcher.js
+
+```typescript
+import type {Dispatcher} from 'react-reconciler/src/ReactInternalTypes';
+
+/**
+ * Keeps track of the current dispatcher.
+ */
+const ReactCurrentDispatcher = {
+  /**
+   * @internal
+   * @type {ReactComponent}
+   */
+  current: (null: null | Dispatcher),
+};
+
+export default ReactCurrentDispatcher;
+```
+
+### react-reconciler/src/ReactInternalTypes
+
+```typescript
+//...
+export type HookType =
+  | 'useState'
+  | 'useReducer'
+  | 'useContext'
+  | 'useRef'
+  | 'useEffect'
+  | 'useInsertionEffect'
+  | 'useLayoutEffect'
+  | 'useCallback'
+  | 'useMemo'
+  | 'useImperativeHandle'
+  | 'useDebugValue'
+  | 'useDeferredValue'
+  | 'useTransition'
+  | 'useMutableSource'
+  | 'useSyncExternalStore'
+  | 'useId'
+  | 'useCacheRefresh';
+//...
+export type Dispatcher = {|
+  getCacheSignal?: () => AbortSignal,
+  getCacheForType?: <T>(resourceType: () => T) => T,
+  readContext<T>(context: ReactContext<T>): T,
+  useState<S>(initialState: (() => S) | S): [S, Dispatch<BasicStateAction<S>>],
+  useReducer<S, I, A>(
+    reducer: (S, A) => S,
+    initialArg: I,
+    init?: (I) => S,
+  ): [S, Dispatch<A>],
+  useContext<T>(context: ReactContext<T>): T,
+  useRef<T>(initialValue: T): {|current: T|},
+  useEffect(
+    create: () => (() => void) | void,
+    deps: Array<mixed> | void | null,
+  ): void,
+  useInsertionEffect(
+    create: () => (() => void) | void,
+    deps: Array<mixed> | void | null,
+  ): void,
+  useLayoutEffect(
+    create: () => (() => void) | void,
+    deps: Array<mixed> | void | null,
+  ): void,
+  useCallback<T>(callback: T, deps: Array<mixed> | void | null): T,
+  useMemo<T>(nextCreate: () => T, deps: Array<mixed> | void | null): T,
+  useImperativeHandle<T>(
+    ref: {|current: T | null|} | ((inst: T | null) => mixed) | null | void,
+    create: () => T,
+    deps: Array<mixed> | void | null,
+  ): void,
+  useDebugValue<T>(value: T, formatterFn: ?(value: T) => mixed): void,
+  useDeferredValue<T>(value: T): T,
+  useTransition(): [boolean, (() => void) => void],
+  useMutableSource<Source, Snapshot>(
+    source: MutableSource<Source>,
+    getSnapshot: MutableSourceGetSnapshotFn<Source, Snapshot>,
+    subscribe: MutableSourceSubscribeFn<Source, Snapshot>,
+  ): Snapshot,
+  useSyncExternalStore<T>(
+    subscribe: (() => void) => () => void,
+    getSnapshot: () => T,
+    getServerSnapshot?: () => T,
+  ): T,
+  useId(): string,
+  useCacheRefresh?: () => <T>(?() => T, ?T) => void,
+
+  unstable_isNewReconciler?: boolean,
+|};
+```
+
+`Dispatcher` is a type. I don't know how `current` in `ReactCurrentDispatcher` is assigned.
+
+`resolveDispatcher` just returns the `current` dispatcher.
+
+And then the `useState` function calls and returns from `dispatcher.useState(initialState)`.
+
+My guess at this point would be that `dispatcher` is resolved at runtime, and it might depend on the type of react initialization and may be on version too.
+
+Now I want to keep a list of numbers in redux, and use that as
+
+## counter-3 (with redux)
 
 to be continued...
-
 
 
 ## References
