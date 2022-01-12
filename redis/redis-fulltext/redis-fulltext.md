@@ -264,6 +264,105 @@ export default function Search() {
 
 ![7.working-search](7.working-search.png)
 
+## Deep dive
+
+Most of the information here is from the code itself.
+
+### Schema and Entity
+
+It is defined [here, on github](https://github.com/redis/redis-om-node/blob/main/lib/schema/schema.ts#L33){.in}.
+
+```typescript
+export default class Schema<TEntity extends Entity> {
+```
+
+It defines a schema that determines how an entity is mapped to Redis data structures. An entity is coded [here](https://github.com/redis/redis-om-node/blob/main/lib/entity/entity.ts#L25){.in}.
+
+Schema is defined for types that are extended from Entity. Entity is an abstract type in the code.
+
+```typescript
+export default abstract class Entity {
+```
+
+Redis OM maps to objects of type Entity. But in order to do that, we need to write code that provides concrete implementation of Entity via sub-classing.
+
+```typescript
+class CarEntity extends Entity {}
+```
+
+Above is what we wrote to generate sub class of entity and then passed it to generate schema.
+
+An entity object has readonly `entityId` and `entityData`, you might remember `entityId` from usage as key in react code above.
+
+`entityData` is marked internal and is the piece of the data that gets written to the redis database.
+
+An entity also has `schemaDef` of the type `SchemaDefinition`, and a constructor and a function `toJSON`.
+
+```typescript
+export type SchemaDefinition = Record<string, FieldDefinition>;
+```
+
+It is a group of FieldDefinition that defines the schema for an Entity.
+
+```typescript
+export type FieldDefinition = NumericField | StringField | BooleanField | ArrayField;
+```
+
+A `FieldDefinition` contains instructions that tell how to map a property on Entity to Redis db.
+
+```typescript
+type Record<K extends keyof any, T> = {
+    [P in K]: T;
+};
+```
+
+Constructs a type with set of properties, K, of type T.
+
+[https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type](https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type)
+
+```typescript
+constructor(schemaDef: SchemaDefinition, id: string, data: EntityData = {}) {
+    this.schemaDef = schemaDef;
+    this.entityId = id;
+    this.entityData = data;
+}
+```
+
+Above is the constructor for Entity type.
+
+Below is the `Schema` constructor:
+
+```typescript
+constructor(ctor: EntityConstructor<TEntity>, schemaDef: SchemaDefinition, options?: SchemaOptions) {
+    this.entityCtor = ctor;
+    this.definition = schemaDef;
+    this.options = options;
+
+    this.validateOptions();
+    this.defineProperties();
+}
+```
+
+We have already seen `Entity` and `SchemaDefinition`.
+
+A `SchemaOptions` look like:
+
+```typescript
+export type SchemaOptions = {
+  prefix?: string;
+  indexName?: string;
+  dataStructure?: SearchDataStructure;
+  idStrategy?: IdStrategy;
+  useStopWords?: StopWordOptions;
+  stopWords?: string[]
+}
+```
+
+We used `dataStructure` from it, which is optional. This can have only two values: "HASH" or "JSON", we used JSON.
+
+```typescript
+export type SearchDataStructure = 'HASH' | 'JSON';
+```
 
 ## References
 
@@ -273,6 +372,7 @@ export default function Search() {
 - [https://stackoverflow.com/questions/52094110/err-unknown-command-json-set-rejson-redis](https://stackoverflow.com/questions/52094110/err-unknown-command-json-set-rejson-redis)
 - [redisearch commands: https://oss.redis.com/redisearch/Commands/](https://oss.redis.com/redisearch/Commands/)
 - [redisearch query syntax: https://oss.redis.com/redisearch/Query_Syntax/](https://oss.redis.com/redisearch/Query_Syntax/)
+- [repo fork](https://github.com/f0c1s/redis-redis-om-node)
 
 </body>
 </html>

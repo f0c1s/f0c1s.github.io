@@ -220,6 +220,56 @@ event - compiled client and server successfully in 82 ms (149 modules)
 <figure>
 <img src="7.working-search.png" alt="" /><figcaption>7.working-search</figcaption>
 </figure>
+<h2 id="deep-dive">Deep dive</h2>
+<p>Most of the information here is from the code itself.</p>
+<h3 id="schema-and-entity">Schema and Entity</h3>
+<p>It is defined <a href="https://github.com/redis/redis-om-node/blob/main/lib/schema/schema.ts#L33" class="in">here, on github</a>.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a>export default class Schema<span class="op">&lt;</span>TEntity extends Entity<span class="op">&gt;</span> {</span></code></pre></div>
+<p>It defines a schema that determines how an entity is mapped to Redis data structures. An entity is coded <a href="https://github.com/redis/redis-om-node/blob/main/lib/entity/entity.ts#L25" class="in">here</a>.</p>
+<p>Schema is defined for types that are extended from Entity. Entity is an abstract type in the code.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>export default <span class="kw">abstract</span> class Entity {</span></code></pre></div>
+<p>Redis OM maps to objects of type Entity. But in order to do that, we need to write code that provides concrete implementation of Entity via sub-classing.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>class CarEntity extends Entity {}</span></code></pre></div>
+<p>Above is what we wrote to generate sub class of entity and then passed it to generate schema.</p>
+<p>An entity object has readonly <code>entityId</code> and <code>entityData</code>, you might remember <code>entityId</code> from usage as key in react code above.</p>
+<p><code>entityData</code> is marked internal and is the piece of the data that gets written to the redis database.</p>
+<p>An entity also has <code>schemaDef</code> of the type <code>SchemaDefinition</code>, and a constructor and a function <code>toJSON</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="im">export type</span> SchemaDefinition <span class="op">=</span> <span class="bu">Record</span><span class="op">&lt;</span><span class="dt">string</span><span class="op">,</span> FieldDefinition<span class="op">&gt;;</span></span></code></pre></div>
+<p>It is a group of FieldDefinition that defines the schema for an Entity.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="im">export type</span> FieldDefinition <span class="op">=</span> NumericField <span class="op">|</span> StringField <span class="op">|</span> BooleanField <span class="op">|</span> ArrayField<span class="op">;</span></span></code></pre></div>
+<p>A <code>FieldDefinition</code> contains instructions that tell how to map a property on Entity to Redis db.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="kw">type</span> <span class="bu">Record</span><span class="op">&lt;</span>K extends <span class="kw">keyof</span> <span class="dt">any</span><span class="op">,</span> T<span class="op">&gt;</span> <span class="op">=</span> {</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a>    [P in K]<span class="op">:</span> T<span class="op">;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a>}<span class="op">;</span></span></code></pre></div>
+<p>Constructs a type with set of properties, K, of type T.</p>
+<p><a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type">https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type</a></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="kw">constructor</span>(schemaDef<span class="op">:</span> SchemaDefinition<span class="op">,</span> id<span class="op">:</span> <span class="dt">string</span><span class="op">,</span> data<span class="op">:</span> EntityData <span class="op">=</span> {}) {</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>    this<span class="op">.</span><span class="at">schemaDef</span> <span class="op">=</span> schemaDef<span class="op">;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a>    this<span class="op">.</span><span class="at">entityId</span> <span class="op">=</span> id<span class="op">;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a>    this<span class="op">.</span><span class="at">entityData</span> <span class="op">=</span> data<span class="op">;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Above is the constructor for Entity type.</p>
+<p>Below is the <code>Schema</code> constructor:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="kw">constructor</span>(ctor<span class="op">:</span> EntityConstructor<span class="op">&lt;</span>TEntity<span class="op">&gt;,</span> schemaDef<span class="op">:</span> SchemaDefinition<span class="op">,</span> options<span class="op">?:</span> SchemaOptions) {</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>    this<span class="op">.</span><span class="at">entityCtor</span> <span class="op">=</span> ctor<span class="op">;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a>    this<span class="op">.</span><span class="at">definition</span> <span class="op">=</span> schemaDef<span class="op">;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a>    this<span class="op">.</span><span class="at">options</span> <span class="op">=</span> options<span class="op">;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a>    this<span class="op">.</span><span class="fu">validateOptions</span>()<span class="op">;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a>    this<span class="op">.</span><span class="fu">defineProperties</span>()<span class="op">;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a>}</span></code></pre></div>
+<p>We have already seen <code>Entity</code> and <code>SchemaDefinition</code>.</p>
+<p>A <code>SchemaOptions</code> look like:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="im">export type</span> SchemaOptions <span class="op">=</span> {</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a>  prefix<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a>  indexName<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>  dataStructure<span class="op">?:</span> SearchDataStructure<span class="op">;</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a>  idStrategy<span class="op">?:</span> IdStrategy<span class="op">;</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a>  useStopWords<span class="op">?:</span> StopWordOptions<span class="op">;</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a>  stopWords<span class="op">?:</span> <span class="dt">string</span>[]</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a>}</span></code></pre></div>
+<p>We used <code>dataStructure</code> from it, which is optional. This can have only two values: “HASH” or “JSON”, we used JSON.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="im">export type</span> SearchDataStructure <span class="op">=</span> <span class="st">&#39;HASH&#39;</span> <span class="op">|</span> <span class="st">&#39;JSON&#39;</span><span class="op">;</span></span></code></pre></div>
 <h2 id="references">References</h2>
 <ul>
 <li><a href="https://github.com/f0c1s/redis-fulltext-sample-app">Source code: https://github.com/f0c1s/redis-fulltext-sample-app</a></li>
@@ -228,6 +278,7 @@ event - compiled client and server successfully in 82 ms (149 modules)
 <li><a href="https://stackoverflow.com/questions/52094110/err-unknown-command-json-set-rejson-redis">https://stackoverflow.com/questions/52094110/err-unknown-command-json-set-rejson-redis</a></li>
 <li><a href="https://oss.redis.com/redisearch/Commands/">redisearch commands: https://oss.redis.com/redisearch/Commands/</a></li>
 <li><a href="https://oss.redis.com/redisearch/Query_Syntax/">redisearch query syntax: https://oss.redis.com/redisearch/Query_Syntax/</a></li>
+<li><a href="https://github.com/f0c1s/redis-redis-om-node">repo fork</a></li>
 </ul>
 </body>
 </html>
