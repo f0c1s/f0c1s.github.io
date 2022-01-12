@@ -277,7 +277,7 @@ a.in {
 
 @media screen and (min-width: 320px) {
     body {
-        width: 320px;
+        min-width: 320px;
         padding: var(--d);
         margin: var(--d) auto;
     }
@@ -285,7 +285,7 @@ a.in {
 
 @media screen and (min-width: 480px) {
     body {
-        width: 480px;
+        min-width: 480px;
         padding: var(--d);
         margin: var(--d) auto;
     }
@@ -293,7 +293,7 @@ a.in {
 
 @media screen and (min-width: 760px) {
     body {
-        width: 760px;
+        min-width: 760px;
         padding: var(--d);
         margin: var(--d) auto;
     }
@@ -301,7 +301,7 @@ a.in {
 
 @media screen and (min-width: 960px) {
     body {
-        width: 960px;
+        min-width: 960px;
         padding: var(--d);
         margin: var(--d) auto;
     }
