@@ -171,7 +171,7 @@ I had to install redislabs/redismod, stop redis-one, run redismod on port 6379 a
 
 ## create redis index
 
-Update `description` field in `carEntity` schema to have another field: `textSearch: true`.
+Update `description` field in `carSchema` to have another field: `textSearch: true`.
 
 ![5.update-schema-for-fulltext-search](5.update-schema-for-fulltext-search.png)
 
