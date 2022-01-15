@@ -36,8 +36,7 @@ It was primarily developed for use by Node.js, but it's also used by Luvit, Juli
 features: Full-featured event loop backed by epoll, kqueue, IOCP, event ports.
 </blockquote>
 
-<details>
-<summary><h3>epoll</h3></summary>
+<h3>epoll</h3>
 <blockquote>
 epoll is a Linux kernel system call for a scalable I/O event notification mechanism,
 first introduced in version 2.5.44 of the Linux kernel.
@@ -457,10 +456,7 @@ struct uv_loop_s {
 };
 ```
 
-</details>
-
-<details>
-<summary><h3>kqueue</h3></summary>
+<h3>kqueue</h3>
 <blockquote>
 Kqueue is a scalable event notification interface introduced in FreeBSD 4.1 on July 2000,
 also supported in NetBSD, OpenBSD, DragonFly BSD, and macOS. Kqueue was originally authored in 2000 by Jonathan Lemon,
@@ -554,7 +550,6 @@ int uv__kqueue_init(uv_loop_t* loop) {
 
 ![2.kqueue-poll-while-loop](2.kqueue-poll-while-loop.png)
 
-</details>
 
 ## `uv_run`
 
@@ -631,7 +626,7 @@ Let's take a deeper look at this function.
 
 ### `uv__loop_alive`
 
-This function is the "diamond: loop alive?" check from the image. From the looks of the logic, it should return a boolean, but the signature suggests `int`.
+From the looks of the logic, it should return a boolean, but the signature suggests `int`.
 
 ```c
 static int uv__loop_alive(const uv_loop_t* loop) {
@@ -751,6 +746,359 @@ This concludes `uv__update_time`.
 
 ![5.here-we-are-so-far-in-event-loop](5.here-we-are-so-far-in-event-loop.png)
 
+### loop
+
+```c
+while (r != 0 && loop->stop_flag == 0) {
+// ...
+}
+
+```
+
+This basically is the “diamond: loop alive?” check from the image.
+
+What this code basically tells you is that at one point, when `loop->stop_flag` is not `0`, and also when `uv__loop_alive` returns `true`, actually a non zero value, the event loop will stop.
+
+And when it stops, it will just return the value returned from `uv__loop_alive`.
+
+Again, the event loop in libuv can stop if there are no active requests or active handles.
+
+```c
+/* The if statement lets gcc compile it to a conditional store. Avoids
+* dirtying a cache line.
+*/
+if (loop->stop_flag != 0)
+    loop->stop_flag = 0;
+
+return r;
+```
+
+Now to actual loop.
+
+#### `uv__update_time` again but in the loop
+
+```c
+uv__update_time(loop);
+```
+
+We have seen this one just a while agoe. Moving on to next one.
+
+#### `uv__run_timers`
+
+```c
+void uv__run_timers(uv_loop_t* loop) {
+  struct heap_node* heap_node;
+  uv_timer_t* handle;
+
+  for (;;) {
+    heap_node = heap_min(timer_heap(loop));
+    if (heap_node == NULL)
+      break;
+
+    handle = container_of(heap_node, uv_timer_t, heap_node);
+    if (handle->timeout > loop->time)
+      break;
+
+    uv_timer_stop(handle);
+    uv_timer_again(handle);
+    handle->timer_cb(handle);
+  }
+}
+
+
+//uv.h
+typedef struct uv_timer_s uv_timer_t;
+
+
+/*
+ * uv_timer_t is a subclass of uv_handle_t.
+ *
+ * Used to get woken up at a specified time in the future.
+ */
+struct uv_timer_s {
+  UV_HANDLE_FIELDS
+  UV_TIMER_PRIVATE_FIELDS
+};
+
+// unix.h
+#define UV_TIMER_PRIVATE_FIELDS                                               \
+  uv_timer_cb timer_cb;                                                       \
+  void* heap_node[3];                                                         \
+  uint64_t timeout;                                                           \
+  uint64_t repeat;                                                            \
+  uint64_t start_id;
+```
+
+We have already seen `UV_HANDLE_FIELDS`.
+
+Interestingly this function features an infinite loop of its own. The infinite loop is broken on two conditions.
+
+#### `uv__run_pending` in core.c
+
+```c
+static int uv__run_pending(uv_loop_t* loop) {
+  QUEUE* q;
+  QUEUE pq;
+  uv__io_t* w;
+
+  if (QUEUE_EMPTY(&loop->pending_queue))
+    return 0;
+
+  QUEUE_MOVE(&loop->pending_queue, &pq);
+
+  while (!QUEUE_EMPTY(&pq)) {
+    q = QUEUE_HEAD(&pq);
+    QUEUE_REMOVE(q);
+    QUEUE_INIT(q);
+    w = QUEUE_DATA(q, uv__io_t, pending_queue);
+    w->cb(loop, w, POLLOUT);
+  }
+
+  return 1;
+}
+
+
+// unix.h
+typedef struct uv__io_s uv__io_t;
+
+struct uv__io_s {
+  uv__io_cb cb;
+  void* pending_queue[2];
+  void* watcher_queue[2];
+  unsigned int pevents; /* Pending event mask i.e. mask at next tick. */
+  unsigned int events;  /* Current event mask. */
+  int fd;
+  UV_IO_PRIVATE_PLATFORM_FIELDS
+};
+
+typedef void (*uv__io_cb)(struct uv_loop_s* loop,
+                          struct uv__io_s* w,
+                          unsigned int events);
+
+#ifndef UV_IO_PRIVATE_PLATFORM_FIELDS
+# define UV_IO_PRIVATE_PLATFORM_FIELDS /* empty */
+#endif
+```
+
+We have already seen `uv__io_s` and the rest, but that was in the beginning of this document, I don't want you jump that far away.
+
+Now to `QUEUE` functions, erm..., macros:
+
+```c
+#define QUEUE_MOVE(h, n)                                                      \
+  do {                                                                        \
+    if (QUEUE_EMPTY(h))                                                       \
+      QUEUE_INIT(n);                                                          \
+    else {                                                                    \
+      QUEUE* q = QUEUE_HEAD(h);                                               \
+      QUEUE_SPLIT(h, q, n);                                                   \
+    }                                                                         \
+  }                                                                           \
+  while (0)
+
+
+#define QUEUE_EMPTY(q)                                                        \
+  ((const QUEUE *) (q) == (const QUEUE *) QUEUE_NEXT(q)
+
+
+#define QUEUE_NEXT(q)       (*(QUEUE **) &((*(q))[0]))
+
+
+#define QUEUE_INIT(q)                                                         \
+  do {                                                                        \
+    QUEUE_NEXT(q) = (q);                                                      \
+    QUEUE_PREV(q) = (q);                                                      \
+  }                                                                           \
+  while (0)
+
+
+#define QUEUE_PREV(q)       (*(QUEUE **) &((*(q))[1]))
+
+
+#define QUEUE_HEAD(q)                                                         \
+  (QUEUE_NEXT(q))
+
+
+#define QUEUE_SPLIT(h, q, n)                                                  \
+  do {                                                                        \
+    QUEUE_PREV(n) = QUEUE_PREV(h);                                            \
+    QUEUE_PREV_NEXT(n) = (n);                                                 \
+    QUEUE_NEXT(n) = (q);                                                      \
+    QUEUE_PREV(h) = QUEUE_PREV(q);                                            \
+    QUEUE_PREV_NEXT(h) = (h);                                                 \
+    QUEUE_PREV(q) = (n);                                                      \
+  }                                                                           \
+  while (0)
+
+
+#define QUEUE_EMPTY(q)                                                        \
+  ((const QUEUE *) (q) == (const QUEUE *) QUEUE_NEXT(q))
+
+
+#define QUEUE_REMOVE(q)                                                       \
+  do {                                                                        \
+    QUEUE_PREV_NEXT(q) = QUEUE_NEXT(q);                                       \
+    QUEUE_NEXT_PREV(q) = QUEUE_PREV(q);                                       \
+  }                                                                           \
+  while (0)
+
+
+#define QUEUE_PREV_NEXT(q)  (QUEUE_NEXT(QUEUE_PREV(q)))
+#define QUEUE_NEXT_PREV(q)  (QUEUE_PREV(QUEUE_NEXT(q)))
+
+
+#define QUEUE_DATA(ptr, type, field)                                          \
+  ((type *) ((char *) (ptr) - offsetof(type, field)))
+
+
+// stddef.h
+/* Offset of member MEMBER in a struct of type TYPE. */
+#define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+
+
+// poll.h
+#define POLLOUT		0x004		/* Writing now will not block.  */
+```
+
+This concludes `uv__run_pending`.
+
+#### uv__run_idle, uv__run_prepare, uv__run_check
+
+These come from a massive macro, that generates a family of functions. This code resides in loop-watcher.c
+
+```c
+#define UV_LOOP_WATCHER_DEFINE(name, type)                                    \
+  int uv_##name##_init(uv_loop_t* loop, uv_##name##_t* handle) {              \
+    uv__handle_init(loop, (uv_handle_t*)handle, UV_##type);                   \
+    handle->name##_cb = NULL;                                                 \
+    return 0;                                                                 \
+  }                                                                           \
+                                                                              \
+  int uv_##name##_start(uv_##name##_t* handle, uv_##name##_cb cb) {           \
+    if (uv__is_active(handle)) return 0;                                      \
+    if (cb == NULL) return UV_EINVAL;                                         \
+    QUEUE_INSERT_HEAD(&handle->loop->name##_handles, &handle->queue);         \
+    handle->name##_cb = cb;                                                   \
+    uv__handle_start(handle);                                                 \
+    return 0;                                                                 \
+  }                                                                           \
+                                                                              \
+  int uv_##name##_stop(uv_##name##_t* handle) {                               \
+    if (!uv__is_active(handle)) return 0;                                     \
+    QUEUE_REMOVE(&handle->queue);                                             \
+    uv__handle_stop(handle);                                                  \
+    return 0;                                                                 \
+  }                                                                           \
+                                                                              \
+  void uv__run_##name(uv_loop_t* loop) {                                      \
+    uv_##name##_t* h;                                                         \
+    QUEUE queue;                                                              \
+    QUEUE* q;                                                                 \
+    QUEUE_MOVE(&loop->name##_handles, &queue);                                \
+    while (!QUEUE_EMPTY(&queue)) {                                            \
+      q = QUEUE_HEAD(&queue);                                                 \
+      h = QUEUE_DATA(q, uv_##name##_t, queue);                                \
+      QUEUE_REMOVE(q);                                                        \
+      QUEUE_INSERT_TAIL(&loop->name##_handles, q);                            \
+      h->name##_cb(h);                                                        \
+    }                                                                         \
+  }                                                                           \
+                                                                              \
+  void uv__##name##_close(uv_##name##_t* handle) {                            \
+    uv_##name##_stop(handle);                                                 \
+  }
+
+UV_LOOP_WATCHER_DEFINE(prepare, PREPARE)
+UV_LOOP_WATCHER_DEFINE(check, CHECK)
+UV_LOOP_WATCHER_DEFINE(idle, IDLE)
+
+```
+
+Quickly moving on from these functions.
+
+#### `uv__backend_timeout`
+
+```c
+int uv_backend_timeout(const uv_loop_t* loop) {
+  if (loop->stop_flag != 0)
+    return 0;
+
+  if (!uv__has_active_handles(loop) && !uv__has_active_reqs(loop))
+    return 0;
+
+  if (!QUEUE_EMPTY(&loop->idle_handles))
+    return 0;
+
+  if (!QUEUE_EMPTY(&loop->pending_queue))
+    return 0;
+
+  if (loop->closing_handles)
+    return 0;
+
+  return uv__next_timeout(loop);
+}
+```
+
+#### `uv__io_poll` again. what.
+
+We have seen this in epoll above. No need to get into it here.
+
+#### `uv__metrics_update_idle_time`
+
+```c
+void uv__metrics_update_idle_time(uv_loop_t* loop) {
+  uv__loop_metrics_t* loop_metrics;
+  uint64_t entry_time;
+  uint64_t exit_time;
+
+  if (!(uv__get_internal_fields(loop)->flags & UV_METRICS_IDLE_TIME))
+    return;
+
+  loop_metrics = uv__get_loop_metrics(loop);
+
+  /* The thread running uv__metrics_update_idle_time() is always the same
+   * thread that sets provider_entry_time. So it's unnecessary to lock before
+   * retrieving this value.
+   */
+  if (loop_metrics->provider_entry_time == 0)
+    return;
+
+  exit_time = uv_hrtime();
+
+  uv_mutex_lock(&loop_metrics->lock);
+  entry_time = loop_metrics->provider_entry_time;
+  loop_metrics->provider_entry_time = 0;
+  loop_metrics->provider_idle_time += exit_time - entry_time;
+  uv_mutex_unlock(&loop_metrics->lock);
+}
+
+```
+
+#### `uv__run_closing_handles`
+
+```c
+static void uv__run_closing_handles(uv_loop_t* loop) {
+  uv_handle_t* p;
+  uv_handle_t* q;
+
+  p = loop->closing_handles;
+  loop->closing_handles = NULL;
+
+  while (p) {
+    q = p->next_closing;
+    uv__finish_close(p);
+    p = q;
+  }
+}
+
+```
+
+This is pretty much in the event loop. It also checks for the case when the loop is supposed to run only once, or if `mode` is `UV_RUN_NOWAIT`, then it exits the loop. But that's later...
+
+![6.event-loop-iteration-function-call-structure](6.event-loop-iteration-function-call-structure.png)
+
+The image above juxtaposes the phrases from `3.loop_iteration.png` above with the function calls for better grasp of code and its behavior.
+
 ## libevent
 
 ## V8
@@ -785,14 +1133,13 @@ bool DefaultPlatform::PumpMessageLoop(v8::Isolate* isolate,
 
 ## miscellaneous
 
-<details>
-<summary><h3>libkqueue</h3></summary>
+<h3>libkqueue</h3>
 <blockquote>
 libkqueue is a portable userspace implementation of the kqueue(2) kernel event notification mechanism found in FreeBSD and
 other BSD-based operating systems.
 The library translates between the kevent structure and the native kernel facilities of the host machine.
 </blockquote>
-</details>
+
 
 ## References
 
