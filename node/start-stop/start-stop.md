@@ -132,7 +132,7 @@ implementation.
 
 <details>
 <summary>
-<h2> `per_process::node_start_time`</h2>
+<h2 id="per_process_node_start_time"> `per_process::node_start_time`</h2>
 </summary>
 
 
@@ -230,8 +230,8 @@ Notice these are machine dependent values.
 "A long integer can represent a whole integer whose range is greater than or equal to that of a standard integer on the same machine."
 </blockquote>
 
-
 </details>
+
 
 
 

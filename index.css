@@ -275,11 +275,28 @@ a.in {
 }
 
 blockquote {
-    font-size: 1.2em;
-    font-weight: bold;
-    font-style: italic;
+    font-size: .9em;
     text-shadow: 2px 2px 2px black;
     padding: 1rem;
+}
+
+blockquote::before,
+blockquote::after {
+    display: inline;
+    color: red;
+    font-size: 1.4em;
+}
+
+blockquote::before {
+    content: "‟";
+}
+
+blockquote::after {
+    content: "”";
+}
+
+blockquote p {
+    display: inline;
 }
 
 details {
@@ -295,9 +312,15 @@ summary {
     color: red;
     font-size: 2em;
     border-top: thin solid red;
+    cursor: pointer;
 }
 
-summary h2 {
+summary h1,
+summary h2,
+summary h3,
+summary h4,
+summary h5,
+summary h6 {
     display: inline-block;
     padding-top: 0;
 }
