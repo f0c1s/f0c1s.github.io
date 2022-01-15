@@ -664,6 +664,10 @@ This contrasts with older traditional polling system calls such as poll(2) and s
 <p>And we can see in <code>4.UV_LOOP_PRIVATE_FOELDS.PNG</code> above that <code>uint64_t time;</code> exists in the private field.</p>
 <p>Thus, the code <code>loop-&gt;time</code> is understood and call to <code>uv__hrtime</code> can be understood easily.</p>
 <p><a href="../../node/start-stop/start-stop.html#uv__hrtime">Read this for uv__hrtime</a></p>
+<p>This concludes <code>uv__update_time</code>.</p>
+<figure>
+<img src="5.here-we-are-so-far-in-event-loop.png" alt="" /><figcaption>5.here-we-are-so-far-in-event-loop</figcaption>
+</figure>
 <h2 id="libevent">libevent</h2>
 <h2 id="v8">V8</h2>
 <h3 id="v8srclibplatformdefault-platform.cc">V8/src/libplatform/default-platform.cc</h3>

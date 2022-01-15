@@ -97,12 +97,9 @@ blog.f0c1s.com/node/start-stop
 <p>This is basically all of the first line of the Start function. Then start function gets to create <code>v8::StartupData * blob</code>, initializes <code>uv_default_loop</code> for event looping and runs a <code>NodeMainInstance</code>.</p>
 <p>Then it calls <code>TearDownOncePerProcess</code>.</p>
 <p>I am going to look a bit deeper into it soon, but before that I am going to take a look at libuv and event_loop implementation.</p>
-<details>
-<summary>
 <h2 id="per_process_node_start_time">
 <code>per_process::node_start_time</code>
 </h2>
-<p></summary></p>
 <p>While reading up code we came across <code>node_start_time</code> variable in <code>InitializeNodeWithArgs</code> function.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co">// Initialize node_start_time to get relative uptime.</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  per_process::node_start_time = uv_hrtime();</span></code></pre></div>
@@ -171,7 +168,6 @@ blog.f0c1s.com/node/start-stop
 <blockquote>
 “A long integer can represent a whole integer whose range is greater than or equal to that of a standard integer on the same machine.”
 </blockquote>
-</details>
 <h2 id="stop">Stop</h2>
 <div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="dt">int</span> Stop(Environment* env) {</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  env-&gt;ExitEnv();</span>

@@ -747,6 +747,10 @@ Thus, the code `loop->time` is understood and call to `uv__hrtime` can be unders
 
 [Read this for uv__hrtime](../../node/start-stop/start-stop.html#uv__hrtime)
 
+This concludes `uv__update_time`.
+
+![5.here-we-are-so-far-in-event-loop](5.here-we-are-so-far-in-event-loop.png)
+
 ## libevent
 
 ## V8

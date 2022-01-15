@@ -130,11 +130,7 @@ Then it calls `TearDownOncePerProcess`.
 I am going to look a bit deeper into it soon, but before that I am going to take a look at libuv and event_loop
 implementation.
 
-<details>
-<summary>
 <h2 id="per_process_node_start_time"> `per_process::node_start_time`</h2>
-</summary>
-
 
 While reading up code we came across `node_start_time` variable in `InitializeNodeWithArgs` function.
 
@@ -231,10 +227,6 @@ Notice these are machine dependent values.
 <blockquote>
 "A long integer can represent a whole integer whose range is greater than or equal to that of a standard integer on the same machine."
 </blockquote>
-
-</details>
-
-
 
 
 ## Stop
