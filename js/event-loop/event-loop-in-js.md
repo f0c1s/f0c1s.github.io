@@ -5,7 +5,9 @@
     <title>blog.f0c1s.com/js/event-loop</title>
     <link rel="stylesheet" href="../../index.css"/>
     <script src="../../setup.js" async></script>
-</head>
+    <link rel="stylesheet" href="../../highlight/styles/monokai.min.css"/>
+    <script src="../../highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script></head>
 <body onload="setup()">
 <h1>
     /f0c1s/blog/js/event-loop
@@ -18,13 +20,10 @@
 
 ## Overview
 
-There is no specific single event loop. It depends upon the environment, which includes OS, platform, runtime (browser, node).
+There is no specific single event loop. It depends upon the environment, which includes OS, platform, runtime (browser,
+node).
 
-## What is it
 
-- An infinite-wait-queue-loop which waits on events to be processed.
-    - Infinite: literally a while
--
 
 </body>
 </html>

@@ -5,6 +5,9 @@
     <title>/f0c1s/blog/redis/redis-fulltext</title>
     <link rel="stylesheet" href="../../index.css"/>
     <script src="../../setup.js"></script>
+    <link rel="stylesheet" href="../../highlight/styles/monokai.min.css"/>
+    <script src="../../highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
 </head>
 
 <body onload="setup()">
@@ -276,7 +279,8 @@ It is defined [here, on github](https://github.com/redis/redis-om-node/blob/main
 export default class Schema<TEntity extends Entity> {
 ```
 
-It defines a schema that determines how an entity is mapped to Redis data structures. An entity is coded [here](https://github.com/redis/redis-om-node/blob/main/lib/entity/entity.ts#L25){.in}.
+It defines a schema that determines how an entity is mapped to Redis data structures. An entity is
+coded [here](https://github.com/redis/redis-om-node/blob/main/lib/entity/entity.ts#L25){.in}.
 
 Schema is defined for types that are extended from Entity. Entity is an abstract type in the code.
 
@@ -284,7 +288,8 @@ Schema is defined for types that are extended from Entity. Entity is an abstract
 export default abstract class Entity {
 ```
 
-Redis OM maps to objects of type Entity. But in order to do that, we need to write code that provides concrete implementation of Entity via sub-classing.
+Redis OM maps to objects of type Entity. But in order to do that, we need to write code that provides concrete
+implementation of Entity via sub-classing.
 
 ```typescript
 class CarEntity extends Entity {}
@@ -292,7 +297,8 @@ class CarEntity extends Entity {}
 
 Above is what we wrote to generate sub class of entity and then passed it to generate schema.
 
-An entity object has readonly `entityId` and `entityData`, you might remember `entityId` from usage as key in react code above.
+An entity object has readonly `entityId` and `entityData`, you might remember `entityId` from usage as key in react code
+above.
 
 `entityData` is marked internal and is the piece of the data that gets written to the redis database.
 

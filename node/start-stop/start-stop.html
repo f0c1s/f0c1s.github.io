@@ -6,7 +6,10 @@
 blog.f0c1s.com/node/start-stop
 </title>
 <link rel="stylesheet" href="../../index.css"/>
-<script src="../../setup.js" async></script>
+<script src="../../setup.js"></script>
+<link rel="stylesheet" href="../../highlight/styles/monokai.min.css"/>
+<script src="../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
 </head>
 <body onload="setup()">
 <h1>
@@ -94,10 +97,84 @@ blog.f0c1s.com/node/start-stop
 <p>This is basically all of the first line of the Start function. Then start function gets to create <code>v8::StartupData * blob</code>, initializes <code>uv_default_loop</code> for event looping and runs a <code>NodeMainInstance</code>.</p>
 <p>Then it calls <code>TearDownOncePerProcess</code>.</p>
 <p>I am going to look a bit deeper into it soon, but before that I am going to take a look at libuv and event_loop implementation.</p>
+<details>
+<summary>
+<h2>
+<code>per_process::node_start_time</code>
+</h2>
+<p></summary></p>
+<p>I came across this in <code>InitializeNodeWithArgs</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co">// Initialize node_start_time to get relative uptime.</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  per_process::node_start_time = uv_hrtime();</span></code></pre></div>
+<p>I reached uv.h, following <code>uv_hrtime</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>UV_EXTERN <span class="dt">uint64_t</span> uv_hrtime(<span class="dt">void</span>);</span></code></pre></div>
+<p>In libuv, this function is present in src/unix/core.c</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="dt">uint64_t</span> uv_hrtime(<span class="dt">void</span>) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>  <span class="cf">return</span> uv__hrtime(UV_CLOCK_PRECISE);</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This takes us to function <code>uv__hrtime</code>, yes, with two underscores.</p>
+<p>Shortened version is:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="dt">uint64_t</span> uv__hrtime(uv_clocktype_t type) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>  <span class="dt">static</span> clock_t fast_clock_id = -<span class="dv">1</span>;</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>  <span class="kw">struct</span> timespec t;</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>  clock_t clock_id;</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>  clock_id = CLOCK_MONOTONIC;</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a>  <span class="cf">if</span> (type != UV_CLOCK_FAST)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>    <span class="cf">goto</span> done;</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a>  clock_id = uv__load_relaxed(&amp;fast_clock_id);</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a>  <span class="cf">if</span> (clock_id != -<span class="dv">1</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a>    <span class="cf">goto</span> done;</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true"></a>  clock_id = CLOCK_MONOTONIC;</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true"></a>  <span class="cf">if</span> (<span class="dv">0</span> == clock_getres(CLOCK_MONOTONIC_COARSE, &amp;t))</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true"></a>    <span class="cf">if</span> (t.tv_nsec &lt;= <span class="dv">1</span> * <span class="dv">1000</span> * <span class="dv">1000</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true"></a>      clock_id = CLOCK_MONOTONIC_COARSE;</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true"></a>  uv__store_relaxed(&amp;fast_clock_id, clock_id);</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true"></a></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true"></a>done:</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true"></a>  <span class="cf">if</span> (clock_gettime(clock_id, &amp;t))</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;  <span class="co">/* Not really possible. */</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true"></a>  <span class="cf">return</span> t.tv_sec * (<span class="dt">uint64_t</span>) <span class="fl">1e9</span> + t.tv_nsec;</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true"></a>}</span></code></pre></div>
+<p>The library <a href="https://github.com/libuv/libuv" class="in">libuv</a> provides high resolution clock too. I guess thats what’s happening here.</p>
+<p>It returns current timestamp according to the clock.</p>
+<figure>
+<img src="5.libuv-uv__hrtime.png" alt="" /><figcaption>5.libuv-uv__hrtime</figcaption>
+</figure>
+<p>A few definitions</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co">// time.h</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="pp"># define CLOCK_MONOTONIC        1</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="co">// internal.h</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">enum</span> {</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>  UV_CLOCK_PRECISE = <span class="dv">0</span>,  <span class="co">/* Use the highest resolution clock available. */</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a>  UV_CLOCK_FAST = <span class="dv">1</span>      <span class="co">/* Use the fastest clock with &lt;= 1ms granularity. */</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a>} uv_clocktype_t;</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a><span class="co">// static clock_t fast_clock_id = -1;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a><span class="co">// clock_t.h</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a><span class="kw">typedef</span> __clock_t clock_t;</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a><span class="co">// types.h</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a>__STD_TYPE __CLOCK_T_TYPE __clock_t;    <span class="co">/* Type of CPU usage counts.  */</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a><span class="co">// typesizes.h</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true"></a><span class="pp">#define __CLOCK_T_TYPE      __SYSCALL_SLONG_TYPE</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true"></a><span class="pp"># define __SYSCALL_SLONG_TYPE   __SLONGWORD_TYPE</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true"></a><span class="co">// types.h</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true"></a><span class="pp">#define __SLONGWORD_TYPE    long int</span></span></code></pre></div>
+<p>Notice these are machine dependent values.</p>
+<p><a href="https://en.wikipedia.org/wiki/Integer_(computer_science)#Long_integer">wiki: long int</a></p>
+<blockquote>
+“A long integer can represent a whole integer whose range is greater than or equal to that of a standard integer on the same machine.”
+</blockquote>
+</details>
 <h2 id="stop">Stop</h2>
-<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="dt">int</span> Stop(Environment* env) {</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  env-&gt;ExitEnv();</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="dt">int</span> Stop(Environment* env) {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  env-&gt;ExitEnv();</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>}</span></code></pre></div>
 </body>
 </html>

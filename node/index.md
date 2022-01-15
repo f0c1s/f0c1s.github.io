@@ -13,7 +13,7 @@
 <nav>
     <a href="../index.html">/blog</a>
     <a href="../node/index.html">+ node</a>
-    <a href="../node/start-stop/start-stop.html">node start stop</a>
+    <a href="../node/start-stop/start-stop.html">start stop</a>
 </nav>
 
 ## NodeJS
