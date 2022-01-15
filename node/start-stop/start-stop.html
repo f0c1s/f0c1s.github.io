@@ -1,0 +1,103 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+blog.f0c1s.com/node/start-stop
+</title>
+<link rel="stylesheet" href="../../index.css"/>
+<script src="../../setup.js" async></script>
+</head>
+<body onload="setup()">
+<h1>
+/f0c1s/blog/node/start-stop
+</h1>
+<nav>
+<a href="../../index.html">/blog</a> <a href="../../node/index.html">node</a> <a href="../../node/start-stop/start-stop.html">+ start stop</a>
+</nav>
+<h2 id="start">Start</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="dt">int</span> Start(<span class="dt">int</span> argc, <span class="dt">char</span>** argv) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>  InitializationResult result = InitializeOncePerProcess(argc, argv);</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>  <span class="cf">if</span> (result.early_return) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="cf">return</span> result.exit_code;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>  }</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>  {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>    Isolate::CreateParams params;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>    <span class="at">const</span> <span class="bu">std::</span>vector&lt;<span class="dt">size_t</span>&gt;* indices = <span class="kw">nullptr</span>;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>    <span class="at">const</span> EnvSerializeInfo* env_info = <span class="kw">nullptr</span>;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>    <span class="dt">bool</span> use_node_snapshot =</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>        per_process::cli_options-&gt;per_isolate-&gt;node_snapshot;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>    <span class="cf">if</span> (use_node_snapshot) {</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>      v8::StartupData* blob = NodeMainInstance::GetEmbeddedSnapshotBlob();</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a>      <span class="cf">if</span> (blob != <span class="kw">nullptr</span>) {</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>        params.snapshot_blob = blob;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>        indices = NodeMainInstance::GetIsolateDataIndices();</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a>        env_info = NodeMainInstance::GetEnvSerializeInfo();</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true"></a>      }</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true"></a>    }</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true"></a>    uv_loop_configure(uv_default_loop(), UV_METRICS_IDLE_TIME);</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true"></a>    NodeMainInstance main_instance(&amp;params,</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true"></a>                                   uv_default_loop(),</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a>                                   per_process::v8_platform.Platform(),</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a>                                   result.args,</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true"></a>                                   result.exec_args,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true"></a>                                   indices);</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true"></a>    result.exit_code = main_instance.Run(env_info);</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true"></a>  }</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true"></a></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true"></a>  TearDownOncePerProcess();</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true"></a>  <span class="cf">return</span> result.exit_code;</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true"></a>}</span></code></pre></div>
+<figure>
+<img src="1.Start-function.png" alt="" /><figcaption>1.Start-function</figcaption>
+</figure>
+<p>You can notice event loop being initialized in line 1161.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>InitializationResult InitializeOncePerProcess(<span class="dt">int</span> argc, <span class="dt">char</span>** argv) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>  <span class="cf">return</span> InitializeOncePerProcess(argc, argv, kDefaultInitialization);</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>}</span></code></pre></div>
+<figure>
+<img src="2.InitializeOncePerProcess-function.png" alt="" /><figcaption>2.InitializeOncePerProcess-function</figcaption>
+</figure>
+<p>Weirdly, there are two of these here, same name, different paramlist. I thought this is not possible in C. What magic is this?</p>
+<p>Not only this, the function call is passing three params, where as the functions defined accept two or four params.</p>
+<p>Welp, just realized, it is CPP. But the non-matching param count is still a mystery to me. May be CPP allows it?</p>
+<p>Here is the other function:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>InitializationResult InitializeOncePerProcess(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>  <span class="dt">int</span> argc,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>  <span class="dt">char</span>** argv,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>  InitializationSettingsFlags flags,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>  ProcessFlags::Flags process_flags) { <span class="co">///</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>}</span></code></pre></div>
+<p>From node.cc we jump to node_internals.h for <code>kDefaultInitialization</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">enum</span> InitializationSettingsFlags : <span class="dt">uint64_t</span> {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>  kDefaultInitialization = <span class="dv">1</span> &lt;&lt; <span class="dv">0</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>  kInitializeV8 = <span class="dv">1</span> &lt;&lt; <span class="dv">1</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>  kRunPlatformInit = <span class="dv">1</span> &lt;&lt; <span class="dv">2</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>  kInitOpenSSL = <span class="dv">1</span> &lt;&lt; <span class="dv">3</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>};</span></code></pre></div>
+<p>Now, <code>1&lt;&lt;0</code> is a fancy way of saying <code>1</code>, but it forms a theme when we look at rest of the enum.</p>
+<p><code>InitializeOncePerProcess</code> basically sets up <code>init_flags</code>, calls <code>per_process::enabled_debug_list.Parse</code> for <code>Debug()</code> calls.</p>
+<p>Then it sets up <code>ResetStdio</code> to be called when process exits via <code>atexit(ResetStdio)</code>.</p>
+<p>Then if the <code>kRunPlatformInit</code> flag is present, which is determined if <code>kDefaultInitialization</code> was passed to the function as <code>flags</code>, it calls <code>PlatformInit</code>.</p>
+<p>Some yada yada, and it calls <code>InitializeNodeWithArgs</code> and passes a few data structures via reference to it.</p>
+<p>Then it checks for a bunch of <code>cli_options</code> and reaches where it intializes v8 platform via <code>per_process::v8_platform.Initialize</code>.</p>
+<p>After which, it checks if <code>kInitializeV8</code> flag is present and if so, it calls <code>V8::Initialize</code>.</p>
+<p>Here’s what it looks like in diagrams.</p>
+<figure>
+<img src="3.node-start.2022.01.15.png" alt="" /><figcaption>3.node-start.2022.01.15</figcaption>
+</figure>
+<figure>
+<img src="4.node-start-InitializeOncePerProcess.2022.01.15.png" alt="" /><figcaption>4.node-start-InitializeOncePerProcess.2022.01.15</figcaption>
+</figure>
+<p>This is basically all of the first line of the Start function. Then start function gets to create <code>v8::StartupData * blob</code>, initializes <code>uv_default_loop</code> for event looping and runs a <code>NodeMainInstance</code>.</p>
+<p>Then it calls <code>TearDownOncePerProcess</code>.</p>
+<p>I am going to look a bit deeper into it soon, but before that I am going to take a look at libuv and event_loop implementation.</p>
+<h2 id="stop">Stop</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="dt">int</span> Stop(Environment* env) {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  env-&gt;ExitEnv();</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>}</span></code></pre></div>
+</body>
+</html>
