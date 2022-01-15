@@ -392,9 +392,11 @@ while (!QUEUE_EMPTY(&loop->watcher_queue)) {
 
 ![1.epoll-poll-while-loop](1.epoll-poll-while-loop.png)
 
-This function contains the event loop logic.
+This function contains the event queue logic. This actually is not the event loop.
 
-[Read node start-stop](http://blog.f0c1s.com/node/start-stop/start-stop.html)
+[node start initializes an event loop](http://blog.f0c1s.com/node/start-stop/start-stop.html)
+
+Below are the data structures and definitions of macros that we see in the code above.
 
 ```c
 // queue.h
@@ -552,12 +554,11 @@ int uv__kqueue_init(uv_loop_t* loop) {
 
 ![2.kqueue-poll-while-loop](2.kqueue-poll-while-loop.png)
 
-
-
 </details>
 
-
 ## `uv_run`
+
+This is the actual event loop from libuv.
 
 ```c
 int uv_run(uv_loop_t* loop, uv_run_mode mode) {
@@ -624,6 +625,158 @@ This is basically represented by this diagram, which you would have seen in nume
 
 ![3.loop_iteration.png](3.loop_iteration.png)
 
+If you notice, this function calls `uv__io_poll` which manages the event queue.
+
+Let's take a deeper look at this function.
+
+### `uv__loop_alive`
+
+This function is the "diamond: loop alive?" check from the image. From the looks of the logic, it should return a boolean, but the signature suggests `int`.
+
+```c
+static int uv__loop_alive(const uv_loop_t* loop) {
+  return uv__has_active_handles(loop) ||
+         uv__has_active_reqs(loop) ||
+         loop->closing_handles != NULL;
+}
+
+#define uv__has_active_handles(loop)                                          \
+  ((loop)->active_handles > 0)
+
+#define uv__has_active_reqs(loop)                                             \
+  ((loop)->active_reqs.count > 0)
+
+```
+
+Now, for the `closing_handles`, it is actually part of `UV_LOOP_PRIVATE_FIELDS`. I am guessing that this is not exposed to consumer of this library, but is internal to libuv only.
+
+
+```c
+uv_handle_t* closing_handles;
+```
+
+![4.UV_LOOP_PRIVATE_FIELDS](4.UV_LOOP_PRIVATE_FIELDS.png)
+
+And now you may ask where is `UV_LOOP_PRIVATE_FIELDS` used, well, we have actually seen it above in `uv_loop_s` structure.
+
+#### `uv_handle_t`
+
+This again is a little bit of walk through the code.
+
+```c
+// uv.h
+typedef struct uv_handle_s uv_handle_t;
+
+
+/* The abstract base class of all handles. */
+struct uv_handle_s {
+  UV_HANDLE_FIELDS
+};
+
+
+#define UV_HANDLE_FIELDS                                                      \
+  /* public */                                                                \
+  void* data;                                                                 \
+  /* read-only */                                                             \
+  uv_loop_t* loop;                                                            \
+  uv_handle_type type;                                                        \
+  /* private */                                                               \
+  uv_close_cb close_cb;                                                       \
+  void* handle_queue[2];                                                      \
+  union {                                                                     \
+    int fd;                                                                   \
+    void* reserved[4];                                                        \
+  } u;                                                                        \
+  UV_HANDLE_PRIVATE_FIELDS                                                    \
+
+
+typedef enum {
+  UV_UNKNOWN_HANDLE = 0,
+#define XX(uc, lc) UV_##uc,
+  UV_HANDLE_TYPE_MAP(XX)
+#undef XX
+  UV_FILE,
+  UV_HANDLE_TYPE_MAX
+} uv_handle_type;
+
+
+typedef void (*uv_close_cb)(uv_handle_t* handle);
+
+
+// unix.h
+#define UV_HANDLE_PRIVATE_FIELDS                                              \
+  uv_handle_t* next_closing;                                                  \
+  unsigned int flags;
+```
+
+This basically concludes `uv__loop_alive`.
+
+### `uv__update_time`
+
+```c
+UV_UNUSED(static void uv__update_time(uv_loop_t* loop)) {
+  /* Use a fast time source if available.  We only need millisecond precision.
+   */
+  loop->time = uv__hrtime(UV_CLOCK_FAST) / 1000000;
+}
+```
+
+Here is the code that helps us make sense of it.
+
+```c
+/* The __clang__ and __INTEL_COMPILER checks are superfluous because they
+ * define __GNUC__. They are here to convey to you, dear reader, that these
+ * macros are enabled when compiling with clang or icc.
+ */
+#if defined(__clang__) ||                                                     \
+    defined(__GNUC__) ||                                                      \
+    defined(__INTEL_COMPILER)
+# define UV_UNUSED(declaration)     __attribute__((unused)) declaration
+#else
+# define UV_UNUSED(declaration)     declaration
+#endif
+```
+
+Love the description for the macros.
+
+Now we know that the `loop` is of type `uv_loop_t *`, which is basically `uv_loop_s*`; and that `uv_loop_s` contains `UV_LOOP_PRIVATE_FIELDS`.
+
+And we can see in `4.UV_LOOP_PRIVATE_FOELDS.PNG` above that `uint64_t time;` exists in the private field.
+
+Thus, the code `loop->time` is understood and call to `uv__hrtime` can be understood easily.
+
+[Read this for uv__hrtime](../../node/start-stop/start-stop.html#uv__hrtime)
+
+## libevent
+
+## V8
+
+### V8/src/libplatform/default-platform.cc
+
+Here is the implementation by V8. This is basic, and as I understand any binary embedding V8 shouold override it.
+
+```cpp
+bool DefaultPlatform::PumpMessageLoop(v8::Isolate* isolate,
+                                      MessageLoopBehavior wait_for_work) {
+  bool failed_result = wait_for_work == MessageLoopBehavior::kWaitForWork;
+  std::shared_ptr<DefaultForegroundTaskRunner> task_runner;
+  {
+    base::MutexGuard guard(&lock_);
+    auto it = foreground_task_runner_map_.find(isolate);
+    if (it == foreground_task_runner_map_.end()) return failed_result;
+    task_runner = it->second;
+  }
+
+  std::unique_ptr<Task> task = task_runner->PopTaskFromQueue(wait_for_work);
+  if (!task) return failed_result;
+
+  DefaultForegroundTaskRunner::RunTaskScope scope(task_runner);
+  task->Run();
+  return true;
+}
+
+```
+
 
 
 ## miscellaneous
@@ -648,6 +801,11 @@ The library translates between the kevent structure and the native kernel facili
 - [wiki: IOCP](https://en.wikipedia.org/wiki/IOCP)
 - [wiki: RedBlackTree](https://en.wikipedia.org/wiki/Red-black_tree)
 - [packages.debian: libkqueue](https://packages.debian.org/sid/libkqueue-dev)
+- [kqueue paper pdf](https://people.freebsd.org/~jlemon/papers/kqueue.pdf)
+- [nginx events](http://nginx.org/en/docs/events.html)
+- [SO: does v8 have an event loop](https://stackoverflow.com/questions/50115031/does-v8-have-an-event-loop)
+- [SO: relationship](https://stackoverflow.com/questions/49811043/relationship-between-event-loop-libuv-and-v8-engine)
+- [SO: difference](https://stackoverflow.com/questions/31582672/what-is-the-different-between-javascript-event-loop-and-node-js-event-loop/61458912#61458912)
 
 </body>
 </html>

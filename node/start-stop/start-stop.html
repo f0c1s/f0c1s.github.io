@@ -106,6 +106,7 @@ blog.f0c1s.com/node/start-stop
 <p>While reading up code we came across <code>node_start_time</code> variable in <code>InitializeNodeWithArgs</code> function.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co">// Initialize node_start_time to get relative uptime.</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  per_process::node_start_time = uv_hrtime();</span></code></pre></div>
+<h3 id="uv__hrtime"><code>uv__hrtime</code></h3>
 <p>Following <code>uv_hrtime</code> takes us to uv.h:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>UV_EXTERN <span class="dt">uint64_t</span> uv_hrtime(<span class="dt">void</span>);</span></code></pre></div>
 <p>In libuv, this function is present in src/unix/core.c</p>

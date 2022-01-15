@@ -143,6 +143,8 @@ While reading up code we came across `node_start_time` variable in `InitializeNo
   per_process::node_start_time = uv_hrtime();
 ```
 
+### `uv__hrtime`
+
 Following `uv_hrtime` takes us to uv.h:
 
 ```cpp
