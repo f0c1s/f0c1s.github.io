@@ -13,6 +13,7 @@
     <a href="../index.html">/blog</a>
     <a href="./index.html">+ react web dev</a>
     <a href="./counter/counter.html">counter</a>
+    <a href="./tic-tac-toe/tic-tac-toe.html">tic-tac-toe</a>
 </nav>
 
 <h2>I hate react</h2>
@@ -23,6 +24,7 @@ ecosystem.
 Follow the trail.
 
 1. counter
+2. tic-tac-toe
 
 </body>
 </html>

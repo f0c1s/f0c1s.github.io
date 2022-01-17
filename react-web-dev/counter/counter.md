@@ -10,7 +10,7 @@
     <script>hljs.highlightAll();</script>
 </head>
 
-<body class="aoc 2021 aoc2021" onload="setup()">
+<body onload="setup()">
 <h1>/f0c1s/blog/react-web-dev/counter</h1>
 <nav>
     <a href="../../index.html">/blog</a>
