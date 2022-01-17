@@ -16,11 +16,6 @@
     <a href="./tic-tac-toe/tic-tac-toe.html">tic-tac-toe</a>
 </nav>
 
-<h2>I hate react</h2>
-
-It is mostly because I don't understand it, at all. This here is my final attempt at understanding react and its
-ecosystem.
-
 Follow the trail.
 
 1. counter

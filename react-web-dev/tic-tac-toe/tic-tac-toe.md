@@ -18,6 +18,8 @@
     <a href="../../react-web-dev/tic-tac-toe/tic-tac-toe.html">+ tic tac toe in React</a>
 </nav>
 
+[Source code repo](https://github.com/f0c1s/tic-tac-toe-in-react)
+
 ```shell
 yarn create react-app tic-tac-toe --template typescript
 ```
