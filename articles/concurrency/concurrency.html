@@ -1,0 +1,212 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+/f0c1s/blog/articles/concurrency
+</title>
+<link rel="stylesheet" href="../../index.css"/> <link rel="stylesheet" href="../../highlight/styles/monokai.min.css"/>
+<script src="../../setup.js"></script>
+<script src="../../highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
+<body onload="setup()">
+<h1>
+/f0c1s/blog/articles/concurrency
+</h1>
+<nav>
+<a href="../../index.html">/blog</a> <a href="../../articles/index.html">articles</a> <a href="../../articles/concurrency/concurrency.html">+ concurrency</a>
+</nav>
+<h2 id="definitions">Definitions</h2>
+<dl>
+<dt>
+concurrency
+</dt>
+<dd>
+Ability to have multiple things happen at one time.
+</dd>
+<dt>
+concurrent application
+</dt>
+<dd>
+An application that can deal with multiple things happening at one time.
+</dd>
+<dt>
+process
+</dt>
+<dd>
+A process is an instance of a running program that is isolated from other processes on the same machine.
+</dd>
+<dt>
+thread
+</dt>
+<dd>
+An execution sequence of a part of a program
+</dd>
+<dt>
+asynchronous function
+</dt>
+<dd>
+A function that can return early, by setting up a callback.
+</dd>
+<dt>
+synchronous function
+</dt>
+<dd>
+A function that run to completion, or throw an error, or never return
+</dd>
+<dt>
+single threaded process
+</dt>
+<dd>
+Process which has only one thread of execution, if thread sleeps, the process sleeps
+</dd>
+<dt>
+multi-threaded process
+</dt>
+<dd>
+Process which has multiple threads of execution; threads can step on one-another’s toes
+</dd>
+</dl>
+<p>Now read these and may be scratch you head, while saying “huh?”</p>
+<blockquote>
+Concurrency is the simultaneous occurrence of events.
+</blockquote>
+<blockquote>
+Concurrency means multiple tasks which start, run, and complete in overlapping time periods, in no specific order.
+</blockquote>
+<blockquote>
+acting in conjunction, contributing to the same effect or event
+</blockquote>
+<blockquote>
+A thread is a locus of control inside a running program.
+</blockquote>
+<blockquote>
+A function that can be suspended while it’s partway through execution.
+</blockquote>
+<h3 id="sample-multi-thread-example-in-c">Sample multi-thread example in C</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cs"><code class="sourceCode cs"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">using</span> System;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="kw">using</span> System.<span class="fu">Threading</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="kw">namespace</span> threading_samples</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>{</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>    <span class="kw">internal</span> <span class="kw">class</span> Program</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>    {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>        <span class="kw">private</span> <span class="kw">static</span> <span class="dt">void</span> <span class="fu">Main</span>(<span class="dt">string</span>[] args)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>        {</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>            <span class="kw">for</span> (<span class="dt">var</span> i = <span class="dv">0</span>; i &lt; <span class="dv">10</span>; i++)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>            {</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>                <span class="dt">var</span> t = <span class="kw">new</span> <span class="fu">Thread</span>(WriteX);</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>                t.<span class="fu">Start</span>();</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>                Console.<span class="fu">WriteLine</span>();</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>                <span class="fu">Write_</span>();</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>            }</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a>        }</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true"></a>        <span class="kw">private</span> <span class="kw">static</span> <span class="dt">void</span> <span class="fu">Write_</span>()</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true"></a>        {</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true"></a>            <span class="kw">for</span> (<span class="dt">var</span> i = <span class="dv">0</span>; i &lt; <span class="dv">100</span>; i++) Console.<span class="fu">Write</span>(<span class="st">&quot;_&quot;</span>);</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true"></a>        }</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a>        <span class="kw">private</span> <span class="kw">static</span> <span class="dt">void</span> <span class="fu">WriteX</span>()</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a>        {</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true"></a>            <span class="kw">for</span> (<span class="dt">var</span> i = <span class="dv">0</span>; i &lt; <span class="dv">100</span>; i++) Console.<span class="fu">Write</span>(<span class="st">&quot;X&quot;</span>);</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true"></a>        }</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true"></a>    }</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true"></a>}</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true"></a></span></code></pre></div>
+<pre><code>
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+____________________________________________________________________________________________________
+________________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX____________________________________________________________________________________
+_______XX______________________________________________________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX_______________________________________
+______________XXXXXXXXX__________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX____________________________________________________________________________
+____________________________________________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX________________________________________________________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXX____________________________________________XXXXXXXXXXXXXXX________________________________________________________
+____________________________________________________________________________________________________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+____________________________X________________________________X___________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX_____________________________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+____________________________________________________________________________________________________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX____________________________________________________________________________________________________XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+</code></pre>
+<p>Contrast the two output:</p>
+<figure>
+<img src="1.csharp-multi-thread-output-1.png" alt="" /><figcaption>1.csharp-multi-thread-output-1</figcaption>
+</figure>
+<figure>
+<img src="2.csharp-multi-thread-output-2.png" alt="" /><figcaption>2.csharp-multi-thread-output-2</figcaption>
+</figure>
+<p>This should tell you that the threads are independent of each other and may be scheduled at any point of time.</p>
+<h3 id="increment-decrement-example">Increment Decrement example</h3>
+<p>In this example we are going to decrement a number 100 times and then increment it. The output should be 0 at the end, always. But this doesn’t happen.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cs"><code class="sourceCode cs"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">using</span> System;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="kw">using</span> System.<span class="fu">Threading</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="kw">namespace</span> threading_samples</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>{</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>    <span class="kw">internal</span> <span class="kw">static</span> <span class="kw">class</span> IncrementDecrement</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>    {</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>        <span class="kw">private</span> <span class="kw">static</span> <span class="dt">int</span> _value;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>        <span class="kw">private</span> <span class="kw">static</span> <span class="dt">void</span> <span class="fu">Main</span>(<span class="dt">string</span>[] args)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>        {</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a>            <span class="kw">for</span> (<span class="dt">var</span> loop = <span class="dv">0</span>; loop &lt; <span class="dv">10</span>; loop++)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>            {</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a>                _value = <span class="dv">0</span>;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a>                <span class="kw">for</span> (<span class="dt">var</span> straw = <span class="dv">0</span>; straw &lt; <span class="dv">123456</span>; straw++)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a>                {</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a>                    <span class="dt">var</span> t = <span class="kw">new</span> <span class="fu">Thread</span>(Decrement);</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a>                    t.<span class="fu">Start</span>(); <span class="co">// decrease by 100</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a>                    <span class="fu">Increment</span>(); <span class="co">// increase by 100</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a>                    t.<span class="fu">Join</span>(); <span class="co">// wait for the decrement thread to finish</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a>                    <span class="kw">if</span> (_value != <span class="dv">0</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true"></a>                    {</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true"></a>                        Console.<span class="fu">WriteLine</span>(<span class="st">&quot;value: {0}, straw that broke camel&#39;s back: {1}, loop #: {2}&quot;</span>,</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true"></a>                            _value,</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true"></a>                            straw,</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true"></a>                            loop);</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true"></a>                        <span class="kw">break</span>;</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true"></a>                    }</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true"></a>                }</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true"></a>            }</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true"></a>        }</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true"></a>        <span class="kw">private</span> <span class="kw">static</span> <span class="dt">void</span> <span class="fu">Increment</span>()</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true"></a>        {</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true"></a>            <span class="kw">for</span> (<span class="dt">var</span> i = <span class="dv">0</span>; i &lt; <span class="dv">100</span>; i++) _value++;</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true"></a>        }</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true"></a>        <span class="kw">private</span> <span class="kw">static</span> <span class="dt">void</span> <span class="fu">Decrement</span>()</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true"></a>        {</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true"></a>            <span class="kw">for</span> (<span class="dt">var</span> i = <span class="dv">0</span>; i &lt; <span class="dv">100</span>; i++) _value--;</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true"></a>        }</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true"></a>    }</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true"></a>}</span></code></pre></div>
+<pre><code>value: -67, straw that broke camel&#39;s back: 19562, loop #: 0
+value: -26, straw that broke camel&#39;s back: 63075, loop #: 1
+value: -9, straw that broke camel&#39;s back: 10, loop #: 2
+value: -14, straw that broke camel&#39;s back: 2825, loop #: 3
+value: -30, straw that broke camel&#39;s back: 50750, loop #: 4
+value: -32, straw that broke camel&#39;s back: 23053, loop #: 5
+value: -69, straw that broke camel&#39;s back: 31660, loop #: 7
+value: -43, straw that broke camel&#39;s back: 7767, loop #: 9
+</code></pre>
+<p>If you notice, loop#6 and #8 are missing, that is when the loop ended with a value of 0.</p>
+<figure>
+<img src="3.csharp-multi-thread-increment-decrement-example.png" alt="" /><figcaption>3.csharp-multi-thread-increment-decrement-example</figcaption>
+</figure>
+<h2 id="references">References</h2>
+<ol type="1">
+<li><a href="https://www.andrew.cmu.edu/user/nbier/15110/lectures/lec24-concurrency.pdf">cmu.edu pdf</a></li>
+<li><a href="https://www.geeksforgeeks.org/concurrency-in-operating-system/">concurrency-in-operating-system/</a></li>
+<li><a href="https://www.geeksforgeeks.org/difference-between-concurrency-and-parallelism/">difference-between-concurrency-and-parallelism/</a></li>
+<li><a href="https://stackoverflow.com/questions/4844637/what-is-the-difference-between-concurrency-parallelism-and-asynchronous-methods">difference between concurrency, parallelism, and asynchronous methods</a></li>
+<li><a href="https://www.etymonline.com/word/concurrent">etymology concurrent</a></li>
+<li><a href="https://www.etymonline.com/search?q=Concurrency">etymology Concurrency</a></li>
+<li><a href="https://web.mit.edu/6.005/www/fa14/classes/17-concurrency/">mit.edu 6.005</a></li>
+<li><a href="https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html">swift</a></li>
+<li><a href="https://docs.python.org/3/library/concurrency.html">python</a></li>
+</ol>
+</body>
+</html>

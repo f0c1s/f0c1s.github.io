@@ -5,6 +5,9 @@
     <title>blog.f0c1s.com/js</title>
     <link rel="stylesheet" href="../index.css"/>
     <script src="../setup.js" async></script>
+    <link rel="stylesheet" href="../../highlight/styles/monokai.min.css"/>
+    <script src="../../highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
 </head>
 <body onload="setup()">
 <h1>
