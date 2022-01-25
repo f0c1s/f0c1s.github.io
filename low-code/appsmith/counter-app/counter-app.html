@@ -1,0 +1,264 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>
+blog.f0c1s.com/low-code/appsmith/counter-app
+</title>
+<link rel="stylesheet" href="../../../index.css"/>
+<script src="../../../setup.js" async></script>
+<link rel="stylesheet" href="../../../index.css" /> <link rel="stylesheet" href="../../../highlight/styles/monokai.min.css"/>
+<script src="../../../highlight/highlight.min.js"></script>
+</head>
+<body onload="setup()">
+<h1>
+/f0c1s/blog/low-code/appsmith/counter-app
+</h1>
+<nav>
+<a href="../../../index.html">/blog</a> <a href="../../../low-code/index.html">low-code</a> <a href="../../../low-code/appsmith/index.html">appsmith</a> <a href="../../../low-code/appsmith/counter-app/counter-app.html">+ counter-app</a>
+</nav>
+<h2 id="counter-app-with-appsmith.store">counter app with <code>appsmith.store</code></h2>
+<figure>
+<img src="1.getting-ready-to-create-a-new-app.png" alt="" /><figcaption>1.getting-ready-to-create-a-new-app</figcaption>
+</figure>
+<p>Click “+ New” button, and wait for a second, a brand new application will be created for you.</p>
+<figure>
+<img src="2.freshly-created-app.png" alt="" /><figcaption>2.freshly-created-app</figcaption>
+</figure>
+<p>Rename the app to Counter. Click “Widgets”, drag a “Text” widget and change the string to “Counter”.</p>
+<p>There are two things here that I don’t like:</p>
+<ol type="1">
+<li>The “Text” property on the right side pane do not get focused on drag and drop.</li>
+<li>Hitting enter after entering “Counter” in the text box doesn’t save it but introduces a return in the text.</li>
+</ol>
+<p>Enter in a text is rarely useful, and when it is required, most apps (slack for example) allows to do so via shift+enter.</p>
+<figure>
+<img src="3.editing-text-widget-value-to-counter.png" alt="" /><figcaption>3.editing-text-widget-value-to-counter</figcaption>
+</figure>
+<p>Now drop one more text, and two buttons.</p>
+<p>Edit the value of the second text (Text2) to <code>{{ appsmith.store.counter || 0 }}</code></p>
+<figure>
+<img src="4.display-value-logic-of-counter.png" alt="" /><figcaption>4.display-value-logic-of-counter</figcaption>
+</figure>
+<p>You can rename the components to your wish, but I am keeping them as it is for now.</p>
+<p>To enter the decrement logic, click on the onClick (events) section and select “Store value”.</p>
+<p>The decrement logic is <code>{{ storeValue('counter', appsmith.store.counter - 1)}}</code>.</p>
+<figure>
+<img src="5.decrement-logic.png" alt="" /><figcaption>5.decrement-logic</figcaption>
+</figure>
+<p>The increment logic should be <code>{{ storeValue('counter', appsmith.store.counter + 1)}}</code>.</p>
+<p>But the code fails to stay the way we entered in the Value input.</p>
+<figure>
+<img src="6.addition-logic-changes.png" alt="" /><figcaption>6.addition-logic-changes</figcaption>
+</figure>
+<p>The <code>+</code> actually has an issue here.</p>
+<p>Even <code>{{ parseInt(appsmith.store.counter || "0") + 1 }}</code> and <code>{{ ((parseInt(appsmith.store.counter || "0")) + 1) }}</code> are mangled to the <code>{{}}{{1}}</code> form.</p>
+<p>The <code>Value</code> stays mangled: <code>{{appsmith.store.counter}}{{1}}</code>.</p>
+<p>This however is a JS expression (if we had pure JS expression here and no parsing logic), the output of expression above is <code>1</code>.</p>
+<p>But, we are actually parsing the <code>Value</code> field input and making a <code>{{storeValue('counter', appsmith.store.counter + 1)}}</code> expression out of it.</p>
+<p>This is enough to run the program successfully and we get a working counter app.</p>
+<p>Click the “Deploy” button. It opens a new tab and that tab loads the counter app.</p>
+<figure>
+<img src="7.deploy-counter-app.png" alt="" /><figcaption>7.deploy-counter-app</figcaption>
+</figure>
+<p>One weird thing to note is that the button click rate is low. It is as if button is stopping us from clicking it too fast. I guess this is because buttons are supposed to submit a form.</p>
+<h2 id="counter-app-with-postgres-database">counter app with postgres database</h2>
+<p>For this example I am going to use self-hosted version of appsmith.</p>
+<p>Read:</p>
+<ol type="1">
+<li><a href="../../../postgres/setup/setup-postgres-in-docker.html">../../../postgres/setup/setup-postgres-in-docker.html</a></li>
+<li><a href="../setup/setup-appsmith-in-docker.html">../setup/setup-appsmith-in-docker.html</a></li>
+<li><a href="../first-app/first-app.html">../first-app/first-app.html</a></li>
+</ol>
+<h3 id="setup-database">setup database</h3>
+<p>I am going to fire the SQL:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">create</span> <span class="kw">table</span> <span class="ot">&quot;counter-with-db&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>    counter <span class="dt">int</span> <span class="kw">default</span> <span class="dv">0</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>);</span></code></pre></div>
+<p>and this will create a table: <code>counter-with-db</code> with only one column <code>counter</code> and with default value of <code>0</code>.</p>
+<p>Then I am going to fire an insert command which will populate the table with one row.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="kw">public</span>.<span class="ot">&quot;counter-with-db&quot;</span> (counter) <span class="kw">VALUES</span> (<span class="kw">DEFAULT</span>)</span></code></pre></div>
+<h3 id="lets-create-another-app-counterwithdb">Lets create another app: CounterWithDB</h3>
+<h4 id="connect-the-table-as-datasource-in-appsmith">connect the table as datasource in appsmith</h4>
+<figure>
+<img src="8.connect-local-postgres-database.png" alt="" /><figcaption>8.connect-local-postgres-database</figcaption>
+</figure>
+<figure>
+<img src="9.datasources-show-the-table-info.png" alt="" /><figcaption>9.datasources-show-the-table-info</figcaption>
+</figure>
+<p>This is amazing, not only the table is described here, I can add a query right from here too.</p>
+<figure>
+<img src="10.add-query-sub-menu.png" alt="" /><figcaption>10.add-query-sub-menu</figcaption>
+</figure>
+<p>Clicking on “SELECT” opens a query editor.</p>
+<p>Running the query as it is runs into errors.</p>
+<figure>
+<img src="11.running-query-runs-into-issues.png" alt="" /><figcaption>11.running-query-runs-into-issues</figcaption>
+</figure>
+<p>Two things:</p>
+<ol type="1">
+<li>The position of errors is weird. Its a black tiny block of message which comes and goes from one side. How to I see that again?</li>
+<li>The SQL query has an issue, the quotes are incorrectly applied to first word after the schema name and the dot.</li>
+</ol>
+<p>However there is an error window, which can be accessed by clicking aptly iconised bug.</p>
+<figure>
+<img src="12.error-tab-in-app-dev-tools-but.png" alt="" /><figcaption>12.error-tab-in-app-dev-tools-but</figcaption>
+</figure>
+<p>But, this error and its representation are not the same as the black error messages from above.</p>
+<h4 id="the-fix">The fix?</h4>
+<p>Add quotes around the whole table name.</p>
+<p>And it works.</p>
+<figure>
+<img src="13.fixed-the-query.png" alt="" /><figcaption>13.fixed-the-query</figcaption>
+</figure>
+<p>There are few good things here:</p>
+<ol type="1">
+<li>The error clears out.</li>
+<li>The bug is not burdened with a round number on its shoulder.</li>
+<li>The output looks nice in “Response” tab.</li>
+<li>A couple of widgets are suggested.</li>
+</ol>
+<p>But we are not going to use suggested widgets in this post. All we need is this value, and a way to update it on buttons’ click.</p>
+<h4 id="update-query">Update query</h4>
+<p>The generated query has same problem with quotes here too.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">UPDATE</span> <span class="kw">public</span>.<span class="ot">&quot;counter&quot;</span><span class="op">-</span><span class="kw">with</span><span class="op">-</span>db <span class="kw">SET</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    <span class="kw">WHERE</span> <span class="dv">1</span> <span class="op">=</span> <span class="dv">0</span>; <span class="co">-- Specify a valid condition here. Removing the condition may update every row in the table!</span></span></code></pre></div>
+<p>While writing query, I realized two of my mistakes.</p>
+<ol type="1">
+<li>I don’t want to keep a state in appsmith object this time, so how am I going to get the value and pass its increment or decrement.</li>
+<li>I can create two queries that increment and decrement.</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">UPDATE</span> <span class="kw">public</span>.<span class="ot">&quot;counter-with-db&quot;</span> <span class="kw">SET</span> counter <span class="op">=</span> (<span class="kw">select</span> counter <span class="kw">from</span> <span class="kw">public</span>.<span class="ot">&quot;counter-with-db&quot;</span> <span class="kw">LIMIT</span> <span class="dv">1</span>) <span class="op">+</span> <span class="dv">1</span>;</span></code></pre></div>
+<p>I test ran this command a few times, and it did actually work. It updated the value in the table.</p>
+<figure>
+<img src="14.increment-counter-db-query.png" alt="" /><figcaption>14.increment-counter-db-query</figcaption>
+</figure>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">update</span> <span class="kw">public</span>.<span class="ot">&quot;counter-with-db&quot;</span> <span class="kw">SET</span> counter <span class="op">=</span> (<span class="kw">select</span> counter <span class="kw">from</span> <span class="kw">public</span>.<span class="ot">&quot;counter-with-db&quot;</span> <span class="kw">limit</span> <span class="dv">1</span>) <span class="op">-</span> <span class="dv">1</span>;</span></code></pre></div>
+<figure>
+<img src="15.decrement-counter-db-query.png" alt="" /><figcaption>15.decrement-counter-db-query</figcaption>
+</figure>
+<h4 id="adding-components-on-the-canvas">adding components on the canvas</h4>
+<p>Drop a text, value it “Counter with Database”.</p>
+<p>Drop another text, this will hold our value, assign it <code>{{select_counter.data[0].counter}}</code>.</p>
+<p>Add a button, call it “Decrement” and assign it a query:decement_counter. The value will look like <code>{{decrement_counter.run()}}</code>.</p>
+<figure>
+<img src="16.decrement-counter-button-click-event.png" alt="" /><figcaption>16.decrement-counter-button-click-event</figcaption>
+</figure>
+<p>Similarly drop another button and assign it <code>{{increment_counter.run()}}</code>.</p>
+<p>Deploy it, and…</p>
+<figure>
+<img src="17.value-in-text-never-changes.png" alt="" /><figcaption>17.value-in-text-never-changes</figcaption>
+</figure>
+<p>But the database shows updated value.</p>
+<p>Back to editing the value.</p>
+<p>While editing the value, I met this horrible issue, the error messages come above the “Text” input. How am I suppost to edit now?</p>
+<figure>
+<img src="18.cannot-edit-the-text-value-now-can-I.png" alt="" /><figcaption>18.cannot-edit-the-text-value-now-can-I</figcaption>
+</figure>
+<p>Then I edited to the text value to</p>
+<pre><code>{{ (function () {
+        return select_counter.data[0].counter
+    })()
+}}</code></pre>
+<p>This too work only on page load.</p>
+<p>Wait, did earlier code work only once, as in, when I assigned the value <code>select_counter.data[0].counter || 0</code>, it assigned the value only once and didn’t update on page reload. No.</p>
+<p>Even earlier code was updating the value on page reload.</p>
+<p>I am going to hack the update logic to poll every second. Bad, but it is not clear as of right now what else I can do here.</p>
+<pre><code>{{ ( const value = 0;
+setInterval(function () {
+        value = select_counter.data[0].counter
+    }, 1000);
+    return value;)()
+}}</code></pre>
+<p>Well, this doesn’t work. Why should it, it is hack and incorrect logic. Even though setInterval will work every second, the value is already returned. MEMORY LEAK!!!</p>
+<p>I need reactivity. I don’t see it here.</p>
+<p>Let me take a look at the other events.</p>
+<p>After a while I guessed if I have a on success callback, I can fetch updated value, and it might update the counter. I was hoping for magical bindings, and it worked.</p>
+<figure>
+<img src="19.onSuccess-callback-makes-this-counter-app-work.png" alt="" /><figcaption>19.onSuccess-callback-makes-this-counter-app-work</figcaption>
+</figure>
+<p>Do this for “Increment” too.</p>
+<p>My guess is that the state is maintained in such a way that when a variable is changed, actions or (work) flows based on that values receive the updated values. I guess rxjs?? Gotta see under the hood.</p>
+<p>Here is the running application video on YouTube: https://www.youtube.com/watch?v=BFfKBeuaYw8</p>
+<p>I didn’t have quiet enough environment to create one with audio yet, soon.</p>
+<p>This ends our little experiment with creating a counter app with database.</p>
+<p>So far we have used <code>appsmith.store</code> and postgres database to create our counter apps.</p>
+<h2 id="counter-app-with-google-sheets">Counter app with Google Sheets</h2>
+<p>Here is what the sheet looks like:</p>
+<figure>
+<img src="20.prepared-google-sheet.png" alt="" /><figcaption>20.prepared-google-sheet</figcaption>
+</figure>
+<p>A few things to keep in minde:</p>
+<ol type="1">
+<li>The name of the document is “AppSmithHacks”.</li>
+<li>The name of the sheet is “Counter”.</li>
+<li>The name of the column header is “Counter”.</li>
+<li>The initial value is 0.</li>
+</ol>
+<p>We might need to be careful to see if the value returned to us via appsmith after processing is of the type string or number.</p>
+<figure>
+<img src="21.click-create-new-and-then-google-sheets.png" alt="" /><figcaption>21.click-create-new-and-then-google-sheets</figcaption>
+</figure>
+<figure>
+<img src="22.click-save-and-authorize.png" alt="" /><figcaption>22.click-save-and-authorize</figcaption>
+</figure>
+<figure>
+<img src="23.after-authorization-click-new-api.png" alt="" /><figcaption>23.after-authorization-click-new-api</figcaption>
+</figure>
+<p>Provide the values required and click Run.</p>
+<figure>
+<img src="24.a-successful-fetch.png" alt="" /><figcaption>24.a-successful-fetch</figcaption>
+</figure>
+<p>The response is an object, and we need to keep track of this object for the current value of the counter.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="dt">&quot;Counter&quot;</span><span class="fu">:</span><span class="st">&quot;0&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="st">&quot;rowIndex&quot;</span><span class="er">:</span><span class="st">&quot;0&quot;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="fu">}</span></span></code></pre></div>
+<p>Lets create increment_counter query.</p>
+<figure>
+<img src="25.welp-what-now.png" alt="" /><figcaption>25.welp-what-now</figcaption>
+</figure>
+<ol type="1">
+<li>I don’t know how to get the value.</li>
+<li>I don’t know what the structure of the update query be.</li>
+</ol>
+<p>I mean, how do I access the first_column of the first_row_after_header to insert the new_value. And how do I generate this new value.</p>
+<figure>
+<img src="26.alright-the-counter-value-is-string.png" alt="" /><figcaption>26.alright-the-counter-value-is-string</figcaption>
+</figure>
+<pre><code>{{
+parseInt(select_counter.data[0].Counter) + 1
+}}</code></pre>
+<p>The code above returns a number, which we need.</p>
+<p>I think the increment query is done if this value somehow gets stored. Don’t you think?</p>
+<figure>
+<img src="27.lol-not-so-fast.png" alt="" /><figcaption>27.lol-not-so-fast</figcaption>
+</figure>
+<p>The helpful error message is saying something about string and number mismatch while serialization, I don’t know.</p>
+<figure>
+<img src="28.serialization-issue.png" alt="" /><figcaption>28.serialization-issue</figcaption>
+</figure>
+<p>The error message string “Cannot deserialize value of type <code>java.util.LinkedHashMap&lt;java.lang.String,java.lang.String&gt;</code> from Integer value (token <code>JsonToken.VALUE_NUMBER_INT</code>) at [Source: UNKNOWN; line: -1, column: -1]” whacks the google.</p>
+<p>The code below doesn’t solve the issue either, I thought it was related to our value being a number, but it is not.</p>
+<pre><code>{{(parseInt(select_counter.data[0].Counter) + 1).toString()}}</code></pre>
+<h3 id="queries">queries</h3>
+<figure>
+<img src="29.select.png" alt="" /><figcaption>29.select</figcaption>
+</figure>
+<figure>
+<img src="30.increment.png" alt="" /><figcaption>30.increment</figcaption>
+</figure>
+<figure>
+<img src="31.decrement.png" alt="" /><figcaption>31.decrement</figcaption>
+</figure>
+<h3 id="the-page">the page</h3>
+<p>It is very basic, and just repetitive.</p>
+<figure>
+<img src="32.working-app.png" alt="" /><figcaption>32.working-app</figcaption>
+</figure>
+<h2 id="the-end">The end</h2>
+<p>This marks the end of era where I’d write about appsmith, beause I am not in dev rel or user education.</p>
+<p>And because I was told that the videos that I created to highlight the bugs would create a negative impact.</p>
+</body>
+</html>
