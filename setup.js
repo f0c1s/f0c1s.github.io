@@ -25,11 +25,11 @@ function setFontFamily() {
 }
 
 function setFontSize() {
-    const fontSize = (localStorage.getItem("text-font-size") || document.querySelector("body").style.fontSize || 13);
+    const fontSize = (localStorage.getItem("text-font-size") || document.querySelector("body").style.fontSize || 16);
     localStorage.setItem("text-font-size", fontSize);
     document.querySelector("body").style.fontSize = fontSize + "px";
 
-    Array.from(document.querySelectorAll("code")).forEach(element => element.style.fontSize = "14px");
+    Array.from(document.querySelectorAll("code")).forEach(element => element.style.fontSize = "16px");
 }
 
 function progressBar() {
