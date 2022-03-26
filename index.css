@@ -18,8 +18,8 @@
 body {
     background-color: var(--bgc);
     color: var(--fgc);
-    padding: var(--d);
-    margin: var(--d) auto;
+    padding: calc(3 * var(--d));
+    margin: var(--d) auto 100px;
     font-family: monospace;
     font-size: 14px;
     border: thin solid #000;
@@ -135,7 +135,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--fgc);
     color: var(--bgc);
     padding: calc(2 * var(--d)) var(--d);
-    margin: 10px calc(-1 * var(--d));
+    margin: 10vh calc(-1 * var(--d)) 3vh;
     /*text-transform: uppercase;*/
     font-weight: bold;
     font-size: 20px;
@@ -177,27 +177,27 @@ body.teal h6 {
 }
 
 h2 {
-    padding-left: calc(4 * var(--d));
+    padding-left: calc(10 * var(--d));
     font-size: 18px
 }
 
 h3 {
-    padding-left: calc(8 * var(--d));
+    padding-left: calc(20 * var(--d));
     font-size: 16px
 }
 
 h4 {
-    padding-left: calc(12 * var(--d));
+    padding-left: calc(30 * var(--d));
     font-size: 14px
 }
 
 h5 {
-    padding-left: calc(16 * var(--d));
+    padding-left: calc(40 * var(--d));
     font-size: 12px
 }
 
 h6 {
-    padding-left: calc(20 * var(--d));
+    padding-left: calc(50 * var(--d));
     font-size: 10px
 }
 
@@ -275,8 +275,8 @@ a.in {
 }
 
 blockquote {
-    font-size: .9em;
-    text-shadow: 2px 2px 2px black;
+    /*font-size: .9em;*/
+    /*text-shadow: 2px 2px 2px black;*/
     padding: 1rem;
 }
 
@@ -321,6 +321,7 @@ summary h3,
 summary h4,
 summary h5,
 summary h6 {
+    margin-top: 20px;
     display: inline-block;
     padding-top: 0;
 }
@@ -342,7 +343,7 @@ details[open] summary {
     body {
         min-width: 480px;
         padding: var(--d);
-        margin: var(--d) auto;
+        margin: var(--d) auto 100px;
     }
 }
 
@@ -350,7 +351,7 @@ details[open] summary {
     body {
         min-width: 760px;
         padding: var(--d);
-        margin: var(--d) auto;
+        margin: var(--d) auto 100px;
     }
 }
 
@@ -358,7 +359,7 @@ details[open] summary {
     body {
         min-width: 960px;
         padding: var(--d);
-        margin: var(--d) auto;
+        margin: var(--d) auto 100px;
     }
 }
 
@@ -366,8 +367,8 @@ details[open] summary {
     body {
         width: 1200px;
         max-width: 1200px;
-        padding: var(--d);
-        margin: var(--d) auto;
+        padding: calc(3 * var(--d));
+        margin: var(--d) auto 100px;
     }
 }
 
@@ -375,7 +376,7 @@ details[open] summary {
     body {
         width: 1600px;
         max-width: 1600px;
-        padding: var(--d);
-        margin: var(--d) auto;
+        padding: calc(3 * var(--d));
+        margin: var(--d) auto 100px;
     }
 }

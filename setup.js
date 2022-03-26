@@ -1,19 +1,19 @@
 function setup() {
-    // localStorage
-    const storedColorMode = localStorage.getItem("color-mode") || 'dark';
-    console.log(storedColorMode);
-    window.APP = {
-        storedColorMode: storedColorMode
-    };
-    // assign the values from localStorage to objects
-    // // color mode to body
-    document.querySelector('body').className = '';
-    document.querySelector('body').className = storedColorMode;
+    // // localStorage
+    // const storedColorMode = localStorage.getItem("color-mode") || 'dark';
+    // console.log(storedColorMode);
+    // window.APP = {
+    //     storedColorMode: storedColorMode
+    // };
+    // // assign the values from localStorage to objects
+    // // // color mode to body
+    // document.querySelector('body').className = '';
+    // document.querySelector('body').className = storedColorMode;
 
     progressBar();
     takeToTopButton();
-    setFontSize();
-    setFontFamily();
+    // setFontSize();
+    // setFontFamily();
 }
 
 function setFontFamily() {
