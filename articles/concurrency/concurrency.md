@@ -10,7 +10,7 @@
     <script>hljs.highlightAll();</script>
 </head>
 
-<body onload="setup()">
+<body>
 <h1>/f0c1s/blog/articles/concurrency</h1>
 <nav>
     <a href="../../index.html">/blog</a>
@@ -228,7 +228,7 @@ namespace threading_samples
 
 ```
 
-Nothing. No errors. 
+Nothing. No errors.
 
 That's because computers are fast. Notice, Increment/Decrement loops are running only twice. Inner loop(straw) is running only 100 times, outer loop only 10 times. And there are no errors.
 
