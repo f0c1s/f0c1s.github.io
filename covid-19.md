@@ -197,6 +197,13 @@ My head rings like a bell on coughing. And it hurts.
 
 Not that I know what a bell feels when it rings, but I would assume that it is painful.
 
+## updates 2022.05.01
+
+- coughing
+- tiredness: have to take rest after speaking 2 sentences or walking for 2 minute
+- sweat heavily last night, almost passed out from exhaustion.
+
+
 Will update soon.
 
 </body>
