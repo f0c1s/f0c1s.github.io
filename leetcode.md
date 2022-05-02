@@ -19,9 +19,120 @@
 
 ## TOC
 
+- LinkedList - add two numbers
 - Longest Palindromic Substring
 - Three sum
 - Two sum
+
+## LinkedList - add two numbers
+
+```javascript
+/**
+ * ListNode: singly-linked list node data structure, provides `val` and `next` elements and `toString` method.
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ *
+ * @param {string | undefined} val
+ * @param {ListNode | undefined} next
+ * @return {ListNode}
+ */
+class ListNode {
+    constructor(val, next) {
+        this.val = (val === undefined ? 0 : val);
+        this.next = (next === undefined ? null : next);
+    }
+
+    /**
+     * toString: unrolls data structure into a string value
+     * @return {string}
+     */
+    toString() {
+        let curr = this;
+        let value = '';
+        while (curr) {
+            value += curr.val;
+            curr = curr.next;
+        }
+        return value;
+    }
+}
+
+/**
+ * @description You are given two non-empty linked lists representing two non-negative integers.
+ * The digits are stored in reverse order, and each of their nodes contains a single digit.
+ * Add the two numbers and return the sum as a linked list.
+ *
+ * You may assume the two numbers do not contain any leading zero, except the number 0 itself.
+ *
+ * @param {ListNode} l1
+ * @param {ListNode} l2
+ * @return {ListNode}
+ *
+ * Constraints:
+ *     The number of nodes in each linked list is in the range [1, 100].
+ *     0 <= Node.val <= 9
+ *     It is guaranteed that the list represents a number that does not have leading zeros.
+ *
+ * @example 1:
+ * Input: l1 = [2,4,3], l2 = [5,6,4]
+ * Output: [7,0,8]
+ * Explanation: 342 + 465 = 807.
+ *
+ * @example 2:
+ * Input: l1 = [0], l2 = [0]
+ * Output: [0]
+ *
+ * @example 3:
+ * Input: l1 = [9,9,9,9,9,9,9], l2 = [9,9,9,9]
+ * Output: [8,9,9,9,0,0,0,1]
+ */
+function addTwoNumbers(l1, l2) {
+    let n1 = listToNumber(l1);
+    let n2 = listToNumber(l2);
+    let n3 = n1 + n2;
+    return numberToList(n3);
+}
+
+/**
+ * @description Convert {ListNode} to a {Number}
+ * @param {ListNode} list
+ * @return {number}
+ */
+function listToNumber(list) {
+    let num = 0;
+    while (list) {
+        num = num * 10 + Number(list.val);
+        list = list.next;
+    }
+    return num;
+}
+
+/**
+ * @description Convert a {Number} to a {ListNode}
+ * @param {Number} num
+ * @return {ListNode}
+ */
+function numberToList(num) {
+    const nodes = num
+        .toString()
+        .split('')
+        .reverse()
+        .map(i => new ListNode(i, null));
+
+    const START = nodes[0];
+
+    nodes.slice(1).reduce((a, c) => a.next = c, START);
+    return START;
+}
+
+const l1 = numberToList(9999999);
+const l2 = numberToList(9999);
+const n3 = addTwoNumbers(l1, l2);
+console.log(l1, l2, n3, n3.toString());
+```
 
 ## Longest Palindromic Substring
 
