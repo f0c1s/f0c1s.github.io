@@ -27,6 +27,8 @@
 Fneosan became nese became sneeze. Diem is by the day.
 
 It means "sneeze the day", as opposed to seize the day.
+
+Usage: Life is eternal oscillation between arpe diem and fneosan diem.
 </div>
 
 <h2>Viva la vox populi</h2>
@@ -34,6 +36,8 @@ It means "sneeze the day", as opposed to seize the day.
 Viva la means long live the in french. Vox populi means voice of the people in latin.
 
 Long live the voice of the people.
+
+Usage: "Viva la vox populi!" - shouted David as he threw his concluding stone at Goliath.
 </div>
 
 <script>hljs.highlightAll();</script>
