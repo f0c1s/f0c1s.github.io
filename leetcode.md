@@ -19,10 +19,44 @@
 
 ## TOC
 
+- Fibonacci - dynamic programming
 - LinkedList - add two numbers
 - Longest Palindromic Substring
+- Subtract product and sum of digits of a number
 - Three sum
+- Tribonacci - dynamic programming
 - Two sum
+
+## Fibonacci - dynamic programming
+
+```javascript
+/**
+ * fib: generate fibonacci numbers via dynamic programming
+ * @param {number} n
+ * @param {number[]} store
+ * @return {number|undefined}
+ */
+function fib(n, store = [0, 1]) {
+    // console.log(".");
+    store = store || [0, 1];
+    if (n < 0 || n > 30) {
+        return undefined;
+    }
+    if (n === 0 || n === 1) {
+        return store[n];
+    }
+    if (store[n - 1]) {
+        store[n] = store[n - 1] + store[n - 2];
+        return store[n];
+    }
+    const n1 = fib(n - 1, store);
+    store[n] = n1 + store[n - 2];
+    return store[n];
+}
+
+console.log(fib(8));
+console.log(fib(26));
+```
 
 ## LinkedList - add two numbers
 
@@ -209,6 +243,46 @@ console.log(longestPalindrome("babaddtattarrattatddetartrateedredividerb"));
 
 ```
 
+## Subtract product and sum of digits of a number
+
+```javascript
+/**
+ * Given an integer number n, return the difference between the product of its digits and the sum of its digits.
+ *
+ * @example 1:
+ * Input: n = 234
+ * Output: 15
+ * Explanation:
+ * Product of digits = 2 * 3 * 4 = 24
+ * Sum of digits = 2 + 3 + 4 = 9
+ * Result = 24 - 9 = 15
+ *
+ * @example 2:
+ * Input: n = 4421
+ * Output: 21
+ * Explanation:
+ * Product of digits = 4 * 4 * 2 * 1 = 32
+ * Sum of digits = 4 + 4 + 2 + 1 = 11
+ * Result = 32 - 11 = 21
+ *
+ *
+ * Constraints: 1 <= n <= 10^5
+ *
+ * @param {number} n
+ * @return {number}
+ */
+function subtractProductAndSum(n) {
+    return [n.toString().split('').map(i => parseInt(i))]
+        .map(a => ({
+            product: a.reduce((a, c) => a * c, 1), sum: a.reduce((a, c) => a + c, 0)
+        })).map(i => i.product - i.sum)
+        .pop();
+}
+
+console.log(subtractProductAndSum(234) === 15);
+console.log(subtractProductAndSum(4421) === 21);
+```
+
 ## Three sum
 
 Given a sorted, non-decreasing, array of numbers and a `target` number, find indices(i, j, k) of three numbers such that `a[i] + a[j] + a[k] = target`.
@@ -243,6 +317,60 @@ function sumOfThree(numbers, target) {
 console.log(sumOfThree([1, 2, 3, 4, 5, 6], 15)); // [ 3, 4, 5 ]
 console.log(sumOfThree([1, 2, 3, 4, 5, 6], 10)); // [ 0, 2, 5 ]
 
+```
+
+## Tribonacci - dynamic programming
+
+```javascript
+/**
+ * The Tribonacci sequence Tn is defined as follows:
+ *
+ * T0 = 0, T1 = 1, T2 = 1, and Tn+3 = Tn + Tn+1 + Tn+2 for n >= 0.
+ *
+ * Given n, return the value of Tn.
+ * @param {number} n
+ * @return {number}
+ */
+function tribonacci(n, store = [0, 1, 1]) {
+    if (n < 0 || n > 37) {
+        return undefined;
+    }
+    store = store || [0, 1, 1];
+    if (n <= 2) {
+        return store[n];
+    }
+    if (store[n - 1]) {
+        store[n] = store[n - 1] + store[n - 2] + store[n - 3];
+        return store[n];
+    }
+    const n1 = tribonacci(n - 1, store);
+    store[n] = n1 + store[n - 2] + store[n - 3];
+    return store[n];
+}
+
+/**
+ * @param {number} n
+ * @return {number}
+ * @example
+ * Input: n = 4
+ *     Output: 4
+ *     Explanation:
+ *     T_3 = 0 + 1 + 1 = 2
+ *     T_4 = 1 + 1 + 2 = 4
+ @example
+ *     Input: n = 25
+ *     Output: 1389537
+ */
+function tribonacciFaster(n) {
+    const store = [0, 1, 1];
+    if (n < 3) {
+        return store[n] || 0;
+    }
+    for (let i = 3; i <= n; i++) {
+        store.push(store[i - 3] + store[i - 2] + store[i - 1]);
+    }
+    return store[n];
+}
 ```
 
 ## Two sum
