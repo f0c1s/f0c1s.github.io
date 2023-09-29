@@ -2,19 +2,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>blog.f0c1s.com/leetcode</title>
-<script src="setup.js" async></script>
-<link rel="stylesheet" href="index.css" />
-<link rel="stylesheet" href="highlight/styles/monokai.min.css"/>
-<script src="highlight/highlight.min.js"></script>
+<title>leetcode on blog.f0c1s.com</title>
+<script src="/setup.js" async></script>
+<link rel="stylesheet" href="../index.css" />
+<link rel="stylesheet" href="../highlight/styles/monokai.min.css"/>
+<script src="../highlight/highlight.min.js"></script>
 </head>
 
 <body onload="setup()">
-<h1>/f0c1s/blog/leetcode</h1>
+<h1>/f0c1s/blog/codes/leetcode</h1>
 
 <p>
-    <a href="index.html">blog</a>
-    <a href="leetcode.html">+ leetcode</a>
+    <a href="../index.html">&laquo;blog</a>
+    <a href="./index.html">&laquo;codes</a>
 </p>
 
 ## TOC
@@ -395,7 +395,7 @@ function twoSum(numbers, target) {
     }
 }
 ```
-
+<script src="../setup.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>

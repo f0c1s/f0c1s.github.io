@@ -15,15 +15,56 @@
     box-sizing: border-box;
 }
 
+@font-face {
+    font-family: ComicNeueRegular;
+    src: url(fonts/ComicNeue-Regular.ttf);
+}
+
+@font-face {
+    font-family: PacificoRegular;
+    src: url(fonts/Pacifico-Regular.ttf);
+}
+
+@font-face {
+    font-family: SrirachaRegular;
+    src: url(fonts/Sriracha-Regular.ttf);
+}
+
+@font-face {
+    font-family: CaveatRegular;
+    src: url(fonts/Caveat-Regular.ttf);
+}
+
+@font-face {
+    font-family: KalamRegular;
+    src: url(fonts/Kalam-Regular.ttf);
+}
+
+@font-face {
+    font-family: SatisfyRegular;
+    src: url(fonts/Satisfy-Regular.ttf);
+}
+
 body {
     background-color: var(--bgc);
     color: var(--fgc);
     padding: calc(3 * var(--d));
-    margin: var(--d) auto 100px;
-    font-family: monospace;
+    margin: var(--d) 0 100px;
+    font-family: ComicNeueRegular, monospace;
     font-size: 16px;
     word-wrap: break-word;
     min-height: 1000px;
+    width: 210mm;
+}
+
+body.hico_white{
+    background-color: var(--white);
+    color: var(--black);
+}
+
+body.hico_dark {
+    background-color: var(--black);
+    color: var(--white);
 }
 
 body.dark {
@@ -47,26 +88,41 @@ p {
 }
 
 a {
-    padding: 2px;
-    margin: 2px;
-    display: block;
+    padding: 7px 0;
+    margin: 0 20px;
+    display: inline-block;
+    text-decoration-color: black;
+    text-decoration-style: double;
+    text-underline-offset: 5px;
+    min-width: 12vw;
 }
 
-body.dark a {
+a:active {
+    text-decoration-style: wavy;
+}
+
+body.dark a,
+body.hico_dark a {
     color: red;
+    text-decoration-color: red;
 }
 
-body.dark a:visited {
+body.dark a:visited,
+body.hico_dark a:visited {
     color: #ff7373;
+
 }
 
-body.dark a:active {
+body.dark a:active,
+body.hico_dark a:active {
     color: magenta;
 }
 
 body.dark figure {
     padding: 1rem 0;
 }
+
+
 
 body.teal a {
     color: var(--teal-h);
@@ -131,7 +187,7 @@ p code {
 
 h1, h2, h3, h4, h5, h6 {
     padding: var(--d);
-    margin: 0 calc(-1 * var(--d)) 3vh;
+    margin: 3vh calc(-1 * var(--d));
     font-weight: bold;
     font-size: 20px;
     border-bottom: red solid 2px;
@@ -359,7 +415,7 @@ details[open] summary {
 
 @media screen and (min-width: 1200px) {
     body {
-        width: 1200px;
+        width: 210mm;
         max-width: 1200px;
         padding: calc(3 * var(--d));
         margin: var(--d) auto 100px;
@@ -368,7 +424,7 @@ details[open] summary {
 
 @media screen and (min-width: 1600px) {
     body {
-        width: 1600px;
+        width: 210mm;
         max-width: 1600px;
         padding: calc(3 * var(--d));
         margin: var(--d) auto 100px;

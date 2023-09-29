@@ -9,9 +9,9 @@
 </head>
 <body onload="setup(); localSetup();">
 <h1>/f0c1s/blog/settings</h1>
-<p>
-    <a href="./index.html">blog</a>
-</p>
+<nav>
+    <a href="./index.html">&laquo;blog</a>
+</nav>
 <fieldset>
     <legend>Color mode</legend>
     <label for="color_mode_light">light
@@ -27,6 +27,13 @@
     <label for="color_mode_teal">teal
         <input type="radio" id="color_mode_teal" name="color_mode" value="teal" onchange="onColorModeSelect(this)"/>
     </label>
+    <label for="color_mode_hico_white">high contrast white
+        <input type="radio" id="color_mode_hico_white" name="color_mode" value="hico_white"
+               onchange="onColorModeSelect(this)"/>
+    </label>
+    <label for="color_mode_hico_dark">high contrast dark
+        <input type="radio" id="color_mode_hico_dark" name="color_mode" value="hico_dark" onchange="onColorModeSelect(this)"/>
+    </label>
 </fieldset>
 
 <fieldset>
@@ -36,6 +43,12 @@
             <option value="monospace">monospace</option>
             <option value="sans-serif">sans serif</option>
             <option value="serif">serif</option>
+            <option value="ComicNeueRegular">comic neue regular</option>
+            <option value="SatisfyRegular">satisfy regular</option>
+            <option value="SrirachaRegular">sriracha regular</option>
+            <option value="CaveatRegular">caveat regular</option>
+            <option value="PacificoRegular">pacifico regular</option>
+            <option value="KalamRegular">kalam regular</option>
         </select>
     </label>
     <label for="font_text_size">text font size:
@@ -43,7 +56,7 @@
                value="14"
                id="font_text_size" name="font_text_size"
                onchange="onTextFontSizeChange(this)"/>
-        px
+        <span id="font_text_size_value"></span>px
     </label>
 
 </fieldset>
@@ -54,6 +67,7 @@
         console.log(e, typeof e, e.value);
         localStorage.setItem('text-font-size', e.value);
         document.querySelector('body').style.fontSize = e.value + 'px';
+        document.querySelector("#font_text_size_value").innerHTML = e.value;
     }
 
     function onTextFontFamilySelect(e) {
@@ -65,7 +79,8 @@
     function onColorModeSelect(e) {
         localStorage.setItem('color-mode', e.value);
         document.querySelector('body').className = e.value;
-        document.location = document.location;
+        // document.location = document.location;
+        // window.location = window.location;
     }
 
     function localSetup() {
@@ -76,6 +91,11 @@
         // font family
         const fontFamily = localStorage.getItem("text-font-family");
         Array.from(document.querySelectorAll("#font_text option")).forEach(x => x.selected = fontFamily === x.value);
+
+        // font size
+        const fontSize = localStorage.getItem("text-font-size");
+        document.querySelector("#font_text_size").value = fontSize;
+        document.querySelector("#font_text_size_value").innerHTML = fontSize;
     }
 </script>
 </body>
