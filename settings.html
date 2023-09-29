@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
     <title>Settings on blog.f0c1s.com</title>
-    <link rel="stylesheet" href="index.css"/>
-    <script src="setup.js" async></script>
+    <link href="index.css" rel="stylesheet"/>
+    <script async src="setup.js"></script>
 </head>
 <body onload="setup(); localSetup();">
 <h1>/f0c1s/blog/settings</h1>
@@ -15,31 +15,32 @@
 <fieldset>
     <legend>Color mode</legend>
     <label for="color_mode_light">light
-        <input type="radio" id="color_mode_light" name="color_mode" value="light"
-               onchange="onColorModeSelect(this)"/>
+        <input id="color_mode_light" name="color_mode" onchange="onColorModeSelect(this)" type="radio"
+               value="light"/>
     </label>
     <label for="color_mode_dark">dark
-        <input type="radio" id="color_mode_dark" name="color_mode" value="dark" onchange="onColorModeSelect(this)"/>
+        <input id="color_mode_dark" name="color_mode" onchange="onColorModeSelect(this)" type="radio" value="dark"/>
     </label>
     <label for="color_mode_pink">pink
-        <input type="radio" id="color_mode_pink" name="color_mode" value="pink" onchange="onColorModeSelect(this)"/>
+        <input id="color_mode_pink" name="color_mode" onchange="onColorModeSelect(this)" type="radio" value="pink"/>
     </label>
     <label for="color_mode_teal">teal
-        <input type="radio" id="color_mode_teal" name="color_mode" value="teal" onchange="onColorModeSelect(this)"/>
+        <input id="color_mode_teal" name="color_mode" onchange="onColorModeSelect(this)" type="radio" value="teal"/>
     </label>
     <label for="color_mode_hico_white">high contrast white
-        <input type="radio" id="color_mode_hico_white" name="color_mode" value="hico_white"
-               onchange="onColorModeSelect(this)"/>
+        <input id="color_mode_hico_white" name="color_mode" onchange="onColorModeSelect(this)" type="radio"
+               value="hico_white"/>
     </label>
     <label for="color_mode_hico_dark">high contrast dark
-        <input type="radio" id="color_mode_hico_dark" name="color_mode" value="hico_dark" onchange="onColorModeSelect(this)"/>
+        <input id="color_mode_hico_dark" name="color_mode" onchange="onColorModeSelect(this)" type="radio"
+               value="hico_dark"/>
     </label>
 </fieldset>
 
 <fieldset>
     <legend>Fonts</legend>
     <label for="font_text">text font family:
-        <select name="font_text" id="font_text" onchange="onTextFontFamilySelect(this)">
+        <select id="font_text" name="font_text" onchange="onTextFontFamilySelect(this)">
             <option value="monospace">monospace</option>
             <option value="sans-serif">sans serif</option>
             <option value="serif">serif</option>
@@ -52,10 +53,10 @@
         </select>
     </label>
     <label for="font_text_size">text font size:
-        <input type="range" min="8" max="32"
-               value="14"
-               id="font_text_size" name="font_text_size"
-               onchange="onTextFontSizeChange(this)"/>
+        <input id="font_text_size" max="32" min="8"
+               name="font_text_size"
+               onchange="onTextFontSizeChange(this)" type="range"
+               value="14"/>
         <span id="font_text_size_value"></span>px
     </label>
 
