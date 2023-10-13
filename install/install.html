@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>install at blog.f0c1s.com</title>
+</head>
+<body>
+<h3>install</h3>
+<h4>github cli</h4>
+<pre>
+    type -p curl >/dev/null || ( apt update &&  apt install curl -y)
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg |  dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    &&  chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |  tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    &&  apt update \
+    &&  apt install gh -y
+</pre>
+<h4>golang</h4>
+<pre>
+    curl -fsSL https://go.dev/dl/go1.21.3.linux-amd64.tar.gz | dd of="./golang.tar.gz"
+    rm -rf /usr/local/go && tar -C /usr/local -xzf golang.tar.gz
+    echo "export PATH=\"\$PATH:/usr/local/go/bin\"" >> /home/anubhav/.bashrc
+</pre>
+</body>
+</html>

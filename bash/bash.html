@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bash at blog.f0c1s.com</title>
+</head>
+<body>
+<section>
+    <h3>Bash</h3>
+    <h4>set -euxo pipefail</h4>
+    <pre>
+        set -e
+            set -o errexit
+            Exit on error.
+
+        set -u
+            set -o nounset
+            Treat unset variables and parameters other than the special parameters
+            ‘@’ or ‘*’, or array variables subscripted with ‘@’ or ‘*’, as an
+            error when performing parameter expansion.
+            Error is written to standard error.
+            Non interactive shell exits.
+
+        set -x
+            set -o xtrace
+            Print a trace of some (simple, for, case...) commands before execution.
+
+        set -o pipefail
+            0: if all commands in a pipeline exit successfully, OR
+            value: of the first failing command in the pipeline.
+            This option is disabled by default.
+    </pre>
+    <h4>eval</h4>
+    <pre>
+        The arguments are concatenated together into a single command,
+        which is then read and executed,
+        and its exit status returned as the exit status of eval.
+        If there are no arguments or only empty arguments,
+        the return status is zero.
+
+        eval "echo" "I shall be printed"
+    </pre>
+</section>
+</body>
+</html>

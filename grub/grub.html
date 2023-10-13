@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>grub at blog.f0c1s.com</title>
+</head>
+<body>
+<h3>grub</h3>
+<h4>update-grub</h4>
+<pre>
+    root@debian:~# which update-grub
+    /usr/sbin/update-grub
+
+
+    root@debian:~# which update-grub2
+    /usr/sbin/update-grub2
+
+
+    root@debian:~# cat /usr/sbin/update-grub
+    #!/bin/sh
+    set -e
+    exec grub-mkconfig -o /boot/grub/grub.cfg "$@"
+
+
+    root@debian:~# cat /usr/sbin/update-grub2
+    #!/bin/sh
+    set -e
+    exec grub-mkconfig -o /boot/grub/grub.cfg "$@"
+
+
+
+    root@debian:~# ls -l `which update-grub`
+    -rwxr-xr-x 1 root root 64 Oct  2 19:41 /usr/sbin/update-grub
+
+
+    ($@) Expands to the positional parameters, starting from one.
+
+</pre>
+</body>
+</html>
