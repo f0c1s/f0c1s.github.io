@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>install at blog.f0c1s.com</title>
+    <link href="../site.css" rel="stylesheet"/>
 </head>
 <body>
-<h3>install</h3>
-<h4>github cli</h4>
-<pre>
+<header class="title">blog.f0c1s.com/install</header>
+<div class="content">
+    <h3>install</h3>
+    <h4>github cli</h4>
+    <pre>
     type -p curl >/dev/null || ( apt update &&  apt install curl -y)
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg |  dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     &&  chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -15,14 +18,14 @@
     &&  apt update \
     &&  apt install gh -y
 </pre>
-<h4>golang</h4>
-<pre>
+    <h4>golang</h4>
+    <pre>
     curl -fsSL https://go.dev/dl/go1.21.3.linux-amd64.tar.gz | dd of="./golang.tar.gz"
     rm -rf /usr/local/go && tar -C /usr/local -xzf golang.tar.gz
     echo "export PATH=\"\$PATH:/usr/local/go/bin\"" >> /home/anubhav/.bashrc
 </pre>
-<h4>rust-lang</h4>
-<pre>
+    <h4>rust-lang</h4>
+    <pre>
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     # Hit Enter
     Delete: . "$HOME/.cargo/env" from .bashrc
@@ -30,6 +33,13 @@
     Close and Open Konsole
     rustc --version
 </pre>
-
+    <div class="item">
+        <h4>pipx</h4>
+        <pre>
+            apt install pipx
+        </pre>
+        <p>pipx is preferred over pip for installing python applications now. (2023.10+)</p>
+    </div>
+</div>
 </body>
 </html>

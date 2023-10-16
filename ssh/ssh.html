@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>ssh at blog.f0c1s.com</title>
+    <link href="../site.css" rel="stylesheet"/>
 </head>
 <body>
-<h3>ssh</h3>
-<h4>
-    ~/.ssh/config file
-</h4>
-<pre>
+<header class="title">blog.f0c1s.com/ssh</header>
+<div class="content">
+    <h3>ssh</h3>
+    <h4>
+        ~/.ssh/config file
+    </h4>
+    <pre>
     Host github.com
         User YOUR_GIT_USER_NAME
         Hostname github.com
@@ -20,28 +23,28 @@
         # UseKeychain yes # mac only
 
 </pre>
-<h4>ssh-add</h4>
-<pre>
+    <h4>ssh-add</h4>
+    <pre>
     When run without arguments, it adds the files
     ~/.ssh/id_rsa, ~/.ssh/id_ecdsa, ~/.ssh/id_ecdsa_sk,
     ~/.ssh/id_ed25519,  ~/.ssh/id_ed25519_sk, and ~/.ssh/id_dsa.
 </pre>
-<h4>ssh-keygen</h4>
-<pre>
+    <h4>ssh-keygen</h4>
+    <pre>
     ssh-keygen -t ed25519 -b 4096 -C "ssh-key for ..."
 </pre>
 
-<h4>Adding keys to ssh-agent</h4>
-<pre>
+    <h4>Adding keys to ssh-agent</h4>
+    <pre>
     eval "$(ssh-agent -s)"
     ssh-add -t 1000000 # OR
     ssh-add -t 1000000 ~/.ssh/KEY_NAME
 </pre>
 
-<h4>List all keys in the ssh-agent</h4>
-<pre>
+    <h4>List all keys in the ssh-agent</h4>
+    <pre>
     ssh-add -l
 </pre>
-
+</div>
 </body>
 </html>
