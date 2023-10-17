@@ -7,7 +7,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: hsl(0, 0%, 13%); /* #222 converted to HSL */
-    color: hsl(20, 100%, 66%); /* #fba converted to HSL */
+    color: hsl(0, 0%, 100%);
 }
 
 a {
@@ -31,15 +31,14 @@ a {
 }
 
 header.title {
-    font-size: 32px;
     background-color: hsl(0, 0%, 20%); /* #333 converted to HSL */
     color: hsl(0, 0%, 100%); /* white */
     text-align: center;
     position: sticky;
     top: 0;
     z-index: 1000;
-    height: 5vh;
-    line-height: 5vh;
+    height: 7vh;
+    line-height: 7vh;
 }
 
 .content {
@@ -52,11 +51,12 @@ header.title {
 }
 
 pre {
-    font-size: 13px;
+    font-size: 16px;
     padding: 4vh 4vw;
     border: thin solid hsl(0, 0%, 67%); /* #aaa converted to HSL */
     font-family: monospace;
     background-color: hsl(0, 0%, 20%); /* #333 converted to HSL */
+    color: hsl(33, 100%, 50%);
     width: 100%;
     white-space: pre-wrap;
     word-wrap: break-word;
