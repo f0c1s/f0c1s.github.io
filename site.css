@@ -6,12 +6,12 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #222;
-    color: #fba;
+    background-color: hsl(0, 0%, 13%); /* #222 converted to HSL */
+    color: hsl(20, 100%, 66%); /* #fba converted to HSL */
 }
 
 a {
-    color: #fff;
+    color: hsl(0, 0%, 100%); /* #fff converted to HSL */
     text-decoration-line: overline;
     margin: 10px;
     padding: 5px;
@@ -19,8 +19,8 @@ a {
 }
 
 .hi {
-    background-color: #555;
-    color: #dfe;
+    background-color: hsl(0, 0%, 33%); /* #555 converted to HSL */
+    color: hsl(210, 60%, 86%); /* #dfe converted to HSL */
     font-size: 128px;
     text-align: center;
     margin: 0;
@@ -32,11 +32,11 @@ a {
 
 header.title {
     font-size: 32px;
-    background-color: #333;
-    color: white;
+    background-color: hsl(0, 0%, 20%); /* #333 converted to HSL */
+    color: hsl(0, 0%, 100%); /* white */
     text-align: center;
     position: sticky;
-    top: 0; /* The header will be sticky at the top of the viewport */
+    top: 0;
     z-index: 1000;
     height: 5vh;
     line-height: 5vh;
@@ -54,11 +54,10 @@ header.title {
 pre {
     font-size: 13px;
     padding: 4vh 4vw;
-    border: thin solid #aaa;
+    border: thin solid hsl(0, 0%, 67%); /* #aaa converted to HSL */
     font-family: monospace;
-    background-color: #333;
+    background-color: hsl(0, 0%, 20%); /* #333 converted to HSL */
     width: 100%;
     white-space: pre-wrap;
-    /*line-height: 2em;*/
     word-wrap: break-word;
 }
