@@ -38,13 +38,17 @@ header.title {
     position: sticky;
     top: 0; /* The header will be sticky at the top of the viewport */
     z-index: 1000;
-    height: 20vh;
-    line-height: 20vh;
+    height: 5vh;
+    line-height: 5vh;
 }
 
 .content {
     min-height: 100vh;
-    padding: 0 10vw;
+    padding: 10vh 10vw;
+}
+
+.content a {
+    font-size: 20px;
 }
 
 pre {
